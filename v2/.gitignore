@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Build artifacts (開発用、公開用のdist/index.htmlは除く)
+src/dist/
+
+# Vite cache
+src/node_modules/.vite/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
