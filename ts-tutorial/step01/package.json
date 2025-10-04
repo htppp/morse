@@ -1,0 +1,18 @@
+{
+  "name": "step01",
+  "version": "1.0.0",
+  "description": "## 🎯 学習目標",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}
