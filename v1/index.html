@@ -281,6 +281,8 @@
             border: none;
             border-radius: 50%;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             margin: 30px auto;
             display: block;
             min-width: 200px;
@@ -1191,7 +1193,8 @@
             }
         }
         
-        document.getElementById('morseKey').addEventListener('mousedown', () => {
+        document.getElementById('morseKey').addEventListener('mousedown', (e) => {
+            e.preventDefault();
             if (straightKeyDown) return;
             ensureAudioContext();
             if (audioContext.state === 'suspended') {
@@ -1230,6 +1233,50 @@
                 setStraightTimers();
             }
         });
+
+        // タッチイベント対応（スマートフォン用）
+        document.getElementById('morseKey').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (straightKeyDown) return;
+            ensureAudioContext();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            straightKeyDown = true;
+            straightKeyDownTime = Date.now();
+            clearStraightTimers();
+            startStraightTone();
+        }, { passive: false });
+
+        document.getElementById('morseKey').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!straightKeyDown) return;
+            straightKeyDown = false;
+            const duration = Date.now() - straightKeyDownTime;
+            stopStraightTone();
+
+            const timings = getTimings();
+            const signal = duration < timings.dash ? '.' : '-';
+            straightSequence += signal;
+            straightLastInputTime = Date.now();
+            updateStraightDisplay();
+            setStraightTimers();
+        }, { passive: false });
+
+        document.getElementById('morseKey').addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            if (straightKeyDown) {
+                straightKeyDown = false;
+                stopStraightTone();
+                const duration = Date.now() - straightKeyDownTime;
+                const timings = getTimings();
+                const signal = duration < timings.dash ? '.' : '-';
+                straightSequence += signal;
+                straightLastInputTime = Date.now();
+                updateStraightDisplay();
+                setStraightTimers();
+            }
+        }, { passive: false });
         
         function updateStraightDisplay() {
             let display = '';
