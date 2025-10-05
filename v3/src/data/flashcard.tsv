@@ -1,0 +1,111 @@
+タグ	使用頻度	略語	英文	和訳
+送受,制御	5	[BK]	Break	送受交代せよ(交信をすぐに続ける)
+送受,制御	5	K	Go ahead, invite reply	どうぞ(送信をどうぞ)
+送受,制御	4	KN	Go ahead, specific station only	特定局どうぞ(他局送信禁止)
+送受,制御	4	[AR]	End of message	文の終わり
+送受,制御	3	[AS]	Wait	少し待って
+送受,制御	4	[BT]	Break between parts of message	文の区切り
+送受,制御	2	[HH]	Error correction signal (error)	訂正(誤り)
+送受,制御	4	[VA]	End of contact (Goodbye)	交信終了(さようなら)
+送受,制御	4	[SK]	End of contact (Silent key)	交信終了/(別意)故人オペレーター
+送受,制御	1	[CL]	Closing station	これで閉局します
+送受,制御	2	[CT]	Start of transmission or test	送信開始またはテスト信号
+確認,返答	5	C	Yes; Correct	はい、正しい
+確認,返答	4	CFM	Confirm	確認します/確認してください
+確認,返答,疑問	4	QSL?	Can you acknowledge receipt?	受信確認できますか？
+確認,返答	5	QSL	I acknowledge receipt	了解しました(QSLカードの意)
+確認,返答	5	R	Roger (Received)	了解
+確認,返答	5	TU	Thank you	ありがとう
+確認,返答	4	AGN	Again	もう一度
+確認,返答	4	[RPT]	Repeat (again)	繰り返してください
+交信,状態,Q符号,疑問	1	QRA?	What is your station name?	あなたの局名は？
+交信,状態,Q符号	1	QRA	My station name is ...	私の局名は…
+交信,状態,Q符号,疑問	1	QRH?	Does my frequency vary?	私の周波数は変動していますか？
+交信,状態,Q符号	1	QRH	Your frequency varies	あなたの周波数は変動しています
+交信,状態,Q符号,疑問	3	QRK?	What is my signal intelligibility?	私の信号の了解度は？
+交信,状態,Q符号	3	QRK	Your signals are ... readable	あなたの信号は…の了解度です
+交信,状態,Q符号,疑問	4	QRL?	Are you busy?	いま忙しいですか？(この周波数使っていますか？)
+交信,状態,Q符号	4	QRL	I am busy (or this frequency is busy)	こちらは使用中です
+交信,状態,Q符号,疑問	4	QRM?	Is my transmission being interfered with?	妨害を受けていますか？
+交信,状態,Q符号	4	QRM	Your transmission is being interfered with	あなたの信号は妨害されています
+交信,状態,Q符号,疑問	4	QRN?	Are you troubled by static?	雑音に悩まされていますか？
+交信,状態,Q符号	4	QRN	I am troubled by static	雑音があります
+交信,状態,Q符号,疑問	3	QSB?	Is my signal fading?	信号はフェーディングしていますか？
+交信,状態,Q符号	3	QSB	Your signal is fading	信号がフェーディングしています
+交信,状態,Q符号,疑問	3	QRT?	Shall I stop sending?	送信を止めましょうか？
+交信,状態,Q符号	3	QRT	Stop sending	送信を止めてください
+交信,状態,Q符号,疑問	2	QRU?	Have you anything for me?	何か伝言ありますか？
+交信,状態,Q符号	2	QRU	I have nothing for you	何もありません
+交信,状態,Q符号,疑問	4	QRV?	Are you ready?	準備できていますか？
+交信,状態,Q符号	4	QRV	I am ready	準備できています
+交信,状態,Q符号,疑問	3	QRX?	When will you call me again?	いつまた呼びますか？
+交信,状態,Q符号	3	QRX	I will call you again at ...	…にまた呼びます
+交信,状態,Q符号,疑問	5	QRZ?	Who is calling me?	誰が私を呼んでいますか？
+交信,状態,Q符号	5	QRZ	You are being called by ...	…があなたを呼んでいます
+出力,速度,Q符号,疑問	4	QRO?	Shall I increase power?	出力を上げましょうか？
+出力,速度,Q符号	4	QRO	Increase power	出力を上げてください
+出力,速度,Q符号,疑問	5	QRP?	Shall I decrease power?	出力を下げましょうか？
+出力,速度,Q符号	5	QRP	Decrease power	出力を下げてください
+出力,速度,Q符号,疑問	3	QRQ?	Shall I send faster?	もっと速く送りましょうか？
+出力,速度,Q符号	3	QRQ	Send faster	もっと速く送ってください
+出力,速度,Q符号,疑問	5	QRS?	Shall I send slower?	もっとゆっくり送りましょうか？
+出力,速度,Q符号	5	QRS	Send slower	もっとゆっくり送ってください
+周波数,通信,Q符号,疑問	4	QSY?	Shall I change frequency?	周波数を変えましょうか？
+周波数,通信,Q符号	4	QSY	Change frequency	周波数を変えてください
+周波数,通信,Q符号,疑問	2	QSU?	Shall I send on this frequency?	この周波数で送信しましょうか？
+周波数,通信,Q符号	2	QSU	Send on this frequency	この周波数で送信してください
+周波数,通信,Q符号,疑問	3	QSX?	Will you listen to ... on ... kHz?	…を…kHzで受信しますか？
+周波数,通信,Q符号	3	QSX	I am listening to ... on ... kHz	…を…kHzで受信しています
+通信,Q符号,疑問	5	QSO?	Can you communicate with ...?	…と交信できますか？
+通信,Q符号	5	QSO	I can communicate with ...	…と交信できます
+通信,Q符号,疑問	2	QSP?	Will you relay to ...?	…へ中継してもらえますか？
+通信,Q符号	2	QSP	I will relay to ...	…へ中継します
+通信,Q符号,疑問	2	QTC?	How many messages have you to send?	送る電報はいくつありますか？
+通信,Q符号	2	QTC	I have ... messages to send	…通の電報があります
+通信,Q符号,疑問	5	QTH?	What is your location?	あなたの所在地は？
+通信,Q符号	5	QTH	My location is ...	私の所在地は…
+挨拶,定型表現	5	CQ	Calling any station	全局呼び出し(誰でも応答可)
+挨拶,定型表現	5	DE	From (identification)	こちらは…(局の識別)
+挨拶,定型表現	5	DR	Dear	こんにちは、親愛なる
+挨拶,定型表現	4	GA	Good afternoon or Go ahead	こんにちは/どうぞ
+挨拶,定型表現	4	GM	Good morning	おはよう
+挨拶,定型表現	4	GE	Good evening	こんばんは
+挨拶,定型表現	4	GN	Good night	おやすみ
+挨拶,定型表現	4	GB	Goodbye	さようなら
+挨拶,定型表現	5	73	Best regards	よろしくお願いします
+挨拶,定型表現	4	88	Love and kisses	愛を込めて(親しい関係)
+挨拶,定型表現	2	99	Best wishes	成功を祈る(主にコンテスト)
+挨拶,定型表現	3	[VVV]	General call or test call	一般呼び出し、またはテスト送信
+挨拶,定型表現	5	HI	Laugh (like "haha")	(笑)
+挨拶,定型表現	4	FN	Fine, nice	元気です/よい
+挨拶,定型表現	3	FN WX	Good weather	いい天気です
+設備,用語	5	RIG	Radio equipment	無線機
+設備,用語	4	ANT	Antenna	アンテナ
+設備,用語	4	OP	Operator	オペレーター
+設備,用語	4	OM	Old man	男性局員
+設備,用語	4	YL	Young lady	女性局員
+設備,用語	3	XYL	Wife (ex-young lady)	妻(既婚女性局員)
+設備,用語	5	DX	Long distance	遠距離通信
+設備,用語	5	PSE	Please	お願いします
+設備,用語	5	TNX	Thanks	ありがとう
+設備,用語	5	UR	Your, You're	あなたの/あなたは
+設備,用語	4	VY	Very	とても
+設備,用語	5	WX	Weather	天気
+設備,用語	5	NW	Now	今/現在
+設備,用語	3	NIL	Nothing	何もありません
+設備,用語	3	SN	Soon	すぐに
+設備,用語	3	TMW	Tomorrow	明日
+RST	5	RST	Readability, Strength, Tone	信号レポート(了解度・強さ・音質)
+RST	5	RST 599	Perfectly readable, extremely strong, pure tone	完全に了解でき、非常に強く、純粋な音
+RST	3	RST 339	Readable with difficulty, weak, pure tone	聞き取り困難、弱く、音質良好
+RST,詳細	3	R1	Unreadable	了解不能
+RST,詳細	3	R2	Barely readable, occasional words distinguishable	ほとんど了解できない(時々単語が分かる)
+RST,詳細	3	R3	Readable with considerable difficulty	かなり困難だが了解可能
+RST,詳細	4	R4	Readable with practically no difficulty	ほとんど問題なく了解可能
+RST,詳細	5	R5	Perfectly readable	完全に了解できる
+RST,詳細	3	S1	Faint signals, barely perceptible	かすかに感じる程度
+RST,詳細	4	S5	Fairly good signals	かなり良好
+RST,詳細	5	S9	Extremely strong signals	非常に強い
+RST,詳細	3	T1	Extremely rough, very harsh note	極めて粗く耳障り
+RST,詳細	4	T5	Fairly pure tone	かなり純粋な音
+RST,詳細	5	T9	Extremely pure tone, crystal clear	非常に純粋で澄んだ音
