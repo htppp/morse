@@ -75,8 +75,7 @@ export class UIControls {
    * タブを切り替え
    */
   switchTab(tabId: TabId): void {
-    if (this.currentTab === tabId) return;
-
+    const previousTab = this.currentTab;
     this.currentTab = tabId;
 
     // タブボタンのアクティブ状態を更新
@@ -89,7 +88,7 @@ export class UIControls {
       }
     });
 
-    // コールバックを実行
+    // コールバックを実行（同じタブでも初回は実行する）
     const callback = this.tabChangeCallbacks.get(tabId);
     if (callback) {
       callback();
