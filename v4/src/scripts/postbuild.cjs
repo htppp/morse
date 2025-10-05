@@ -16,12 +16,18 @@ function copyIfExists(src, dest) {
 }
 
 try {
-  // copy built HTML files to v4/ root
-  const files = ['menu.html', 'vertical.html', 'horizontal.html', 'flashcard.html', 'koch.html'];
+  // copy built HTML files from dist subdirectories to v4/ root
+  const pages = [
+    { dir: 'menu', output: 'index.html' },
+    { dir: 'vertical', output: 'vertical.html' },
+    { dir: 'horizontal', output: 'horizontal.html' },
+    { dir: 'flashcard', output: 'flashcard.html' },
+    { dir: 'koch', output: 'koch.html' },
+  ];
 
-  for (const file of files) {
-    const srcFile = path.join(distDir, file);
-    const destFile = path.join(targetDir, file === 'menu.html' ? 'index.html' : file);
+  for (const page of pages) {
+    const srcFile = path.join(distDir, page.dir, 'index.html');
+    const destFile = path.join(targetDir, page.output);
 
     if (copyIfExists(srcFile, destFile)) {
       console.log(`Copied ${srcFile} -> ${destFile}`);

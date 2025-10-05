@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>横振り電鍵練習 - モールス練習アプリ v4</title>
+  <script type="module" crossorigin>(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))t(s);new MutationObserver(s=>{for(const i of s)if(i.type==="childList")for(const r of i.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&t(r)}).observe(document,{childList:!0,subtree:!0});function n(s){const i={};return s.integrity&&(i.integrity=s.integrity),s.referrerPolicy&&(i.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?i.credentials="include":s.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function t(s){if(s.ep)return;s.ep=!0;const i=n(s);fetch(s.href,i)}})();class p{constructor(e={frequency:750,volume:.7,wpm:20}){this.audioContext=null,this.currentOscillator=null,this.currentGain=null,this.isPlaying=!1,this.settings=e,this.init()}ensureAudioContext(){this.audioContext||(this.audioContext=new(window.AudioContext||window.webkitAudioContext)),this.audioContext.state==="suspended"&&this.audioContext.resume()}init(){const e=()=>{this.ensureAudioContext()};document.addEventListener("click",e,{once:!0}),document.addEventListener("keydown",e,{once:!0}),document.addEventListener("touchstart",e,{once:!0})}updateSettings(e){this.settings={...this.settings,...e}}scheduleTone(e,n){if(this.ensureAudioContext(),!!this.audioContext)try{const t=this.audioContext.createOscillator(),s=this.audioContext.createGain();t.connect(s),s.connect(this.audioContext.destination),t.frequency.value=this.settings.frequency,t.type="sine";const i=this.audioContext.currentTime,r=Math.max(i,e);s.gain.setValueAtTime(0,r),s.gain.linearRampToValueAtTime(this.settings.volume,r+.001),s.gain.setValueAtTime(this.settings.volume,r+(n-1)/1e3),s.gain.linearRampToValueAtTime(0,r+n/1e3),t.start(r),t.stop(r+n/1e3)}catch(t){console.error("音声エラー:",t)}}startContinuousTone(){if(this.ensureAudioContext(),!!this.audioContext)try{this.stopContinuousTone();const e=this.audioContext.createOscillator(),n=this.audioContext.createGain();e.connect(n),n.connect(this.audioContext.destination),e.frequency.value=this.settings.frequency,e.type="sine";const t=this.audioContext.currentTime;n.gain.setValueAtTime(0,t),n.gain.linearRampToValueAtTime(this.settings.volume,t+.001),e.start(t),this.currentOscillator=e,this.currentGain=n}catch(e){console.error("連続音開始エラー:",e)}}stopContinuousTone(){if(this.audioContext)try{if(this.currentOscillator&&this.currentGain){const e=this.audioContext.currentTime;this.currentGain.gain.cancelScheduledValues(e),this.currentGain.gain.setValueAtTime(this.currentGain.gain.value,e),this.currentGain.gain.linearRampToValueAtTime(0,e+.001),this.currentOscillator.stop(e+.002),this.currentOscillator=null,this.currentGain=null}}catch(e){console.error("連続音停止エラー:",e)}}async playMorseString(e){if(this.isPlaying||!e||(this.ensureAudioContext(),!this.audioContext))return!1;this.isPlaying=!0;const t=1200/(this.settings.wpm||20),s=t,i=3*t,r=t,l=3*t,h=7*t;let o=this.audioContext.currentTime+.02;for(let c=0;c<e.length&&this.isPlaying;c++){const d=e[c];d==="."?(this.scheduleTone(o,s),o+=(s+r)/1e3):d==="-"?(this.scheduleTone(o,i),o+=(i+r)/1e3):d===" "?o+=(l-r)/1e3:d==="/"&&(o+=(h-r)/1e3)}const m=(o-this.audioContext.currentTime)*1e3;await new Promise(c=>setTimeout(c,m));const f=this.isPlaying;return this.isPlaying=!1,f}stopPlaying(){this.isPlaying=!1}getAudioContext(){return this.audioContext}}const u={A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",0:"-----",1:".----",2:"..---",3:"...--",4:"....-",5:".....",6:"-....",7:"--...",8:"---..",9:"----."," ":"/",".":".-.-.-",",":"--..--",":":"---...","?":"..--..",_:"..--.-","+":".-.-.","-":"-....-","×":"-..-","^":"......","/":"-..-.","@":".--.-.","(":"-.--.",")":"-.--.-",'"':".-..-.","'":".----.","=":"-...-"},g=Object.fromEntries(Object.entries(u).map(([a,e])=>[e,a]));class y{static textToMorse(e){const n=e.toUpperCase();return Array.from(n).map(t=>u[t]||t).join(" ")}static morseSequencesToText(e){let n="";for(const t of e)t==="/"?n+=" ":t&&t!==""&&(n+=g[t]||"?");return n}static getMorseMap(){return u}static charToMorse(e){return u[e.toUpperCase()]}}class T{constructor(){this.buffer="",this.sequence="",this.charTimer=null,this.wordTimer=null,this.wpm=20,this.audioSystem=new p({frequency:750,volume:.7,wpm:this.wpm}),this.render(),this.setupEventListeners()}getTimings(){const e=1200/this.wpm;return{dot:e,dash:e*3,charGap:e*4,wordGap:e*7}}clearTimers(){this.charTimer!==null&&(clearTimeout(this.charTimer),this.charTimer=null),this.wordTimer!==null&&(clearTimeout(this.wordTimer),this.wordTimer=null)}setTimers(){this.clearTimers();const e=this.getTimings();this.charTimer=window.setTimeout(()=>{this.sequence&&(this.buffer+=this.sequence+" ",this.sequence="",this.updateDisplay())},e.charGap),this.wordTimer=window.setTimeout(()=>{this.sequence&&(this.buffer+=this.sequence+" ",this.sequence=""),this.buffer.endsWith("/ ")||(this.buffer+="/ "),this.updateDisplay()},e.wordGap)}async sendDot(){this.clearTimers(),this.sequence+=".",this.updateDisplay(),this.getTimings(),await this.audioSystem.playMorseString("."),this.setTimers()}async sendDash(){this.clearTimers(),this.sequence+="-",this.updateDisplay(),this.getTimings(),await this.audioSystem.playMorseString("-"),this.setTimers()}updateDisplay(){let e="";this.buffer&&(e=this.buffer.trim()),this.sequence&&(e&&(e+=" "),e+=`[${this.sequence}]`);const n=document.getElementById("morseDisplay");n&&(n.textContent=e||"入力されたモールス信号"),this.updateDecoded()}updateDecoded(){const e=this.buffer.trim().split(/\s+/),n=y.morseSequencesToText(e),t=document.getElementById("decodedOutput");t&&(t.textContent=n||"解読された文字")}clear(){this.buffer="",this.sequence="",this.clearTimers(),this.updateDisplay()}setupEventListeners(){const e=document.getElementById("leftPaddle");e&&(e.addEventListener("click",()=>this.sendDot()),e.addEventListener("touchstart",i=>{i.preventDefault(),this.sendDot()}));const n=document.getElementById("rightPaddle");n&&(n.addEventListener("click",()=>this.sendDash()),n.addEventListener("touchstart",i=>{i.preventDefault(),this.sendDash()}));const t=document.getElementById("clearBtn");t&&t.addEventListener("click",()=>this.clear());const s=document.getElementById("backBtn");s&&s.addEventListener("click",()=>{window.location.href="./index.html"}),document.addEventListener("keydown",i=>{i.target.tagName==="INPUT"||i.target.tagName==="TEXTAREA"||(i.key==="ArrowLeft"||i.key==="z"||i.key==="Z"?(i.preventDefault(),this.sendDot()):(i.key==="ArrowRight"||i.key==="x"||i.key==="X")&&(i.preventDefault(),this.sendDash()))})}render(){const e=document.getElementById("app");e&&(e.innerHTML=`
+      <div class="container">
+        <header class="header">
+          <button id="backBtn" class="back-btn">← 戻る</button>
+          <h1>横振り電鍵練習</h1>
+        </header>
+
+        <div class="paddle-container">
+          <div id="leftPaddle" class="paddle left">
+            <div class="paddle-label">左<br>（短点）</div>
+          </div>
+          <div class="paddle-divider"></div>
+          <div id="rightPaddle" class="paddle right">
+            <div class="paddle-label">右<br>（長点）</div>
+          </div>
+        </div>
+
+        <div class="output-container">
+          <div class="output-section">
+            <h2>モールス信号</h2>
+            <div id="morseDisplay" class="output-display">入力されたモールス信号</div>
+          </div>
+
+          <div class="output-section">
+            <h2>解読された文字</h2>
+            <div id="decodedOutput" class="output-display">解読された文字</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="clearBtn" class="btn">クリア</button>
+        </div>
+
+        <div class="instructions">
+          <h3>使い方</h3>
+          <ul>
+            <li>左パドル（または←キー、Zキー）: 短点「・」</li>
+            <li>右パドル（または→キー、Xキー）: 長点「−」</li>
+            <li>自動的にタイミング調整されます</li>
+          </ul>
+        </div>
+      </div>
+    `)}}document.addEventListener("DOMContentLoaded",()=>{new T});</script>
+  <style rel="stylesheet" crossorigin>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}.container{max-width:800px;margin:0 auto}.header{display:flex;align-items:center;gap:20px;margin-bottom:30px;color:#fff}.back-btn{background:#fff3;border:none;color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:1rem;transition:background .3s}.back-btn:hover{background:#ffffff4d}.header h1{font-size:2rem}.paddle-container{display:flex;justify-content:center;align-items:center;margin-bottom:40px;gap:10px}.paddle{width:150px;height:200px;background:linear-gradient(145deg,#fff,#e6e6e6);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none;box-shadow:0 10px 30px #0000004d;transition:transform .1s,box-shadow .1s;touch-action:none}.paddle.left{border-top-right-radius:4px;border-bottom-right-radius:4px}.paddle.right{border-top-left-radius:4px;border-bottom-left-radius:4px}.paddle:active{transform:scale(.95);box-shadow:0 5px 15px #0000004d;background:linear-gradient(145deg,#e6e6e6,#ccc)}.paddle-label{font-size:1.2rem;font-weight:700;color:#667eea;text-align:center}.paddle-divider{width:4px;height:180px;background:#ffffff4d;border-radius:2px}.output-container{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px}.output-section{margin-bottom:20px}.output-section:last-child{margin-bottom:0}.output-section h2{font-size:1.2rem;color:#667eea;margin-bottom:10px}.output-display{background:#f5f5f5;border-radius:8px;padding:15px;min-height:60px;font-family:Courier New,monospace;font-size:1.1rem;color:#333;word-wrap:break-word}.controls{display:flex;justify-content:center;gap:10px;margin-bottom:30px}.btn{background:#fff;border:none;color:#667eea;padding:12px 30px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:background .3s,transform .1s}.btn:hover{background:#f0f0f0}.btn:active{transform:scale(.98)}.instructions{background:#ffffff1a;border-radius:12px;padding:20px;color:#fff}.instructions h3{margin-bottom:15px;font-size:1.2rem}.instructions ul{list-style:none;padding:0}.instructions li{margin-bottom:10px;padding-left:20px;position:relative}.instructions li:before{content:"•";position:absolute;left:0}@media (max-width: 768px){.header h1{font-size:1.5rem}.paddle{width:120px;height:160px}.paddle-label{font-size:1rem}.paddle-divider{height:140px}}</style>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+</html>

@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build && node ./scripts/postbuild.cjs",
+		"build": "tsc && rm -rf dist && VITE_INPUT=./menu/index.html vite build && VITE_INPUT=./vertical/index.html vite build && VITE_INPUT=./horizontal/index.html vite build && VITE_INPUT=./flashcard/index.html vite build && VITE_INPUT=./koch/index.html vite build && node ./scripts/postbuild.cjs",
 		"preview": "vite preview"
 	},
 	"keywords": [],
@@ -12,6 +12,7 @@
 	"license": "ISC",
 	"description": "Morse Code Training App v4 - Integrated version with Koch method",
 	"devDependencies": {
+		"@types/node": "^24.6.2",
 		"typescript": "^5.9.3",
 		"vite": "^7.1.8",
 		"vite-plugin-singlefile": "^2.3.0"

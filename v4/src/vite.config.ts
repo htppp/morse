@@ -1,30 +1,24 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { resolve } from 'path';
 
-export default defineConfig({
-  root: '.',
-  publicDir: 'public',
-  base: './',
-  plugins: [viteSingleFile()],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        menu: resolve(__dirname, 'menu/index.html'),
-        vertical: resolve(__dirname, 'vertical/index.html'),
-        horizontal: resolve(__dirname, 'horizontal/index.html'),
-        flashcard: resolve(__dirname, 'flashcard/index.html'),
-        koch: resolve(__dirname, 'koch/index.html'),
-      },
-      output: {
-        entryFileNames: '[name].js',
-        assetFileNames: '[name].[ext]',
+export default defineConfig(({ command }) => {
+  // 環境変数で入力ファイルを指定
+  const input = process.env.VITE_INPUT || './menu/index.html';
+
+  return {
+    root: '.',
+    publicDir: 'public',
+    base: './',
+    plugins: [viteSingleFile()],
+    build: {
+      outDir: 'dist',
+      emptyOutDir: false, // 個別ビルド時にクリアしない
+      rollupOptions: {
+        input,
       },
     },
-  },
-  server: {
-    port: 3000,
-  },
+    server: {
+      port: 3000,
+    },
+  };
 });
