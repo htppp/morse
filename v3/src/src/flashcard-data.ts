@@ -18,7 +18,8 @@ export type SortOrder = 'asc' | 'desc';
  */
 export async function loadFlashcardData(): Promise<FlashcardEntry[]> {
   try {
-    const response = await fetch('/data/flashcard.tsv');
+  // Use relative path so the file can be loaded when the app is served from /v3/ on GitHub Pages
+  const response = await fetch('data/flashcard.tsv');
     if (!response.ok) {
       throw new Error(`Failed to load flashcard data: ${response.statusText}`);
     }
