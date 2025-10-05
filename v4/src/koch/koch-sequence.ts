@@ -1,15 +1,17 @@
 /**
- * コッホ法の40文字学習順序
+ * コッホ法の40レッスン（41文字）
  * レッスン1はKとMの2文字から開始
+ * レッスン40は全41文字
  */
 
 export const KOCH_SEQUENCE = 'K M U R E S N A P T L W I . J Z = F O Y , V G 5 / Q 9 2 H 3 8 B ? 4 7 C 1 D 6 0 X'.split(' ');
 
 /**
- * レッスンnで学習する文字を取得（レッスンnは累計n文字）
+ * レッスンnで学習する文字を取得
+ * レッスン1はKとMの2文字、以降はレッスン番号+1文字
  */
 export function getCharsForLesson(lessonNum: number): string[] {
-  return KOCH_SEQUENCE.slice(0, lessonNum);
+  return KOCH_SEQUENCE.slice(0, lessonNum + 1);
 }
 
 /**
