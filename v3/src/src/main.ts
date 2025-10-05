@@ -34,6 +34,30 @@ class App {
 
       // UIコントロールを初期化
       this.uiControls = new UIControls(appContainer);
+
+      // タブ切り替えのコールバックを先に登録（initialize前に登録が必要）
+      this.uiControls.onTabChange('list', () => {
+        const contentContainer = this.uiControls!.getContentContainer();
+        if (contentContainer && this.listMode) {
+          this.listMode.setData(entries);
+        }
+      });
+
+      this.uiControls.onTabChange('flashcard', () => {
+        const contentContainer = this.uiControls!.getContentContainer();
+        if (contentContainer && this.flashcardMode) {
+          this.flashcardMode.setData(entries);
+        }
+      });
+
+      this.uiControls.onTabChange('exam', () => {
+        const contentContainer = this.uiControls!.getContentContainer();
+        if (contentContainer && this.examMode) {
+          this.examMode.setData(entries);
+        }
+      });
+
+      // UIを初期化（コールバック登録後に実行）
       this.uiControls.initialize();
 
       // 一覧表示モードを初期化
@@ -43,7 +67,6 @@ class App {
       }
 
       this.listMode = new ListMode(contentContainer);
-      this.listMode.setData(entries);
 
       // フラッシュカードモードを初期化
       this.flashcardMode = new FlashcardMode(contentContainer);
@@ -61,25 +84,6 @@ class App {
           this.settingsModal?.open();
         });
       }
-
-      // タブ切り替えのコールバック
-      this.uiControls.onTabChange('list', () => {
-        if (contentContainer && this.listMode) {
-          this.listMode.setData(entries);
-        }
-      });
-
-      this.uiControls.onTabChange('flashcard', () => {
-        if (contentContainer && this.flashcardMode) {
-          this.flashcardMode.setData(entries);
-        }
-      });
-
-      this.uiControls.onTabChange('exam', () => {
-        if (contentContainer && this.examMode) {
-          this.examMode.setData(entries);
-        }
-      });
 
       // ローディングを非表示
       this.hideLoading();
