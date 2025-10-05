@@ -2,8 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 // paths
-const repoRoot = path.resolve(__dirname, '..', '..'); // .../morse
-const srcDir = path.resolve(__dirname, '..'); // .../morse/v3/src
+// __dirname === .../morse/v3/src/scripts
+// repoRoot should be the repository root: .../morse
+const repoRoot = path.resolve(__dirname, '..', '..', '..'); // .../morse
+const srcDir = path.join(repoRoot, 'v3', 'src'); // .../morse/v3/src
 const distIndex = path.join(srcDir, 'dist', 'index.html');
 const targetRootIndex = path.join(repoRoot, 'v3', 'index.html');
 
