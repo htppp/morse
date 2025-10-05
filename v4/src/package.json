@@ -1,0 +1,19 @@
+{
+	"name": "morse-v4",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build && node ./scripts/postbuild.cjs",
+		"preview": "vite preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "Morse Code Training App v4 - Integrated version with Koch method",
+	"devDependencies": {
+		"typescript": "^5.9.3",
+		"vite": "^7.1.8",
+		"vite-plugin-singlefile": "^2.3.0"
+	}
+}
