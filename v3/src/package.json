@@ -1,20 +1,19 @@
 {
-  "name": "morse-cw-flashcard",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-  "postbuild": "node ./scripts/postbuild.cjs",
-    "preview": "vite preview"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "CW Abbreviations and Q-Codes Learning App",
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "vite": "^7.1.8",
-    "vite-plugin-singlefile": "^2.3.0"
-  }
+	"name": "morse-cw-flashcard",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build && node ./scripts/postbuild.cjs",
+		"preview": "vite preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "CW Abbreviations and Q-Codes Learning App",
+	"devDependencies": {
+		"typescript": "^5.9.3",
+		"vite": "^7.1.8",
+		"vite-plugin-singlefile": "^2.3.0"
+	}
 }
