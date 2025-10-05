@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コッホ法トレーニング - モールス練習アプリ v4</title>
+  <script type="module" crossorigin>(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const n of document.querySelectorAll('link[rel="modulepreload"]'))e(n);new MutationObserver(n=>{for(const i of n)if(i.type==="childList")for(const r of i.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&e(r)}).observe(document,{childList:!0,subtree:!0});function s(n){const i={};return n.integrity&&(i.integrity=n.integrity),n.referrerPolicy&&(i.referrerPolicy=n.referrerPolicy),n.crossOrigin==="use-credentials"?i.credentials="include":n.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function e(n){if(n.ep)return;n.ep=!0;const i=s(n);fetch(n.href,i)}})();class f{constructor(t={frequency:750,volume:.7,wpm:20}){this.audioContext=null,this.currentOscillator=null,this.currentGain=null,this.isPlaying=!1,this.settings=t,this.init()}ensureAudioContext(){this.audioContext||(this.audioContext=new(window.AudioContext||window.webkitAudioContext)),this.audioContext.state==="suspended"&&this.audioContext.resume()}init(){const t=()=>{this.ensureAudioContext()};document.addEventListener("click",t,{once:!0}),document.addEventListener("keydown",t,{once:!0}),document.addEventListener("touchstart",t,{once:!0})}updateSettings(t){this.settings={...this.settings,...t}}scheduleTone(t,s){if(this.ensureAudioContext(),!!this.audioContext)try{const e=this.audioContext.createOscillator(),n=this.audioContext.createGain();e.connect(n),n.connect(this.audioContext.destination),e.frequency.value=this.settings.frequency,e.type="sine";const i=this.audioContext.currentTime,r=Math.max(i,t);n.gain.setValueAtTime(0,r),n.gain.linearRampToValueAtTime(this.settings.volume,r+.001),n.gain.setValueAtTime(this.settings.volume,r+(s-1)/1e3),n.gain.linearRampToValueAtTime(0,r+s/1e3),e.start(r),e.stop(r+s/1e3)}catch(e){console.error("音声エラー:",e)}}startContinuousTone(){if(this.ensureAudioContext(),!!this.audioContext)try{this.stopContinuousTone();const t=this.audioContext.createOscillator(),s=this.audioContext.createGain();t.connect(s),s.connect(this.audioContext.destination),t.frequency.value=this.settings.frequency,t.type="sine";const e=this.audioContext.currentTime;s.gain.setValueAtTime(0,e),s.gain.linearRampToValueAtTime(this.settings.volume,e+.001),t.start(e),this.currentOscillator=t,this.currentGain=s}catch(t){console.error("連続音開始エラー:",t)}}stopContinuousTone(){if(this.audioContext)try{if(this.currentOscillator&&this.currentGain){const t=this.audioContext.currentTime;this.currentGain.gain.cancelScheduledValues(t),this.currentGain.gain.setValueAtTime(this.currentGain.gain.value,t),this.currentGain.gain.linearRampToValueAtTime(0,t+.001),this.currentOscillator.stop(t+.002),this.currentOscillator=null,this.currentGain=null}}catch(t){console.error("連続音停止エラー:",t)}}async playMorseString(t){if(this.isPlaying||!t||(this.ensureAudioContext(),!this.audioContext))return!1;this.isPlaying=!0;const e=1200/(this.settings.wpm||20),n=e,i=3*e,r=e,u=3*e,h=7*e;let a=this.audioContext.currentTime+.02;for(let c=0;c<t.length&&this.isPlaying;c++){const l=t[c];l==="."?(this.scheduleTone(a,n),a+=(n+r)/1e3):l==="-"?(this.scheduleTone(a,i),a+=(i+r)/1e3):l===" "?a+=(u-r)/1e3:l==="/"&&(a+=(h-r)/1e3)}const g=(a-this.audioContext.currentTime)*1e3;await new Promise(c=>setTimeout(c,g));const m=this.isPlaying;return this.isPlaying=!1,m}stopPlaying(){this.isPlaying=!1}getAudioContext(){return this.audioContext}}const d={A:".-",B:"-...",C:"-.-.",D:"-..",E:".",F:"..-.",G:"--.",H:"....",I:"..",J:".---",K:"-.-",L:".-..",M:"--",N:"-.",O:"---",P:".--.",Q:"--.-",R:".-.",S:"...",T:"-",U:"..-",V:"...-",W:".--",X:"-..-",Y:"-.--",Z:"--..",0:"-----",1:".----",2:"..---",3:"...--",4:"....-",5:".....",6:"-....",7:"--...",8:"---..",9:"----."," ":"/",".":".-.-.-",",":"--..--",":":"---...","?":"..--..",_:"..--.-","+":".-.-.","-":"-....-","×":"-..-","^":"......","/":"-..-.","@":".--.-.","(":"-.--.",")":"-.--.-",'"':".-..-.","'":".----.","=":"-...-"},y=Object.fromEntries(Object.entries(d).map(([o,t])=>[t,o]));class v{static textToMorse(t){const s=t.toUpperCase();return Array.from(s).map(e=>d[e]||e).join(" ")}static morseSequencesToText(t){let s="";for(const e of t)e==="/"?s+=" ":e&&e!==""&&(s+=y[e]||"?");return s}static getMorseMap(){return d}static charToMorse(t){return d[t.toUpperCase()]}}const C="K M U R E S N A P T L W I . J Z = F O Y , V G 5 / Q 9 2 H 3 8 B ? 4 7 C 1 D 6 0 X".split(" ");function p(o){return C.slice(0,o)}function x(o,t=5,s=60){const e=[],n=Math.floor(s*20/(t*5));for(let i=0;i<n;i++){let r="";for(let u=0;u<t;u++){const h=o[Math.floor(Math.random()*o.length)];r+=h}e.push(r)}return e}class T{constructor(){this.state={currentLesson:1,isPlaying:!1,userInput:"",correctAnswer:"",groups:[],currentGroupIndex:0},this.audioSystem=new f({frequency:750,volume:.7,wpm:20}),this.loadProgress(),this.render()}loadProgress(){try{const t=localStorage.getItem("v4.koch.currentLesson");t&&(this.state.currentLesson=parseInt(t))}catch(t){console.error("Failed to load progress:",t)}}saveProgress(){try{localStorage.setItem("v4.koch.currentLesson",this.state.currentLesson.toString())}catch(t){console.error("Failed to save progress:",t)}}async startLesson(){const t=p(this.state.currentLesson);this.state.groups=x(t,5,60),this.state.currentGroupIndex=0,this.state.userInput="",this.state.correctAnswer=this.state.groups.join(" "),this.state.isPlaying=!0,this.renderPractice();for(let s=0;s<this.state.groups.length&&this.state.isPlaying;s++){const e=this.state.groups[s],n=v.textToMorse(e);await this.audioSystem.playMorseString(n+" /"),this.state.currentGroupIndex=s+1,this.updateProgress()}this.state.isPlaying=!1,this.showResult()}stopLesson(){this.state.isPlaying=!1,this.audioSystem.stopPlaying(),this.render()}showResult(){const t=this.calculateAccuracy(),s=t>=90,e=document.getElementById("resultContainer");e&&(e.innerHTML=`
+      <div class="result ${s?"passed":"failed"}">
+        <h2>${s?"合格！":"不合格"}</h2>
+        <div class="accuracy">正答率: ${t.toFixed(1)}%</div>
+        <div class="comparison">
+          <div>送信: ${this.state.correctAnswer}</div>
+          <div>入力: ${this.state.userInput||"（未入力）"}</div>
+        </div>
+        <div class="actions">
+          ${s?'<button class="btn primary" onclick="window.location.reload()">次のレッスンへ</button>':""}
+          <button class="btn" onclick="window.location.reload()">もう一度</button>
+        </div>
+      </div>
+    `,s&&this.state.currentLesson<41&&(this.state.currentLesson++,this.saveProgress()))}calculateAccuracy(){if(!this.state.userInput)return 0;const t=this.state.correctAnswer.replace(/\s/g,""),s=this.state.userInput.replace(/\s/g,""),e=Math.max(t.length,s.length);let n=0;for(let i=0;i<e;i++)t[i]===s[i]&&n++;return n/e*100}updateProgress(){const t=document.getElementById("lessonProgress");if(t){const s=this.state.currentGroupIndex/this.state.groups.length*100;t.textContent=`進行: ${this.state.currentGroupIndex}/${this.state.groups.length} (${s.toFixed(0)}%)`}}render(){const t=document.getElementById("app");if(!t)return;const s=p(this.state.currentLesson);t.innerHTML=`
+      <div class="container">
+        <header class="header">
+          <button id="backBtn" class="back-btn">← 戻る</button>
+          <h1>コッホ法トレーニング</h1>
+        </header>
+
+        <div class="lesson-info">
+          <h2>レッスン ${this.state.currentLesson} / 41</h2>
+          <div class="chars">学習文字: ${s.join(" ")}</div>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn" class="btn primary">練習開始</button>
+        </div>
+
+        <div id="practiceContainer"></div>
+        <div id="resultContainer"></div>
+
+        <div class="instructions">
+          <h3>使い方</h3>
+          <ul>
+            <li>「練習開始」をクリックしてモールス信号を聞く</li>
+            <li>聞こえた文字を入力</li>
+            <li>90%以上の正答率で次のレッスンへ</li>
+          </ul>
+        </div>
+      </div>
+    `,document.getElementById("backBtn")?.addEventListener("click",()=>{window.location.href="./index.html"}),document.getElementById("startBtn")?.addEventListener("click",()=>{this.startLesson()})}renderPractice(){const t=document.getElementById("practiceContainer");if(!t)return;t.innerHTML=`
+      <div class="practice-area">
+        <div id="lessonProgress" class="progress">準備中...</div>
+        <textarea id="userInput" class="input-area" placeholder="聞こえた文字を入力..."></textarea>
+        <button id="stopBtn" class="btn">停止</button>
+      </div>
+    `;const s=document.getElementById("userInput");s&&s.addEventListener("input",e=>{this.state.userInput=e.target.value.toUpperCase()}),document.getElementById("stopBtn")?.addEventListener("click",()=>{this.stopLesson()})}}document.addEventListener("DOMContentLoaded",()=>{new T});</script>
+  <style rel="stylesheet" crossorigin>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px}.container{max-width:800px;margin:0 auto}.header{display:flex;align-items:center;gap:20px;margin-bottom:30px;color:#fff}.back-btn{background:#fff3;border:none;color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:1rem;transition:background .3s}.back-btn:hover{background:#ffffff4d}.header h1{font-size:2rem}.lesson-info{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center}.lesson-info h2{color:#667eea;margin-bottom:10px}.chars{font-family:Courier New,monospace;font-size:1.2rem;color:#333}.controls{display:flex;justify-content:center;margin-bottom:30px}.btn{background:#fff;border:none;color:#667eea;padding:12px 30px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:all .3s}.btn:hover{background:#f0f0f0}.btn.primary{background:#667eea;color:#fff}.btn.primary:hover{background:#5568d3}.practice-area{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px}.progress{font-size:1.1rem;color:#667eea;margin-bottom:15px;text-align:center}.input-area{width:100%;min-height:120px;padding:15px;border:2px solid #ddd;border-radius:8px;font-family:Courier New,monospace;font-size:1.1rem;margin-bottom:15px;resize:vertical}.input-area:focus{outline:none;border-color:#667eea}.result{background:#fff;border-radius:12px;padding:30px;text-align:center}.result h2{font-size:2rem;margin-bottom:20px}.result.passed h2{color:#4caf50}.result.failed h2{color:#f44336}.accuracy{font-size:1.5rem;color:#667eea;margin-bottom:20px}.comparison{background:#f9f9f9;border-radius:8px;padding:15px;margin-bottom:20px;text-align:left}.comparison div{font-family:Courier New,monospace;margin-bottom:10px}.actions{display:flex;gap:10px;justify-content:center}.instructions{background:#ffffff1a;border-radius:12px;padding:20px;color:#fff}.instructions h3{margin-bottom:15px}.instructions ul{list-style:none}.instructions li{margin-bottom:10px;padding-left:20px;position:relative}.instructions li:before{content:"•";position:absolute;left:0}@media (max-width: 768px){.header h1{font-size:1.5rem}}</style>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+</html>

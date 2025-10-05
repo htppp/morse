@@ -23,8 +23,8 @@ class FlashcardApp {
 
   private async loadData(): Promise<void> {
     try {
-      // flashcard.tsvを読み込む（v3のデータを使用）
-      const response = await fetch('../../../flashcard.tsv');
+      // flashcard.tsvを読み込む（ビルド時にコピーされたファイルを使用）
+      const response = await fetch('./flashcard.tsv');
       const text = await response.text();
 
       this.entries = text

@@ -36,6 +36,15 @@ try {
     }
   }
 
+  // copy flashcard.tsv from repo root to v4/
+  const tsvSrc = path.join(repoRoot, 'flashcard.tsv');
+  const tsvDest = path.join(targetDir, 'flashcard.tsv');
+  if (copyIfExists(tsvSrc, tsvDest)) {
+    console.log(`Copied ${tsvSrc} -> ${tsvDest}`);
+  } else {
+    console.warn(`flashcard.tsv not found: ${tsvSrc}`);
+  }
+
   process.exit(0);
 } catch (err) {
   console.error('postbuild failed', err);
