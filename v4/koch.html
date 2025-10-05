@@ -17,7 +17,7 @@
           <button class="btn" onclick="window.location.reload()">もう一度</button>
         </div>
       </div>
-    `,s&&this.state.currentLesson<41&&(this.state.currentLesson++,this.saveProgress()))}calculateAccuracy(){if(!this.state.userInput)return 0;const t=this.state.correctAnswer.replace(/\s/g,""),s=this.state.userInput.replace(/\s/g,""),e=Math.max(t.length,s.length);let n=0;for(let i=0;i<e;i++)t[i]===s[i]&&n++;return n/e*100}updateProgress(){const t=document.getElementById("lessonProgress");if(t){const s=this.state.currentGroupIndex/this.state.groups.length*100;t.textContent=`進行: ${this.state.currentGroupIndex}/${this.state.groups.length} (${s.toFixed(0)}%)`}}render(){const t=document.getElementById("app");if(!t)return;const s=p(this.state.currentLesson);t.innerHTML=`
+    `,s&&this.state.currentLesson<40&&(this.state.currentLesson++,this.saveProgress()))}calculateAccuracy(){if(!this.state.userInput)return 0;const t=this.state.correctAnswer.replace(/\s/g,""),s=this.state.userInput.replace(/\s/g,""),e=Math.max(t.length,s.length);let n=0;for(let i=0;i<e;i++)t[i]===s[i]&&n++;return n/e*100}updateProgress(){const t=document.getElementById("lessonProgress");if(t){const s=this.state.currentGroupIndex/this.state.groups.length*100;t.textContent=`進行: ${this.state.currentGroupIndex}/${this.state.groups.length} (${s.toFixed(0)}%)`}}render(){const t=document.getElementById("app");if(!t)return;const s=p(this.state.currentLesson);t.innerHTML=`
       <div class="container">
         <header class="header">
           <button id="backBtn" class="back-btn">← 戻る</button>
@@ -25,7 +25,7 @@
         </header>
 
         <div class="lesson-info">
-          <h2>レッスン ${this.state.currentLesson} / 41</h2>
+          <h2>レッスン ${this.state.currentLesson} / 40</h2>
           <div class="chars">学習文字: ${s.join(" ")}</div>
         </div>
 

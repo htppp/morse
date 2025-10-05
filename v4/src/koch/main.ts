@@ -104,7 +104,7 @@ class KochTrainer {
       </div>
     `;
 
-    if (passed && this.state.currentLesson < 41) {
+    if (passed && this.state.currentLesson < 40) {
       this.state.currentLesson++;
       this.saveProgress();
     }
@@ -147,7 +147,7 @@ class KochTrainer {
         </header>
 
         <div class="lesson-info">
-          <h2>レッスン ${this.state.currentLesson} / 41</h2>
+          <h2>レッスン ${this.state.currentLesson} / 40</h2>
           <div class="chars">学習文字: ${chars.join(' ')}</div>
         </div>
 

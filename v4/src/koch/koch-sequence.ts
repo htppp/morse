@@ -1,5 +1,6 @@
 /**
  * コッホ法の40文字学習順序
+ * レッスン1はKとMの2文字から開始
  */
 
 export const KOCH_SEQUENCE = 'K M U R E S N A P T L W I . J Z = F O Y , V G 5 / Q 9 2 H 3 8 B ? 4 7 C 1 D 6 0 X'.split(' ');
