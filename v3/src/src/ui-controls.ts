@@ -16,6 +16,21 @@ export class UIControls {
   initialize(): void {
     this.renderTabs();
     this.attachEventListeners();
+
+    // Restore last selected tab from localStorage (if any)
+    try {
+      const saved = localStorage.getItem('v3.currentTab') as TabId | null;
+      if (saved === 'list' || saved === 'flashcard' || saved === 'exam') {
+        // apply saved tab
+        this.switchTab(saved);
+      } else {
+        // ensure default tab is applied
+        this.switchTab(this.currentTab);
+      }
+    } catch (err) {
+      // ignore localStorage errors
+      this.switchTab(this.currentTab);
+    }
   }
 
   /**
@@ -78,6 +93,13 @@ export class UIControls {
     const callback = this.tabChangeCallbacks.get(tabId);
     if (callback) {
       callback();
+    }
+
+    // persist selection
+    try {
+      localStorage.setItem('v3.currentTab', tabId);
+    } catch (err) {
+      // ignore storage errors
     }
   }
 

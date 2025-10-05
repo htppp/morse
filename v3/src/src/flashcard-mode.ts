@@ -32,6 +32,7 @@ export class FlashcardMode {
 
   constructor(private container: HTMLElement) {
     this.loadProgress();
+    this.loadFilters();
   }
 
   /**
@@ -56,6 +57,37 @@ export class FlashcardMode {
     result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
 
     this.filteredEntries = result;
+  }
+
+  /**
+   * 保存しているフィルタを保存
+   */
+  private saveFilters(): void {
+    try {
+      const data = {
+        tags: this.selectedTags,
+        frequencies: Array.from(this.selectedFrequencies),
+      };
+      localStorage.setItem('v3.selectedFilters', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save filters:', error);
+    }
+  }
+
+  /**
+   * 保存しているフィルタを読み込み
+   */
+  private loadFilters(): void {
+    try {
+      const saved = localStorage.getItem('v3.selectedFilters');
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.selectedTags = Array.isArray(data.tags) ? data.tags : [];
+        this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : []);
+      }
+    } catch (error) {
+      console.error('Failed to load filters:', error);
+    }
   }
 
   /**
@@ -290,6 +322,7 @@ export class FlashcardMode {
             this.selectedTags.push(tag);
           }
           this.applyFilters();
+          this.saveFilters();
           this.render();
         }
       });
@@ -306,6 +339,7 @@ export class FlashcardMode {
           this.selectedFrequencies.delete(freq);
         }
         this.applyFilters();
+        this.saveFilters();
         this.render();
       });
     });

@@ -40,12 +40,44 @@ export class ExamMode {
   private questionType: QuestionType = 'abbr-to-meaning';
 
   constructor(private container: HTMLElement) {}
+  
+  /**
+   * フィルタ読み込み
+   */
+  private loadFilters(): void {
+    try {
+      const saved = localStorage.getItem('v3.selectedFilters');
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.selectedTags = Array.isArray(data.tags) ? data.tags : [];
+        this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : []);
+      }
+    } catch (error) {
+      console.error('Failed to load filters:', error);
+    }
+  }
+
+  /**
+   * フィルタ保存
+   */
+  private saveFilters(): void {
+    try {
+      const data = {
+        tags: this.selectedTags,
+        frequencies: Array.from(this.selectedFrequencies),
+      };
+      localStorage.setItem('v3.selectedFilters', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save filters:', error);
+    }
+  }
 
   /**
    * データを設定して表示を初期化
    */
   setData(entries: FlashcardEntry[]): void {
     this.allEntries = entries;
+    this.loadFilters();
     this.applyFilters();
     this.render();
   }
@@ -387,6 +419,7 @@ export class ExamMode {
             this.selectedTags.push(tag);
           }
           this.applyFilters();
+          this.saveFilters();
           this.render();
         }
       });
@@ -403,6 +436,7 @@ export class ExamMode {
           this.selectedFrequencies.delete(freq);
         }
         this.applyFilters();
+        this.saveFilters();
         this.render();
       });
     });

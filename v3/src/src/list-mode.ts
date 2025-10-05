@@ -27,10 +27,42 @@ export class ListMode {
   constructor(private container: HTMLElement) {}
 
   /**
+   * 保存しているフィルタを読み込む
+   */
+  private loadFilters(): void {
+    try {
+      const saved = localStorage.getItem('v3.selectedFilters');
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.selectedTags = Array.isArray(data.tags) ? data.tags : [];
+        this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : []);
+      }
+    } catch (error) {
+      console.error('Failed to load filters:', error);
+    }
+  }
+
+  /**
+   * フィルタを保存する
+   */
+  private saveFilters(): void {
+    try {
+      const data = {
+        tags: this.selectedTags,
+        frequencies: Array.from(this.selectedFrequencies),
+      };
+      localStorage.setItem('v3.selectedFilters', JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save filters:', error);
+    }
+  }
+
+  /**
    * データを設定して表示を初期化
    */
   setData(entries: FlashcardEntry[]): void {
     this.allEntries = entries;
+    this.loadFilters();
     this.applyFilters();
     this.render();
   }
@@ -198,6 +230,7 @@ export class ListMode {
             this.selectedTags.push(tag);
           }
           this.applyFilters();
+          this.saveFilters();
           this.render();
         }
       });
@@ -214,6 +247,7 @@ export class ListMode {
           this.selectedFrequencies.delete(freq);
         }
         this.applyFilters();
+        this.saveFilters();
         this.render();
       });
     });
@@ -224,6 +258,7 @@ export class ListMode {
       searchInput.addEventListener('input', () => {
         this.searchQuery = searchInput.value;
         this.applyFilters();
+        this.saveFilters();
         this.render();
       });
     }
@@ -254,6 +289,7 @@ export class ListMode {
             this.sortOrder = 'asc';
           }
           this.applyFilters();
+          this.saveFilters();
           this.render();
         }
       });

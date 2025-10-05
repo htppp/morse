@@ -9,5 +9,3 @@ v3/src/.turbo/
 v3/src/build/
 v3/src/dist/
 
-# Ignore lockfile if you prefer reproducible installs to be out-of-repo
-v3/src/package-lock.json
