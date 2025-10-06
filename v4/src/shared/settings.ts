@@ -6,6 +6,8 @@ interface SettingsData {
   volume: number;
   frequency: number;
   wpm: number;
+  iambicMode: 'A' | 'B';
+  paddleLayout: 'normal' | 'reversed';
 }
 
 export class Settings {
@@ -13,6 +15,8 @@ export class Settings {
     volume: 0.7,
     frequency: 750,
     wpm: 20,
+    iambicMode: 'B',
+    paddleLayout: 'normal',
   };
 
   private static settings: SettingsData = { ...Settings.defaultSettings };

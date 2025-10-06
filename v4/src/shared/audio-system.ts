@@ -58,7 +58,7 @@ export class AudioSystem {
   /**
    * 指定された時間に音を再生
    */
-  private scheduleTone(startTime: number, durationMs: number): void {
+  scheduleTone(startTime: number, durationMs: number): void {
     this.ensureAudioContext();
     if (!this.audioContext) return;
 

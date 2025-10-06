@@ -41,6 +41,26 @@ body {
 
 .header h1 {
   font-size: 2rem;
+  flex: 1;
+}
+
+.mode-toggle {
+  margin-left: auto;
+}
+
+.toggle-mode-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.toggle-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .tags-container {
@@ -113,11 +133,23 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
 .entry-abbr {
   font-size: 1.3rem;
   font-weight: bold;
   color: #667eea;
-  margin-bottom: 8px;
+}
+
+.entry-frequency {
+  font-size: 1rem;
+  color: #ffa500;
+  user-select: none;
 }
 
 .entry-english {
@@ -147,6 +179,72 @@ body {
   font-size: 1.1rem;
 }
 
+/* リスト表示スタイル */
+.list-table-container {
+  overflow-x: auto;
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.list-table thead {
+  background: #667eea;
+  color: white;
+}
+
+.list-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.list-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s;
+}
+
+.list-table tbody tr:hover {
+  background: #f5f5f5;
+}
+
+.list-table td {
+  padding: 10px 12px;
+}
+
+.list-frequency {
+  color: #ffa500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+}
+
+.list-abbr {
+  font-weight: bold;
+  color: #667eea;
+  white-space: nowrap;
+}
+
+.list-english {
+  color: #666;
+  min-width: 150px;
+}
+
+.list-japanese {
+  color: #333;
+  min-width: 150px;
+}
+
+.list-tags {
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .header h1 {
@@ -155,5 +253,19 @@ body {
 
   .entries-list {
     grid-template-columns: 1fr;
+  }
+
+  .toggle-mode-btn {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+
+  .list-table {
+    font-size: 0.9rem;
+  }
+
+  .list-table th,
+  .list-table td {
+    padding: 8px;
   }
 }
