@@ -343,9 +343,6 @@ class KochTrainer {
         <div class="lesson-info">
           <h2>レッスン ${this.state.currentLesson} / 40</h2>
           <div class="chars">学習文字: ${chars.join(' ')}</div>
-        </div>
-
-        <div class="controls">
           <button id="startBtn" class="btn primary">練習開始</button>
         </div>
 
