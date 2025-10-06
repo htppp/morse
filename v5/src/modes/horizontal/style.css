@@ -178,9 +178,8 @@ body {
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 60px !important;
-  height: 30px !important;
-  line-height: 1;
+  width: 60px;
+  height: 30px;
 }
 
 .toggle-input {
@@ -193,12 +192,16 @@ body {
 .toggle-label {
   position: absolute;
   cursor: pointer;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
   border: 2px solid #ddd;
   border-radius: 30px;
   transition: all 0.3s ease;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .toggle-label:hover {
