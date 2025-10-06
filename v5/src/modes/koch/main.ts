@@ -4,8 +4,8 @@
 
 import { AudioSystem } from'../../core/audio-system';
 import { MorseCode } from'../../core/morse-code';
-import { KOCH_SEQUENCE, getCharsForLesson, generateRandomGroups } from'./ koch-sequence';
-import { KochSettings } from'./ settings';
+import { KOCH_SEQUENCE, getCharsForLesson, generateRandomGroups } from'./koch-sequence';
+import { KochSettings } from'./settings';
 import'./style.css';
 import { ModeController } from '../../core/router';
 
@@ -504,20 +504,12 @@ export class KochTrainer implements ModeController {
       }
     });
   }
-}
+	/**
+	 * クリーンアップ処理
+	 */
+	destroy(): void {
+		// 音声を停止
+		this.audioSystem.stopContinuousTone();
+	}
 
-
-  /**
-   * クリーンアップ処理
-   */
-  destroy(): void {
-    // タイマーをクリア
-    if (this.nextTimer) {
-      clearTimeout(this.nextTimer);
-      this.nextTimer = null;
-    }
-
-    // AudioSystemのクリーンアップ
-    this.audioSystem.stopContinuousTone();
-  }
 }

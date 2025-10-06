@@ -41,7 +41,7 @@ interface CardProgress {
 	unknown: Set<string>;    // 「わからない」とマークされた略語
 }
 
-export class FlashcardApp {
+export class FlashcardTrainer {
 	private entries: FlashcardEntry[] = [];
 	private filteredEntries: FlashcardEntry[] = [];
 	private selectedTags: Set<string> = new Set();
@@ -1692,20 +1692,12 @@ export class FlashcardApp {
 			});
 		}
 	}
-}
+	/**
+	 * クリーンアップ処理
+	 */
+	destroy(): void {
+		// 音声を停止
+		this.audioSystem.stopContinuousTone();
+	}
 
-
-  /**
-   * クリーンアップ処理
-   */
-  destroy(): void {
-    // タイマーをクリア
-    if (this.nextTimer !== null) {
-      clearTimeout(this.nextTimer);
-      this.nextTimer = null;
-    }
-
-    // 音声を停止
-    this.audioSystem.stopContinuousTone();
-  }
 }
