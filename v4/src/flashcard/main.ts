@@ -517,6 +517,13 @@ class FlashcardApp {
 		}
 	}
 
+	private updateResultCount(): void {
+		const resultCount = document.querySelector('.result-count');
+		if (resultCount) {
+			resultCount.textContent = `全 ${this.filteredEntries.length} 件`;
+		}
+	}
+
 	private renderCardView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
@@ -858,7 +865,10 @@ class FlashcardApp {
 			searchInput.addEventListener('input', () => {
 				this.searchQuery = searchInput.value;
 				this.applyFilters();
-				this.render();
+				// 一覧部分のみ更新（フォーカスを維持）
+				this.renderEntries();
+				// 結果カウントも更新
+				this.updateResultCount();
 			});
 		}
 	}
