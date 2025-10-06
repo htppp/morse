@@ -444,10 +444,9 @@ class FlashcardApp {
 						<h2>使用頻度 <button id="toggle-freq-btn" class="toggle-freq-btn" title="チェックを反転">⇆</button></h2>
 						<div class="frequency-list">
 							${[5, 4, 3, 2, 1].map(freq => `
-								<label class="frequency-checkbox">
-									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
-									<span>${this.getFrequencyStars(freq)}</span>
-								</label>
+								<button class="freq-btn ${this.selectedFrequencies.has(freq) ? 'active' : ''}" data-freq="${freq}">
+									${this.getFrequencyStars(freq)}
+								</button>
 							`).join('')}
 						</div>
 					</div>
@@ -757,10 +756,9 @@ class FlashcardApp {
 						<h2>使用頻度 <button id="toggle-freq-btn" class="toggle-freq-btn" title="チェックを反転">⇆</button></h2>
 						<div class="frequency-list">
 							${[5, 4, 3, 2, 1].map(freq => `
-								<label class="frequency-checkbox">
-									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
-									<span>${this.getFrequencyStars(freq)}</span>
-								</label>
+								<button class="freq-btn ${this.selectedFrequencies.has(freq) ? 'active' : ''}" data-freq="${freq}">
+									${this.getFrequencyStars(freq)}
+								</button>
 							`).join('')}
 						</div>
 					</div>
@@ -848,11 +846,11 @@ class FlashcardApp {
 			});
 		});
 
-		// 使用頻度チェックボックス
-		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
-		frequencyCheckboxes.forEach(checkbox => {
-			checkbox.addEventListener('change', (e) => {
-				const freq = parseInt((e.target as HTMLInputElement).value, 10);
+		// 使用頻度ボタン
+		const frequencyButtons = document.querySelectorAll('.freq-btn');
+		frequencyButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const freq = parseInt(btn.getAttribute('data-freq') || '0', 10);
 				this.toggleFrequency(freq);
 			});
 		});
@@ -887,11 +885,11 @@ class FlashcardApp {
 			});
 		});
 
-		// 使用頻度チェックボックス
-		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
-		frequencyCheckboxes.forEach(checkbox => {
-			checkbox.addEventListener('change', (e) => {
-				const freq = parseInt((e.target as HTMLInputElement).value, 10);
+		// 使用頻度ボタン
+		const frequencyButtons = document.querySelectorAll('.freq-btn');
+		frequencyButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const freq = parseInt(btn.getAttribute('data-freq') || '0', 10);
 				this.toggleFrequency(freq);
 			});
 		});
@@ -1294,10 +1292,9 @@ class FlashcardApp {
 						<h3>使用頻度</h3>
 						<div class="frequency-list">
 							${[5, 4, 3, 2, 1].map(freq => `
-								<label class="frequency-checkbox">
-									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
-									<span>${this.getFrequencyStars(freq)}</span>
-								</label>
+								<button class="freq-btn ${this.selectedFrequencies.has(freq) ? 'active' : ''}" data-freq="${freq}">
+									${this.getFrequencyStars(freq)}
+								</button>
 							`).join('')}
 						</div>
 					</div>
@@ -1385,19 +1382,12 @@ class FlashcardApp {
 			});
 		});
 
-		// 使用頻度チェックボックス
-		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
-		frequencyCheckboxes.forEach(checkbox => {
-			checkbox.addEventListener('change', (e) => {
-				const freq = parseInt((e.target as HTMLInputElement).value, 10);
-				if ((e.target as HTMLInputElement).checked) {
-					this.selectedFrequencies.add(freq);
-				} else {
-					this.selectedFrequencies.delete(freq);
-				}
-				this.applyFilters();
-				this.saveFilters();
-				this.render();
+		// 使用頻度ボタン
+		const frequencyButtons = document.querySelectorAll('.freq-btn');
+		frequencyButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const freq = parseInt(btn.getAttribute('data-freq') || '0', 10);
+				this.toggleFrequency(freq);
 			});
 		});
 
