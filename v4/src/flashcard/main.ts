@@ -35,6 +35,7 @@ class FlashcardApp {
 	private viewMode: ViewMode = 'browse';
 	private sortColumn: SortColumn = 'abbreviation';
 	private sortDirection: SortDirection = 'asc';
+	private searchQuery: string = '';
 
 	// 学習モード用
 	private currentCards: FlashcardEntry[] = [];
@@ -106,6 +107,17 @@ class FlashcardApp {
 
 		// 使用頻度でフィルタ
 		result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
+
+		// 検索フィルタ
+		if (this.searchQuery.trim()) {
+			const query = this.searchQuery.toLowerCase();
+			result = result.filter(entry =>
+				entry.abbreviation.toLowerCase().includes(query) ||
+				entry.english.toLowerCase().includes(query) ||
+				entry.japanese.includes(this.searchQuery) ||
+				entry.tags.toLowerCase().includes(query)
+			);
+		}
 
 		// ソート適用
 		this.filteredEntries = this.sortEntries(result);
@@ -365,6 +377,11 @@ class FlashcardApp {
 					</div>
 
 					<div class="filter-group">
+						<h2>検索</h2>
+						<input type="text" id="search-input" class="search-input" placeholder="略語、英文、和訳、タグで検索..." value="${this.searchQuery}">
+					</div>
+
+					<div class="filter-group">
 						<h2>モード</h2>
 						<label class="mode-checkbox">
 							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
@@ -417,7 +434,7 @@ class FlashcardApp {
 	private renderCardView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
-				<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+				<h2>略語一覧 (${this.filteredEntries.length}件 / ${this.entries.length}件中)</h2>
 				<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
 					📋 リスト表示
 				</button>
@@ -426,7 +443,7 @@ class FlashcardApp {
 				${this.filteredEntries
 					.map(
 						(entry) => `
-					<div class="entry-card">
+					<div class="entry-card ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${entry.abbreviation}">
 						<div class="entry-header">
 							<div class="entry-abbr">${this.formatAbbreviation(entry.abbreviation)}</div>
 							<div class="entry-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</div>
@@ -442,6 +459,16 @@ class FlashcardApp {
 					.join('')}
 			</div>
 		`;
+
+		// カードクリックでモールス再生
+		container.querySelectorAll('.entry-card').forEach(card => {
+			card.addEventListener('click', () => {
+				const abbr = card.getAttribute('data-abbr');
+				if (abbr) {
+					this.playMorse(abbr);
+				}
+			});
+		});
 	}
 
 	private getSortIndicator(column: SortColumn): string {
@@ -452,7 +479,7 @@ class FlashcardApp {
 	private renderListView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
-				<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+				<h2>略語一覧 (${this.filteredEntries.length}件 / ${this.entries.length}件中)</h2>
 				<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
 					🃏 カード表示
 				</button>
@@ -621,6 +648,16 @@ class FlashcardApp {
 				this.toggleFrequency(freq);
 			});
 		});
+
+		// 検索入力
+		const searchInput = document.getElementById('search-input') as HTMLInputElement;
+		if (searchInput) {
+			searchInput.addEventListener('input', () => {
+				this.searchQuery = searchInput.value;
+				this.applyFilters();
+				this.render();
+			});
+		}
 
 		// 復習モードチェックボックス
 		const reviewModeCheckbox = document.getElementById('review-mode-checkbox') as HTMLInputElement;
