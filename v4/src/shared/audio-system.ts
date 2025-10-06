@@ -50,14 +50,27 @@ export class AudioSystem {
       font-size: 14px;
       line-height: 1.5;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
     `;
     warning.innerHTML = `
       <strong>⚠️ お知らせ</strong><br>
       <span style="font-size: 12px;">
         スマートフォンでは、ブラウザの制限により初回の音声再生時に音が乱れることがあります。<br>
-        画面をタップまたはクリックすると、この警告は自動的に消えます。
+        このバナーをタップまたはクリックして音声を初期化してください。
       </span>
     `;
+
+    // バナークリックで初期化
+    const handleBannerClick = async (e: Event) => {
+      e.stopPropagation();
+      this.ensureAudioContext();
+      await this.playInitializationTone();
+      this.hideAudioWarning();
+    };
+
+    warning.addEventListener('click', handleBannerClick);
+    warning.addEventListener('touchstart', handleBannerClick);
+
     document.body.appendChild(warning);
   }
 
@@ -88,26 +101,10 @@ export class AudioSystem {
   }
 
   /**
-   * 初期化（ユーザーの最初のジェスチャーでAudioContext起動）
+   * 初期化（バナークリックでのみ初期化を行う）
    */
   private init(): void {
-    const handleFirstInteraction = async () => {
-      this.ensureAudioContext();
-      await this.playInitializationTone();
-
-      // 警告を非表示
-      this.hideAudioWarning();
-
-      // イベントリスナーを削除
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('keydown', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
-    };
-
-    // 最初のユーザーインタラクション時に初期化
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-    document.addEventListener('keydown', handleFirstInteraction, { once: true });
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    // バナークリックでのみ初期化を行うため、ここでは何もしない
   }
 
   /**
