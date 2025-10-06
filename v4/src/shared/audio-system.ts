@@ -43,10 +43,39 @@ export class AudioSystem {
   private init(): void {
     const handler = () => {
       this.ensureAudioContext();
+      // 無音のダミートーンを再生してAudioContextを完全に初期化
+      this.playDummyTone();
     };
     document.addEventListener('click', handler, { once: true });
     document.addEventListener('keydown', handler, { once: true });
     document.addEventListener('touchstart', handler, { once: true });
+  }
+
+  /**
+   * 無音のダミートーンを再生してAudioContextを初期化
+   */
+  private playDummyTone(): void {
+    if (!this.audioContext) return;
+
+    try {
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      oscillator.frequency.value = this.settings.frequency;
+      oscillator.type = 'sine';
+
+      const now = this.audioContext.currentTime;
+      // 無音（volume 0）で極短時間再生
+      gainNode.gain.setValueAtTime(0, now);
+
+      oscillator.start(now);
+      oscillator.stop(now + 0.001);
+    } catch (error) {
+      console.error('ダミートーンエラー:', error);
+    }
   }
 
   /**
