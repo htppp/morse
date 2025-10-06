@@ -49,9 +49,20 @@ class FlashcardApp {
 
 	private async loadData(): Promise<void> {
 		try {
-			// flashcard.tsvを読み込む（ビルド時にコピーされたファイルを使用）
-			const response = await fetch('./flashcard.tsv');
-			const text = await response.text();
+			let text: string;
+
+			// file://プロトコルでのCORS制限を回避するため、fetchの失敗時にフォールバック
+			try {
+				const response = await fetch('./flashcard.tsv');
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				text = await response.text();
+			} catch (fetchError) {
+				// fetchが失敗した場合（file://プロトコルなど）、埋め込みデータを使用
+				console.warn('flashcard.tsvの読み込みに失敗。埋め込みデータを使用します。', fetchError);
+				text = await this.loadEmbeddedData();
+			}
 
 			this.entries = text
 				.trim()
@@ -76,6 +87,13 @@ class FlashcardApp {
 			console.error('データ読み込みエラー:', error);
 			this.renderError();
 		}
+	}
+
+	private async loadEmbeddedData(): Promise<string> {
+		// ビルド時にflashcard.tsvの内容が埋め込まれる
+		// vite.config.tsでdefineを使用するか、importで直接読み込む
+		const tsvData = await import('../../../flashcard.tsv?raw');
+		return tsvData.default;
 	}
 
 	private getAllTags(): string[] {
