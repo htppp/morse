@@ -11,6 +11,9 @@ v3/src/.turbo/
 v3/src/build/
 v3/src/dist/
 
-# v4 build artifacts (copied from root during build)
+# v4 build artifacts
+v4/src/node_modules/
+v4/src/node_modules/.vite/
+v4/src/dist/
 v4/flashcard.tsv
 
