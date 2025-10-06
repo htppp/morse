@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>モールス練習アプリ v4</title>
+  <script type="module" crossorigin>(function(){const r=document.createElement("link").relList;if(r&&r.supports&&r.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))n(e);new MutationObserver(e=>{for(const t of e)if(t.type==="childList")for(const o of t.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&n(o)}).observe(document,{childList:!0,subtree:!0});function s(e){const t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin==="use-credentials"?t.credentials="include":e.crossOrigin==="anonymous"?t.credentials="omit":t.credentials="same-origin",t}function n(e){if(e.ep)return;e.ep=!0;const t=s(e);fetch(e.href,t)}})();const c=[{id:"vertical",title:"縦振り電鍵練習",description:"縦振り電鍵の操作を練習",icon:"⬇️",url:"./vertical.html"},{id:"horizontal",title:"横振り電鍵練習",description:"横振り電鍵の操作を練習",icon:"↔️",url:"./horizontal.html"},{id:"flashcard",title:"CW略語・Q符号学習",description:"フラッシュカード・試験モード",icon:"📚",url:"./flashcard.html"},{id:"koch",title:"コッホ法トレーニング",description:"40文字を段階的に習得",icon:"🎓",url:"./koch.html"}];function l(){const i=document.getElementById("app");i&&(i.innerHTML=`
+    <div class="container">
+      <header class="header">
+        <h1>モールス練習アプリ v4</h1>
+        <p class="subtitle">練習メニューを選択してください</p>
+      </header>
+
+      <div class="menu-grid">
+        ${c.map(r=>`
+          <a href="${r.url}" class="menu-card" data-id="${r.id}">
+            <div class="menu-icon">${r.icon}</div>
+            <h2 class="menu-title">${r.title}</h2>
+            <p class="menu-description">${r.description}</p>
+          </a>
+        `).join("")}
+      </div>
+
+      <footer class="footer">
+        <p>モールス練習アプリ v4 - 統合版</p>
+      </footer>
+    </div>
+  `)}document.addEventListener("DOMContentLoaded",l);</script>
+  <style rel="stylesheet" crossorigin>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.container{max-width:1200px;width:100%}.header{text-align:center;color:#fff;margin-bottom:40px}.header h1{font-size:2.5rem;margin-bottom:10px}.subtitle{font-size:1.1rem;opacity:.9}.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:40px}.menu-card{background:#fff;border-radius:12px;padding:30px;text-decoration:none;color:#333;transition:transform .3s,box-shadow .3s;box-shadow:0 4px 6px #0000001a;display:flex;flex-direction:column;align-items:center;text-align:center}.menu-card:hover{transform:translateY(-5px);box-shadow:0 10px 20px #0003}.menu-icon{font-size:3rem;margin-bottom:15px}.menu-title{font-size:1.3rem;margin-bottom:10px;color:#667eea}.menu-description{font-size:.95rem;color:#666;line-height:1.5}.footer{text-align:center;color:#fff;opacity:.8;font-size:.9rem}@media (max-width: 768px){.header h1{font-size:2rem}.menu-grid{grid-template-columns:1fr}}</style>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+</html>
