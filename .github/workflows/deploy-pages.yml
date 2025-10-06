@@ -36,8 +36,9 @@ jobs:
           cache: npm
           cache-dependency-path: |
             v3/src/package-lock.json
+            v4/src/package-lock.json
 
-      - name: Build site (if v3/src exists)
+      - name: Build v3 (if v3/src exists)
         shell: bash
         run: |
           set -euxo pipefail
@@ -47,13 +48,26 @@ jobs:
             npm run build
             cd -
           else
-            echo "Skipping build step: no v3/src/package-lock.json found. Using committed v3/ directory if present."
+            echo "Skipping v3 build: no v3/src/package-lock.json found."
+          fi
+
+      - name: Build v4 (if v4/src exists)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ -f "v4/src/package-lock.json" ]; then
+            cd v4/src
+            npm ci
+            npm run build
+            cd -
+          else
+            echo "Skipping v4 build: no v4/src/package-lock.json found."
           fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./v3
+          path: .
 
       - name: Deploy to GitHub Pages
         id: deployment
