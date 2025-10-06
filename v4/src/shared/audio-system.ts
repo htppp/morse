@@ -38,46 +38,44 @@ export class AudioSystem {
   }
 
   /**
-   * 初期化（HTML表示後にダミートーンで完全初期化）
+   * 初期化（ユーザーの最初のジェスチャーでAudioContext起動）
    */
   private init(): void {
-    // HTML表示直後にダミートーンを再生
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        this.ensureAudioContext();
-        this.playDummyTone();
-      }, { once: true });
-    } else {
-      // 既にDOMContentLoadedが完了している場合は即座に実行
+    const handleFirstInteraction = async () => {
       this.ensureAudioContext();
-      this.playDummyTone();
-    }
+      await this.playInitializationTone();
+
+      // イベントリスナーを削除
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+
+    // 最初のユーザーインタラクション時に初期化
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('keydown', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
   }
 
   /**
-   * ダミートーンを再生してAudioContextを初期化（デバッグ用に10%音量）
+   * 初期化用トーンを再生
+   * デバッグ用に「... ... ... ... ...」(S×5)を50%音量で再生
    */
-  private playDummyTone(): void {
-    if (!this.audioContext) return;
+  private async playInitializationTone(): Promise<void> {
+    // 現在の音量を保存
+    const originalVolume = this.settings.volume;
+
+    // 一時的に50%音量に設定
+    this.settings.volume = originalVolume * 0.5;
 
     try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-
-      oscillator.frequency.value = this.settings.frequency;
-      oscillator.type = 'sine';
-
-      const now = this.audioContext.currentTime;
-      // デバッグ用に10%音量で短時間再生
-      gainNode.gain.setValueAtTime(this.settings.volume * 0.1, now);
-
-      oscillator.start(now);
-      oscillator.stop(now + 0.1); // 0.1秒再生
+      // playMorseStringメソッドを使用してS×5を再生
+      await this.playMorseString('... ... ... ... ...');
     } catch (error) {
-      console.error('ダミートーンエラー:', error);
+      console.error('初期化トーンエラー:', error);
+    } finally {
+      // 元の音量に戻す
+      this.settings.volume = originalVolume;
     }
   }
 
