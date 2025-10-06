@@ -21,6 +21,7 @@ export class AudioSystem {
 
   constructor(settings: AudioSettings = { frequency: 750, volume: 0.7, wpm: 20 }) {
     this.settings = settings;
+    this.loadSettings();
     this.init();
   }
 
@@ -198,5 +199,72 @@ export class AudioSystem {
    */
   getAudioContext(): AudioContext | null {
     return this.audioContext;
+  }
+
+  /**
+   * 音量の取得
+   */
+  getVolume(): number {
+    return this.settings.volume;
+  }
+
+  /**
+   * 音量の設定
+   */
+  setVolume(volume: number): void {
+    this.settings.volume = Math.max(0, Math.min(1, volume));
+  }
+
+  /**
+   * 周波数の取得
+   */
+  getFrequency(): number {
+    return this.settings.frequency;
+  }
+
+  /**
+   * 周波数の設定
+   */
+  setFrequency(frequency: number): void {
+    this.settings.frequency = Math.max(400, Math.min(1200, frequency));
+  }
+
+  /**
+   * WPMの取得
+   */
+  getWPM(): number {
+    return this.settings.wpm || 20;
+  }
+
+  /**
+   * WPMの設定
+   */
+  setWPM(wpm: number): void {
+    this.settings.wpm = Math.max(5, Math.min(40, wpm));
+  }
+
+  /**
+   * 設定の保存
+   */
+  saveSettings(): void {
+    try {
+      localStorage.setItem('v4.audio.settings', JSON.stringify(this.settings));
+    } catch (error) {
+      console.error('設定保存エラー:', error);
+    }
+  }
+
+  /**
+   * 設定の読み込み
+   */
+  loadSettings(): void {
+    try {
+      const saved = localStorage.getItem('v4.audio.settings');
+      if (saved) {
+        this.settings = { ...this.settings, ...JSON.parse(saved) };
+      }
+    } catch (error) {
+      console.error('設定読み込みエラー:', error);
+    }
   }
 }

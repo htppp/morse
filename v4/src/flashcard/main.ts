@@ -17,9 +17,23 @@ interface FlashcardEntry {
 }
 
 type DisplayMode = 'card' | 'list';
-type ViewMode = 'browse' | 'learn';
+type ViewMode = 'browse' | 'learn' | 'exam';
 type SortColumn = 'abbreviation' | 'english' | 'japanese' | 'frequency' | 'tags';
 type SortDirection = 'asc' | 'desc';
+type QuestionType = 'abbr-to-meaning' | 'meaning-to-abbr' | 'morse-to-abbr' | 'morse-to-meaning';
+
+interface ExamQuestion {
+	type: QuestionType;
+	entry: FlashcardEntry;
+	choices: string[];
+	correctAnswer: string;
+}
+
+interface ExamResult {
+	question: ExamQuestion;
+	userAnswer: string;
+	isCorrect: boolean;
+}
 
 interface CardProgress {
 	known: Set<string>;      // 「わかる」とマークされた略語
@@ -45,6 +59,17 @@ class FlashcardApp {
 	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
 	private audioSystem: AudioSystem;
 	private currentlyPlaying: string | null = null; // 再生中の略語
+
+	// 試験モード用
+	private examQuestions: ExamQuestion[] = [];
+	private currentQuestionIndex: number = 0;
+	private examResults: ExamResult[] = [];
+	private questionCount: number = 10;
+	private questionType: QuestionType = 'abbr-to-meaning';
+
+	// 設定モーダル用
+	private settingsModalOpen: boolean = false;
+	private tempSettings: { volume: number; frequency: number; wpm: number } | null = null;
 
 	constructor() {
 		this.audioSystem = new AudioSystem();
@@ -334,8 +359,15 @@ class FlashcardApp {
 	private render(): void {
 		if (this.viewMode === 'browse') {
 			this.renderBrowseMode();
-		} else {
+		} else if (this.viewMode === 'learn') {
 			this.renderLearnMode();
+		} else if (this.viewMode === 'exam') {
+			this.renderExamMode();
+		}
+
+		// 設定モーダルを表示中の場合は再レンダリング
+		if (this.settingsModalOpen) {
+			this.renderSettingsModal();
 		}
 	}
 
@@ -350,7 +382,14 @@ class FlashcardApp {
 				<header class="header">
 					<button id="backBtn" class="back-btn">← 戻る</button>
 					<h1>CW略語・Q符号</h1>
+					<button id="settingsBtn" class="settings-btn" title="設定">⚙️</button>
 				</header>
+
+				<div class="tabs">
+					<button class="tab-button active" data-tab="browse">一覧表示</button>
+					<button class="tab-button" data-tab="learn">フラッシュカード</button>
+					<button class="tab-button" data-tab="exam">試験モード</button>
+				</div>
 
 				<div class="filter-section">
 					<div class="filter-group">
@@ -409,6 +448,29 @@ class FlashcardApp {
 				window.location.href = './index.html';
 			});
 		}
+
+		const settingsBtn = document.getElementById('settingsBtn');
+		if (settingsBtn) {
+			settingsBtn.addEventListener('click', () => {
+				this.openSettingsModal();
+			});
+		}
+
+		// タブボタンのイベントリスナー
+		const tabButtons = document.querySelectorAll('.tab-button');
+		tabButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tab = btn.getAttribute('data-tab');
+				if (tab === 'learn') {
+					this.viewMode = 'learn';
+					this.render();
+				} else if (tab === 'exam') {
+					this.viewMode = 'exam';
+					this.render();
+				}
+				// browseはすでに表示中なので何もしない
+			});
+		});
 
 		this.renderEntries();
 		this.attachBrowseModeListeners();
@@ -824,6 +886,609 @@ class FlashcardApp {
 				</div>
 			</div>
 		`;
+	}
+
+	// 設定モーダル関連メソッド
+	private openSettingsModal(): void {
+		this.settingsModalOpen = true;
+		this.tempSettings = {
+			volume: this.audioSystem.getVolume(),
+			frequency: this.audioSystem.getFrequency(),
+			wpm: this.audioSystem.getWPM(),
+		};
+		this.renderSettingsModal();
+	}
+
+	private closeSettingsModal(save: boolean): void {
+		if (!save && this.tempSettings) {
+			// キャンセル時は元の設定に戻す
+			this.audioSystem.setVolume(this.tempSettings.volume);
+			this.audioSystem.setFrequency(this.tempSettings.frequency);
+			this.audioSystem.setWPM(this.tempSettings.wpm);
+		} else if (save) {
+			// OK時は設定を保存
+			this.audioSystem.saveSettings();
+		}
+		this.settingsModalOpen = false;
+		this.tempSettings = null;
+
+		// モーダルを削除
+		const modal = document.getElementById('settings-modal');
+		if (modal) {
+			modal.remove();
+		}
+	}
+
+	private renderSettingsModal(): void {
+		// 既存のモーダルを削除
+		const existingModal = document.getElementById('settings-modal');
+		if (existingModal) {
+			existingModal.remove();
+		}
+
+		const volume = this.audioSystem.getVolume();
+		const frequency = this.audioSystem.getFrequency();
+		const wpm = this.audioSystem.getWPM();
+
+		const modalHTML = `
+			<div class="settings-modal" id="settings-modal">
+				<div class="settings-content">
+					<h2>設定</h2>
+					<div class="settings-grid">
+						<div class="setting-item">
+							<label>音量</label>
+							<input type="range" id="volumeRange" min="0" max="100" value="${volume * 100}">
+							<input type="number" id="volumeInput" min="0" max="100" value="${Math.round(volume * 100)}">
+							<span>%</span>
+						</div>
+						<div class="setting-item">
+							<label>周波数 (Hz)</label>
+							<input type="number" id="frequencyInput" min="400" max="1200" value="${frequency}" step="50">
+						</div>
+						<div class="setting-item">
+							<label>WPM (速度: 5-40)</label>
+							<input type="number" id="wpmInput" min="5" max="40" value="${wpm}">
+						</div>
+						<div class="setting-item">
+							<label>テスト再生</label>
+							<button id="testMorseBtn" class="test-button">再生</button>
+						</div>
+					</div>
+					<div class="settings-buttons">
+						<button id="cancelBtn" class="secondary-button">キャンセル</button>
+						<button id="okBtn" class="primary-button">OK</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+		// イベントリスナー
+		const modal = document.getElementById('settings-modal');
+		if (!modal) return;
+
+		// 背景クリックで閉じる
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				this.closeSettingsModal(false);
+			}
+		});
+
+		const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
+		const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
+		if (volumeRange && volumeInput) {
+			volumeRange.addEventListener('input', () => {
+				const val = parseInt(volumeRange.value) / 100;
+				this.audioSystem.setVolume(val);
+				volumeInput.value = volumeRange.value;
+			});
+			volumeInput.addEventListener('input', () => {
+				const val = parseInt(volumeInput.value) / 100;
+				this.audioSystem.setVolume(val);
+				volumeRange.value = volumeInput.value;
+			});
+		}
+
+		const frequencyInput = document.getElementById('frequencyInput') as HTMLInputElement;
+		if (frequencyInput) {
+			frequencyInput.addEventListener('input', () => {
+				const val = parseInt(frequencyInput.value);
+				this.audioSystem.setFrequency(val);
+			});
+		}
+
+		const wpmInput = document.getElementById('wpmInput') as HTMLInputElement;
+		if (wpmInput) {
+			wpmInput.addEventListener('input', () => {
+				const val = parseInt(wpmInput.value);
+				this.audioSystem.setWPM(val);
+			});
+		}
+
+		const testBtn = document.getElementById('testMorseBtn');
+		if (testBtn) {
+			testBtn.addEventListener('click', async () => {
+				const morseCode = MorseCode.textToMorse('CQ');
+				if (morseCode) {
+					await this.audioSystem.playMorseString(morseCode);
+				}
+			});
+		}
+
+		const cancelBtn = document.getElementById('cancelBtn');
+		if (cancelBtn) {
+			cancelBtn.addEventListener('click', () => {
+				this.closeSettingsModal(false);
+			});
+		}
+
+		const okBtn = document.getElementById('okBtn');
+		if (okBtn) {
+			okBtn.addEventListener('click', () => {
+				this.closeSettingsModal(true);
+			});
+		}
+	}
+
+	// 試験モード関連メソッド
+	private renderExamMode(): void {
+		const app = document.getElementById('app');
+		if (!app) return;
+
+		if (this.examQuestions.length === 0) {
+			// 試験設定画面
+			this.renderExamSetup(app);
+		} else if (this.currentQuestionIndex < this.examQuestions.length) {
+			// 問題表示
+			this.renderExamQuestion(app);
+		} else {
+			// 結果表示
+			this.renderExamResult(app);
+		}
+	}
+
+	private renderExamSetup(app: HTMLElement): void {
+		const allTags = this.getAllTags();
+
+		app.innerHTML = `
+			<div class="container">
+				<header class="header">
+					<button id="backBtn" class="back-btn">← 戻る</button>
+					<h1>CW略語・Q符号</h1>
+					<button id="settingsBtn" class="settings-btn" title="設定">⚙️</button>
+				</header>
+
+				<div class="tabs">
+					<button class="tab-button" data-tab="browse">一覧表示</button>
+					<button class="tab-button" data-tab="learn">フラッシュカード</button>
+					<button class="tab-button active" data-tab="exam">試験モード</button>
+				</div>
+
+				<div class="filter-section">
+					<h2>試験モード設定</h2>
+
+					<div class="filter-group">
+						<h3>タグでフィルター</h3>
+						<div class="tags-list">
+							${allTags.map(tag => `
+								<button class="tag-btn ${this.selectedTags.has(tag) ? 'active' : ''}" data-tag="${tag}">
+									${tag}
+								</button>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h3>使用頻度</h3>
+						<div class="frequency-list">
+							${[5, 4, 3, 2, 1].map(freq => `
+								<label class="frequency-checkbox">
+									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
+									<span>${this.getFrequencyStars(freq)}</span>
+								</label>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h3>出題形式</h3>
+						<div class="question-type-buttons">
+							<button class="question-type-btn ${this.questionType === 'abbr-to-meaning' ? 'selected' : ''}" data-type="abbr-to-meaning">略語→意味（基礎）</button>
+							<button class="question-type-btn ${this.questionType === 'meaning-to-abbr' ? 'selected' : ''}" data-type="meaning-to-abbr">意味→略語（応用）</button>
+							<button class="question-type-btn ${this.questionType === 'morse-to-abbr' ? 'selected' : ''}" data-type="morse-to-abbr">モールス音→略語（実践）</button>
+							<button class="question-type-btn ${this.questionType === 'morse-to-meaning' ? 'selected' : ''}" data-type="morse-to-meaning">モールス音→意味（実践）</button>
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h3>問題数</h3>
+						<div class="question-count-buttons">
+							<button class="question-count-btn ${this.questionCount === 5 ? 'selected' : ''}" data-count="5">5問</button>
+							<button class="question-count-btn ${this.questionCount === 10 ? 'selected' : ''}" data-count="10">10問</button>
+							<button class="question-count-btn ${this.questionCount === 20 ? 'selected' : ''}" data-count="20">20問</button>
+							<button class="question-count-btn ${this.questionCount === 50 ? 'selected' : ''}" data-count="50">50問</button>
+						</div>
+					</div>
+
+					<div class="result-count">
+						出題可能: ${this.filteredEntries.length}件
+					</div>
+
+					<div class="action-buttons">
+						<button id="start-exam-btn" class="primary-button">試験開始</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		this.attachExamSetupListeners();
+	}
+
+	private attachExamSetupListeners(): void {
+		const backBtn = document.getElementById('backBtn');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => {
+				window.location.href = './index.html';
+			});
+		}
+
+		const settingsBtn = document.getElementById('settingsBtn');
+		if (settingsBtn) {
+			settingsBtn.addEventListener('click', () => {
+				this.openSettingsModal();
+			});
+		}
+
+		// タブボタン
+		const tabButtons = document.querySelectorAll('.tab-button');
+		tabButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tab = btn.getAttribute('data-tab');
+				if (tab === 'browse') {
+					this.viewMode = 'browse';
+					this.render();
+				} else if (tab === 'learn') {
+					this.viewMode = 'learn';
+					this.currentCards = [];
+					this.render();
+				}
+			});
+		});
+
+		// タグボタン
+		const tagButtons = document.querySelectorAll('.tag-btn');
+		tagButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tag = btn.getAttribute('data-tag');
+				if (tag) {
+					if (this.selectedTags.has(tag)) {
+						this.selectedTags.delete(tag);
+					} else {
+						this.selectedTags.add(tag);
+					}
+					this.applyFilters();
+					this.saveFilters();
+					this.render();
+				}
+			});
+		});
+
+		// 使用頻度チェックボックス
+		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
+		frequencyCheckboxes.forEach(checkbox => {
+			checkbox.addEventListener('change', (e) => {
+				const freq = parseInt((e.target as HTMLInputElement).value, 10);
+				if ((e.target as HTMLInputElement).checked) {
+					this.selectedFrequencies.add(freq);
+				} else {
+					this.selectedFrequencies.delete(freq);
+				}
+				this.applyFilters();
+				this.saveFilters();
+				this.render();
+			});
+		});
+
+		// 出題形式ボタン
+		const questionTypeButtons = document.querySelectorAll('.question-type-btn');
+		questionTypeButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const type = btn.getAttribute('data-type') as QuestionType;
+				if (type) {
+					this.questionType = type;
+					this.render();
+				}
+			});
+		});
+
+		// 問題数ボタン
+		const questionCountButtons = document.querySelectorAll('.question-count-btn');
+		questionCountButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const count = parseInt(btn.getAttribute('data-count') || '10', 10);
+				this.questionCount = count;
+				this.render();
+			});
+		});
+
+		// 試験開始ボタン
+		const startExamBtn = document.getElementById('start-exam-btn');
+		if (startExamBtn) {
+			startExamBtn.addEventListener('click', () => {
+				this.startExam();
+			});
+		}
+	}
+
+	private startExam(): void {
+		this.examQuestions = this.generateExamQuestions();
+		this.currentQuestionIndex = 0;
+		this.examResults = [];
+		this.render();
+	}
+
+	private generateExamQuestions(): ExamQuestion[] {
+		const count = Math.min(this.questionCount, this.filteredEntries.length);
+		const shuffled = [...this.filteredEntries].sort(() => Math.random() - 0.5);
+		const selected = shuffled.slice(0, count);
+
+		return selected.map(entry => this.createExamQuestion(entry));
+	}
+
+	private createExamQuestion(entry: FlashcardEntry): ExamQuestion {
+		// 選択肢用に他の3つのエントリを取得
+		const others = this.filteredEntries
+			.filter(e => e.abbreviation !== entry.abbreviation)
+			.sort(() => Math.random() - 0.5)
+			.slice(0, 3);
+
+		let correctAnswer: string;
+		let choices: string[];
+
+		switch (this.questionType) {
+			case 'abbr-to-meaning':
+				correctAnswer = `${entry.english} / ${entry.japanese}`;
+				choices = [correctAnswer, ...others.map(e => `${e.english} / ${e.japanese}`)];
+				break;
+			case 'meaning-to-abbr':
+				correctAnswer = entry.abbreviation;
+				choices = [correctAnswer, ...others.map(e => e.abbreviation)];
+				break;
+			case 'morse-to-abbr':
+				correctAnswer = entry.abbreviation;
+				choices = [correctAnswer, ...others.map(e => e.abbreviation)];
+				break;
+			case 'morse-to-meaning':
+				correctAnswer = `${entry.english} / ${entry.japanese}`;
+				choices = [correctAnswer, ...others.map(e => `${e.english} / ${e.japanese}`)];
+				break;
+		}
+
+		// 選択肢をシャッフル
+		choices = choices.sort(() => Math.random() - 0.5);
+
+		return {
+			type: this.questionType,
+			entry,
+			choices,
+			correctAnswer,
+		};
+	}
+
+	private renderExamQuestion(app: HTMLElement): void {
+		const question = this.examQuestions[this.currentQuestionIndex];
+		const progress = `問題 ${this.currentQuestionIndex + 1} / ${this.examQuestions.length}`;
+
+		app.innerHTML = `
+			<div class="container exam-view">
+				<div class="exam-header">
+					<button id="quit-exam-btn" class="secondary-button">試験を中止</button>
+					<div class="progress-indicator">${progress}</div>
+				</div>
+
+				<div class="question-container">
+					${this.renderQuestion(question)}
+				</div>
+
+				<div class="choices-container">
+					${this.renderChoices(question)}
+				</div>
+
+				<div id="feedback-area" class="feedback-area"></div>
+			</div>
+		`;
+
+		this.attachExamQuestionListeners();
+
+		// モールス音が必要な場合は再生
+		if (question.type === 'morse-to-abbr' || question.type === 'morse-to-meaning') {
+			setTimeout(() => this.playMorse(question.entry.abbreviation), 500);
+		}
+	}
+
+	private renderQuestion(question: ExamQuestion): string {
+		switch (question.type) {
+			case 'abbr-to-meaning':
+				return `
+					<div class="question-text">
+						<p>次の略語の意味を選んでください:</p>
+						<p class="question-abbr">${this.formatAbbreviation(question.entry.abbreviation)}</p>
+					</div>
+				`;
+			case 'meaning-to-abbr':
+				return `
+					<div class="question-text">
+						<p>次の意味に対応する略語を選んでください:</p>
+						<p class="question-meaning">${question.entry.english}</p>
+						<p class="question-meaning">${question.entry.japanese}</p>
+					</div>
+				`;
+			case 'morse-to-abbr':
+				return `
+					<div class="question-text">
+						<p>モールス音を聞いて、対応する略語を選んでください:</p>
+						<button id="replay-morse-btn" class="control-button">🔊 もう一度再生</button>
+					</div>
+				`;
+			case 'morse-to-meaning':
+				return `
+					<div class="question-text">
+						<p>モールス音を聞いて、対応する意味を選んでください:</p>
+						<button id="replay-morse-btn" class="control-button">🔊 もう一度再生</button>
+					</div>
+				`;
+		}
+	}
+
+	private renderChoices(question: ExamQuestion): string {
+		return question.choices.map((choice, index) => `
+			<button class="choice-button" data-choice="${choice}">
+				${String.fromCharCode(65 + index)}. ${choice}
+			</button>
+		`).join('');
+	}
+
+	private attachExamQuestionListeners(): void {
+		const quitBtn = document.getElementById('quit-exam-btn');
+		if (quitBtn) {
+			quitBtn.addEventListener('click', () => {
+				if (confirm('試験を中止しますか？')) {
+					this.examQuestions = [];
+					this.examResults = [];
+					this.currentQuestionIndex = 0;
+					this.render();
+				}
+			});
+		}
+
+		const replayBtn = document.getElementById('replay-morse-btn');
+		if (replayBtn) {
+			replayBtn.addEventListener('click', () => {
+				const question = this.examQuestions[this.currentQuestionIndex];
+				this.playMorse(question.entry.abbreviation);
+			});
+		}
+
+		const choiceButtons = document.querySelectorAll('.choice-button');
+		choiceButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const choice = btn.getAttribute('data-choice');
+				if (choice) {
+					this.submitExamAnswer(choice);
+				}
+			});
+		});
+	}
+
+	private submitExamAnswer(answer: string): void {
+		const question = this.examQuestions[this.currentQuestionIndex];
+		const isCorrect = answer === question.correctAnswer;
+
+		this.examResults.push({
+			question,
+			userAnswer: answer,
+			isCorrect,
+		});
+
+		this.showExamFeedback(isCorrect, question.correctAnswer);
+
+		setTimeout(() => {
+			this.currentQuestionIndex++;
+			this.render();
+		}, 1500);
+	}
+
+	private showExamFeedback(isCorrect: boolean, correctAnswer: string): void {
+		const feedbackArea = document.getElementById('feedback-area');
+		if (!feedbackArea) return;
+
+		feedbackArea.className = `feedback-area ${isCorrect ? 'correct' : 'incorrect'}`;
+		feedbackArea.innerHTML = isCorrect
+			? '<div class="feedback-text">✓ 正解！</div>'
+			: `<div class="feedback-text">✗ 不正解<br>正解: ${correctAnswer}</div>`;
+
+		// 選択肢ボタンを無効化
+		const choiceButtons = document.querySelectorAll('.choice-button');
+		choiceButtons.forEach(btn => {
+			(btn as HTMLButtonElement).disabled = true;
+		});
+	}
+
+	private renderExamResult(app: HTMLElement): void {
+		const correctCount = this.examResults.filter(r => r.isCorrect).length;
+		const totalCount = this.examResults.length;
+		const percentage = Math.round((correctCount / totalCount) * 100);
+		const wrongAnswers = this.examResults.filter(r => !r.isCorrect);
+
+		app.innerHTML = `
+			<div class="container exam-result-view">
+				<div class="result-header">
+					<h2>試験結果</h2>
+				</div>
+
+				<div class="score-display">
+					<div class="score-large">${correctCount} / ${totalCount}</div>
+					<div class="score-percentage">${percentage}%</div>
+				</div>
+
+				<div class="result-details">
+					${wrongAnswers.length > 0 ? `
+						<h3>間違えた問題 (${wrongAnswers.length}問)</h3>
+						<div class="wrong-questions">
+							${wrongAnswers.map(r => this.renderWrongAnswer(r)).join('')}
+						</div>
+					` : `
+						<p class="perfect-score">全問正解です！おめでとうございます！</p>
+					`}
+				</div>
+
+				<div class="action-buttons">
+					<button id="back-to-setup-btn" class="primary-button">設定に戻る</button>
+					${wrongAnswers.length > 0 ? `
+						<button id="retry-wrong-btn" class="secondary-button">間違えた問題を復習</button>
+					` : ''}
+				</div>
+			</div>
+		`;
+
+		this.attachExamResultListeners();
+	}
+
+	private renderWrongAnswer(result: ExamResult): string {
+		const { question, userAnswer } = result;
+		return `
+			<div class="wrong-question-item">
+				<div class="wrong-q-abbr">${this.formatAbbreviation(question.entry.abbreviation)}</div>
+				<div class="wrong-q-correct">正解: ${question.correctAnswer}</div>
+				<div class="wrong-q-user">あなたの回答: ${userAnswer}</div>
+				<div class="wrong-q-meaning">${question.entry.english} / ${question.entry.japanese}</div>
+			</div>
+		`;
+	}
+
+	private attachExamResultListeners(): void {
+		const backBtn = document.getElementById('back-to-setup-btn');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => {
+				this.examQuestions = [];
+				this.examResults = [];
+				this.currentQuestionIndex = 0;
+				this.render();
+			});
+		}
+
+		const retryBtn = document.getElementById('retry-wrong-btn');
+		if (retryBtn) {
+			retryBtn.addEventListener('click', () => {
+				const wrongEntries = this.examResults
+					.filter(r => !r.isCorrect)
+					.map(r => r.question.entry);
+				this.filteredEntries = wrongEntries;
+				this.questionCount = wrongEntries.length;
+				this.startExam();
+			});
+		}
 	}
 }
 

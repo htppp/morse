@@ -50,7 +50,37 @@ export class MorseCode {
    */
   static textToMorse(text: string): string {
     const upperText = text.toUpperCase();
-    return Array.from(upperText).map(char => MORSE_CODE_MAP[char] || char).join(' ');
+
+    // prosign ([AR], [SK]など) を処理
+    const prosignRegex = /\[([A-Z]+)\]/g;
+    const parts: string[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = prosignRegex.exec(upperText)) !== null) {
+      // prosignの前のテキストを処理
+      if (match.index > lastIndex) {
+        const beforeText = upperText.substring(lastIndex, match.index);
+        const morseChars = Array.from(beforeText).map(char => MORSE_CODE_MAP[char] || char);
+        parts.push(morseChars.join(' '));
+      }
+
+      // prosign内の文字を空白なしで結合
+      const prosignChars = Array.from(match[1]);
+      const morseCodes = prosignChars.map(char => MORSE_CODE_MAP[char] || char);
+      parts.push(morseCodes.join(''));
+
+      lastIndex = prosignRegex.lastIndex;
+    }
+
+    // 残りのテキストを処理
+    if (lastIndex < upperText.length) {
+      const remainingText = upperText.substring(lastIndex);
+      const morseChars = Array.from(remainingText).map(char => MORSE_CODE_MAP[char] || char);
+      parts.push(morseChars.join(' '));
+    }
+
+    return parts.filter(p => p).join(' ');
   }
 
   /**
