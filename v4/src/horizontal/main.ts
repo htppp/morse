@@ -108,8 +108,9 @@ class HorizontalKeyTrainer {
     this.sending = true;
     this.clearTimers();
 
-    // 両方押されている場合、squeezeDetectedをリセット
-    if (this.leftDown && this.rightDown) {
+    // 新しい要素の送信開始時にsqueezeDetectedをリセット（前回のスクイーズが処理された）
+    // ただし、すでに両方のパドルが押されている場合は維持
+    if (!(this.leftDown && this.rightDown)) {
       this.squeezeDetected = false;
     }
 
@@ -127,12 +128,12 @@ class HorizontalKeyTrainer {
 
     this.lastSent = element;
 
-    // Iambic B: 送信終了直前に次の要素を予約
+    // Iambic logic
     setTimeout(() => {
       const iambicMode = Settings.get('iambicMode');
-      const bothPressed = this.leftDown && this.rightDown;
+      const both = this.leftDown && this.rightDown;
 
-      // Iambic B: squeeze検出時、次の要素を予約
+      // Iambic B: スクイーズが検出されていた場合、現在パドルが離されていても次の要素を設定
       if (iambicMode === 'B' && this.squeezeDetected && !this.forceNextElement) {
         if (element === '.') {
           this.forceNextElement = '-';
@@ -141,8 +142,8 @@ class HorizontalKeyTrainer {
         }
       }
 
-      // 両方押されている場合、次の要素を予約
-      if (bothPressed && !this.forceNextElement) {
+      // 現在も両方のパドルが押されている場合のみ交互送信（Iambic A/B共通）
+      if (both && !this.forceNextElement) {
         if (element === '.') {
           this.forceNextElement = '-';
         } else if (element === '-') {
@@ -168,7 +169,7 @@ class HorizontalKeyTrainer {
       // Squeezeインジケータを更新
       this.updateSqueezeIndicator();
 
-      // 次の要素を送信
+      // Iambic Bモード: forceNextElementが設定されている場合は必ず送信
       if (this.forceNextElement) {
         this.scheduleNext();
       } else if (this.leftDown || this.rightDown) {
@@ -187,19 +188,20 @@ class HorizontalKeyTrainer {
     const isReversed = paddleLayout === 'reversed';
 
     if (this.forceNextElement) {
-      const elem = this.forceNextElement;
+      const next = this.forceNextElement;
       this.forceNextElement = null;
-      this.sendPaddleElement(elem);
+      // squeezeDetectedはリセットしない（連続スクイーズのため）
+      this.sendPaddleElement(next);
     } else if (this.leftDown && this.rightDown) {
-      // 両方押されている場合、交互に送信
-      const nextElem = this.lastSent === '.' ? '-' : '.';
-      this.sendPaddleElement(nextElem);
+      // Both paddles - alternate
+      const nextElement = this.lastSent === '.' ? '-' : '.';
+      this.sendPaddleElement(nextElement);
     } else if (this.leftDown) {
-      const elem = isReversed ? '-' : '.';
-      this.sendPaddleElement(elem);
+      const element = isReversed ? '-' : '.';
+      this.sendPaddleElement(element);
     } else if (this.rightDown) {
-      const elem = isReversed ? '.' : '-';
-      this.sendPaddleElement(elem);
+      const element = isReversed ? '.' : '-';
+      this.sendPaddleElement(element);
     }
   }
 
@@ -226,24 +228,24 @@ class HorizontalKeyTrainer {
    */
   private onLeftDown(): void {
     const iambicMode = Settings.get('iambicMode');
-    this.leftDown = true;
 
+    this.leftDown = true;
     const leftBtn = document.getElementById('paddleLeft');
     if (leftBtn) leftBtn.classList.add('active');
-
     this.updateSqueezeIndicator();
 
-    // Iambic B: 送信中に反対側が押されたら次の要素を予約
+    // Iambic Bモードで送信中かつ右も押されている場合、次の要素を予約
     if (iambicMode === 'B' && this.sending && this.rightDown) {
       const paddleLayout = Settings.get('paddleLayout');
+      // 左パドルを押したので、次は左の要素（normalならディット、reversedならダー）
       this.forceNextElement = paddleLayout === 'reversed' ? '-' : '.';
-      this.squeezeDetected = true;
+      this.squeezeDetected = true; // スクイーズ検出（離した後も送信）
     }
 
     if (!this.sending) {
       const paddleLayout = Settings.get('paddleLayout');
-      const elem = paddleLayout === 'reversed' ? '-' : '.';
-      this.sendPaddleElement(elem);
+      const element = paddleLayout === 'reversed' ? '-' : '.';
+      this.sendPaddleElement(element);
     }
   }
 
@@ -252,24 +254,24 @@ class HorizontalKeyTrainer {
    */
   private onRightDown(): void {
     const iambicMode = Settings.get('iambicMode');
-    this.rightDown = true;
 
+    this.rightDown = true;
     const rightBtn = document.getElementById('paddleRight');
     if (rightBtn) rightBtn.classList.add('active');
-
     this.updateSqueezeIndicator();
 
-    // Iambic B: 送信中に反対側が押されたら次の要素を予約
+    // Iambic Bモードで送信中かつ左も押されている場合、次の要素を予約
     if (iambicMode === 'B' && this.sending && this.leftDown) {
       const paddleLayout = Settings.get('paddleLayout');
+      // 右パドルを押したので、次は右の要素（normalならダー、reversedならディット）
       this.forceNextElement = paddleLayout === 'reversed' ? '.' : '-';
-      this.squeezeDetected = true;
+      this.squeezeDetected = true; // スクイーズ検出（離した後も送信）
     }
 
     if (!this.sending) {
       const paddleLayout = Settings.get('paddleLayout');
-      const elem = paddleLayout === 'reversed' ? '.' : '-';
-      this.sendPaddleElement(elem);
+      const element = paddleLayout === 'reversed' ? '.' : '-';
+      this.sendPaddleElement(element);
     }
   }
 
@@ -279,20 +281,17 @@ class HorizontalKeyTrainer {
   private onLeftUp(): void {
     this.leftDown = false;
     this.dashReqCount = 0;
-
     const leftBtn = document.getElementById('paddleLeft');
     if (leftBtn) leftBtn.classList.remove('active');
-
     this.updateSqueezeIndicator();
 
-    // Iambic B: squeeze中に片方を離した場合
     const iambicMode = Settings.get('iambicMode');
     if (iambicMode === 'B' && this.isSqueezing && this.rightDown && !this.sending) {
       setTimeout(() => {
         if (this.rightDown && !this.sending) {
           const paddleLayout = Settings.get('paddleLayout');
-          const elem = paddleLayout === 'reversed' ? '.' : '-';
-          this.sendPaddleElement(elem);
+          const element = paddleLayout === 'reversed' ? '.' : '-';
+          this.sendPaddleElement(element);
         }
       }, 10);
     }
@@ -304,35 +303,30 @@ class HorizontalKeyTrainer {
   private onRightUp(): void {
     this.rightDown = false;
     this.dotReqCount = 0;
-
     const rightBtn = document.getElementById('paddleRight');
     if (rightBtn) rightBtn.classList.remove('active');
-
     this.updateSqueezeIndicator();
 
     const iambicMode = Settings.get('iambicMode');
-
-    // Iambic B: squeeze中に片方を離した場合
     if (iambicMode === 'B' && this.isSqueezing && this.leftDown && !this.sending) {
       setTimeout(() => {
         if (this.leftDown && !this.sending) {
           const paddleLayout = Settings.get('paddleLayout');
-          const elem = paddleLayout === 'reversed' ? '-' : '.';
-          this.sendPaddleElement(elem);
+          const element = paddleLayout === 'reversed' ? '-' : '.';
+          this.sendPaddleElement(element);
         }
       }, 10);
     }
 
-    // 両方離された場合
+    // Iambic B専用処理
     if (!this.leftDown && !this.rightDown && this.squeezeOccurred) {
-      // Iambic B: 長点の後に短点を追加
       if (iambicMode === 'B' && this.lastSent === '-') {
-        if (this.sending) {
-          this.dotReqCount++;
-        } else {
+        if (!this.sending) {
           const paddleLayout = Settings.get('paddleLayout');
-          const elem = paddleLayout === 'reversed' ? '-' : '.';
-          this.sendPaddleElement(elem);
+          const element = paddleLayout === 'reversed' ? '-' : '.';
+          this.sendPaddleElement(element);
+        } else {
+          this.dotReqCount++;
         }
       }
       this.squeezeOccurred = false;
@@ -394,10 +388,12 @@ class HorizontalKeyTrainer {
   }
 
   private setupEventListeners(): void {
-    let mouseLeftDown = false;
-    let mouseRightDown = false;
-    let touchLeftDown = false;
-    let touchRightDown = false;
+    // マウスの状態を追跡
+    let leftMouseDown = false;
+    let rightMouseDown = false;
+    // タッチの状態を追跡
+    let leftTouchDown = false;
+    let rightTouchDown = false;
 
     // 左パドル
     const leftPaddle = document.getElementById('paddleLeft');
@@ -405,15 +401,15 @@ class HorizontalKeyTrainer {
       // マウスイベント
       leftPaddle.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        if (!mouseLeftDown) {
-          mouseLeftDown = true;
+        if (!leftMouseDown) {
+          leftMouseDown = true;
           this.onLeftDown();
         }
       });
       leftPaddle.addEventListener('mouseup', (e) => {
         e.preventDefault();
-        if (mouseLeftDown) {
-          mouseLeftDown = false;
+        if (leftMouseDown) {
+          leftMouseDown = false;
           this.onLeftUp();
         }
       });
@@ -421,15 +417,15 @@ class HorizontalKeyTrainer {
       // タッチイベント
       leftPaddle.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (!touchLeftDown) {
-          touchLeftDown = true;
+        if (!leftTouchDown) {
+          leftTouchDown = true;
           this.onLeftDown();
         }
       }, { passive: false });
       leftPaddle.addEventListener('touchend', (e) => {
         e.preventDefault();
-        if (touchLeftDown) {
-          touchLeftDown = false;
+        if (leftTouchDown) {
+          leftTouchDown = false;
           this.onLeftUp();
         }
       }, { passive: false });
@@ -441,15 +437,15 @@ class HorizontalKeyTrainer {
       // マウスイベント
       rightPaddle.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        if (!mouseRightDown) {
-          mouseRightDown = true;
+        if (!rightMouseDown) {
+          rightMouseDown = true;
           this.onRightDown();
         }
       });
       rightPaddle.addEventListener('mouseup', (e) => {
         e.preventDefault();
-        if (mouseRightDown) {
-          mouseRightDown = false;
+        if (rightMouseDown) {
+          rightMouseDown = false;
           this.onRightUp();
         }
       });
@@ -457,40 +453,40 @@ class HorizontalKeyTrainer {
       // タッチイベント
       rightPaddle.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (!touchRightDown) {
-          touchRightDown = true;
+        if (!rightTouchDown) {
+          rightTouchDown = true;
           this.onRightDown();
         }
       }, { passive: false });
       rightPaddle.addEventListener('touchend', (e) => {
         e.preventDefault();
-        if (touchRightDown) {
-          touchRightDown = false;
+        if (rightTouchDown) {
+          rightTouchDown = false;
           this.onRightUp();
         }
       }, { passive: false });
     }
 
-    // マウスが離れた場合
+    // グローバルmouseupイベント（ボタン外でマウスを離した場合に対応）
     document.addEventListener('mouseup', () => {
-      if (mouseLeftDown) {
-        mouseLeftDown = false;
+      if (leftMouseDown) {
+        leftMouseDown = false;
         this.onLeftUp();
       }
-      if (mouseRightDown) {
-        mouseRightDown = false;
+      if (rightMouseDown) {
+        rightMouseDown = false;
         this.onRightUp();
       }
     });
 
-    // タッチが離れた場合
+    // グローバルtouchendイベント（ボタン外でタッチを離した場合に対応）
     document.addEventListener('touchend', () => {
-      if (touchLeftDown) {
-        touchLeftDown = false;
+      if (leftTouchDown) {
+        leftTouchDown = false;
         this.onLeftUp();
       }
-      if (touchRightDown) {
-        touchRightDown = false;
+      if (rightTouchDown) {
+        rightTouchDown = false;
         this.onRightUp();
       }
     }, { passive: false });
