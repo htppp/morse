@@ -18,6 +18,8 @@ interface FlashcardEntry {
 
 type DisplayMode = 'card' | 'list';
 type ViewMode = 'browse' | 'learn';
+type SortColumn = 'abbreviation' | 'english' | 'japanese' | 'frequency' | 'tags';
+type SortDirection = 'asc' | 'desc';
 
 interface CardProgress {
 	known: Set<string>;      // 「わかる」とマークされた略語
@@ -31,6 +33,8 @@ class FlashcardApp {
 	private selectedFrequencies: Set<number> = new Set([1, 2, 3, 4, 5]);
 	private displayMode: DisplayMode = 'card';
 	private viewMode: ViewMode = 'browse';
+	private sortColumn: SortColumn = 'abbreviation';
+	private sortDirection: SortDirection = 'asc';
 
 	// 学習モード用
 	private currentCards: FlashcardEntry[] = [];
@@ -39,6 +43,7 @@ class FlashcardApp {
 	private progress: CardProgress = { known: new Set(), unknown: new Set() };
 	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
 	private audioSystem: AudioSystem;
+	private currentlyPlaying: string | null = null; // 再生中の略語
 
 	constructor() {
 		this.audioSystem = new AudioSystem();
@@ -102,7 +107,50 @@ class FlashcardApp {
 		// 使用頻度でフィルタ
 		result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
 
-		this.filteredEntries = result;
+		// ソート適用
+		this.filteredEntries = this.sortEntries(result);
+	}
+
+	private sortEntries(entries: FlashcardEntry[]): FlashcardEntry[] {
+		const sorted = [...entries];
+		sorted.sort((a, b) => {
+			let compareResult = 0;
+
+			switch (this.sortColumn) {
+				case 'abbreviation':
+					compareResult = a.abbreviation.localeCompare(b.abbreviation);
+					break;
+				case 'english':
+					compareResult = a.english.localeCompare(b.english);
+					break;
+				case 'japanese':
+					compareResult = a.japanese.localeCompare(b.japanese);
+					break;
+				case 'frequency':
+					compareResult = a.frequency - b.frequency;
+					break;
+				case 'tags':
+					compareResult = a.tags.localeCompare(b.tags);
+					break;
+			}
+
+			return this.sortDirection === 'asc' ? compareResult : -compareResult;
+		});
+
+		return sorted;
+	}
+
+	private toggleSort(column: SortColumn): void {
+		if (this.sortColumn === column) {
+			// 同じ列なら方向を反転
+			this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+		} else {
+			// 異なる列なら昇順で開始
+			this.sortColumn = column;
+			this.sortDirection = 'asc';
+		}
+		this.applyFilters();
+		this.render();
 	}
 
 	private toggleTag(tag: string): void {
@@ -241,12 +289,33 @@ class FlashcardApp {
 
 	private async playMorse(text: string): Promise<void> {
 		try {
+			// 既に再生中の場合は停止
+			if (this.currentlyPlaying === text) {
+				this.audioSystem.stopPlaying();
+				this.currentlyPlaying = null;
+				this.render();
+				return;
+			}
+
+			// 別のものが再生中なら停止
+			if (this.currentlyPlaying) {
+				this.audioSystem.stopPlaying();
+			}
+
+			this.currentlyPlaying = text;
+			this.render();
+
 			const morseSequence = MorseCode.textToMorse(text);
 			if (morseSequence) {
 				await this.audioSystem.playMorseString(morseSequence);
 			}
+
+			this.currentlyPlaying = null;
+			this.render();
 		} catch (error) {
 			console.error('モールス再生エラー:', error);
+			this.currentlyPlaying = null;
+			this.render();
 		}
 	}
 
@@ -375,6 +444,11 @@ class FlashcardApp {
 		`;
 	}
 
+	private getSortIndicator(column: SortColumn): string {
+		if (this.sortColumn !== column) return '';
+		return this.sortDirection === 'asc' ? ' ▲' : ' ▼';
+	}
+
 	private renderListView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
@@ -387,11 +461,11 @@ class FlashcardApp {
 				<table class="list-table">
 					<thead>
 						<tr>
-							<th>頻度</th>
-							<th>略語</th>
-							<th>英文</th>
-							<th>和訳</th>
-							<th>タグ</th>
+							<th class="sortable" data-column="abbreviation">略語${this.getSortIndicator('abbreviation')}</th>
+							<th class="sortable" data-column="english">英文${this.getSortIndicator('english')}</th>
+							<th class="sortable" data-column="japanese">和訳${this.getSortIndicator('japanese')}</th>
+							<th class="sortable" data-column="frequency">頻度${this.getSortIndicator('frequency')}</th>
+							<th class="sortable" data-column="tags">タグ${this.getSortIndicator('tags')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -399,10 +473,14 @@ class FlashcardApp {
 							.map(
 								(entry) => `
 							<tr>
-								<td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
-								<td class="list-abbr">${entry.abbreviation}</td>
+								<td class="list-abbr">
+									<button class="abbr-play-btn ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${entry.abbreviation}">
+										${this.formatAbbreviation(entry.abbreviation)}
+									</button>
+								</td>
 								<td class="list-english">${entry.english}</td>
 								<td class="list-japanese">${entry.japanese}</td>
+								<td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
 								<td class="list-tags">${entry.tags}</td>
 							</tr>
 						`
@@ -412,6 +490,28 @@ class FlashcardApp {
 				</table>
 			</div>
 		`;
+
+		// ソートヘッダのイベントリスナー
+		const sortHeaders = container.querySelectorAll('th.sortable');
+		sortHeaders.forEach(header => {
+			header.addEventListener('click', () => {
+				const column = header.getAttribute('data-column') as SortColumn;
+				if (column) {
+					this.toggleSort(column);
+				}
+			});
+		});
+
+		// 略語再生ボタンのイベントリスナー
+		const playButtons = container.querySelectorAll('.abbr-play-btn');
+		playButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const abbr = btn.getAttribute('data-abbr');
+				if (abbr) {
+					this.playMorse(abbr);
+				}
+			});
+		});
 	}
 
 	private renderLearnMode(): void {

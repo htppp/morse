@@ -237,6 +237,16 @@ body {
   white-space: nowrap;
 }
 
+.list-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.list-table th.sortable:hover {
+  background: #5568d3;
+}
+
 .list-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
@@ -259,9 +269,43 @@ body {
 }
 
 .list-abbr {
-  font-weight: bold;
-  color: #667eea;
   white-space: nowrap;
+}
+
+.abbr-play-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.abbr-play-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.abbr-play-btn.playing {
+  background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.abbr-play-btn .prosign {
+  text-decoration: overline;
 }
 
 .list-english {
