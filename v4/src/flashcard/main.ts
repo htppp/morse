@@ -1,261 +1,687 @@
 /**
- * CW略語・Q符号学習ページ（一覧表示）
+ * CW略語・Q符号学習ページ
  */
 
 import './style.css';
+import { AudioSystem } from '../shared/audio-system';
+import { MorseCode } from '../shared/morse-code';
 
 interface FlashcardEntry {
-  tags: string;
-  frequency: number;
-  abbreviation: string;
-  english: string;
-  japanese: string;
+	tags: string;
+	frequency: number;
+	abbreviation: string;
+	english: string;
+	japanese: string;
 }
 
 type DisplayMode = 'card' | 'list';
+type ViewMode = 'browse' | 'learn';
+
+interface CardProgress {
+	known: Set<string>;      // 「わかる」とマークされた略語
+	unknown: Set<string>;    // 「わからない」とマークされた略語
+}
 
 class FlashcardApp {
-  private entries: FlashcardEntry[] = [];
-  private filteredEntries: FlashcardEntry[] = [];
-  private selectedTags: Set<string> = new Set();
-  private displayMode: DisplayMode = 'card';
+	private entries: FlashcardEntry[] = [];
+	private filteredEntries: FlashcardEntry[] = [];
+	private selectedTags: Set<string> = new Set();
+	private selectedFrequencies: Set<number> = new Set([1, 2, 3, 4, 5]);
+	private displayMode: DisplayMode = 'card';
+	private viewMode: ViewMode = 'browse';
 
-  constructor() {
-    this.loadData();
-  }
+	// 学習モード用
+	private currentCards: FlashcardEntry[] = [];
+	private currentIndex: number = 0;
+	private isFlipped: boolean = false;
+	private progress: CardProgress = { known: new Set(), unknown: new Set() };
+	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
+	private audioSystem: AudioSystem;
 
-  private async loadData(): Promise<void> {
-    try {
-      // flashcard.tsvを読み込む（ビルド時にコピーされたファイルを使用）
-      const response = await fetch('./flashcard.tsv');
-      const text = await response.text();
+	constructor() {
+		this.audioSystem = new AudioSystem();
+		this.loadProgress();
+		this.loadFilters();
+		this.loadData();
+	}
 
-      this.entries = text
-        .trim()
-        .split('\n')
-        .slice(1) // ヘッダー行をスキップ
-        .map((line) => {
-          const [tags, frequency, abbreviation, english, japanese] = line.split('\t');
-          return {
-            tags,
-            frequency: parseInt(frequency),
-            abbreviation,
-            english,
-            japanese,
-          };
-        });
+	private async loadData(): Promise<void> {
+		try {
+			// flashcard.tsvを読み込む（ビルド時にコピーされたファイルを使用）
+			const response = await fetch('./flashcard.tsv');
+			const text = await response.text();
 
-      this.filteredEntries = [...this.entries];
-      this.render();
-    } catch (error) {
-      console.error('データ読み込みエラー:', error);
-      this.renderError();
-    }
-  }
+			this.entries = text
+				.trim()
+				.split('\n')
+				.slice(1) // ヘッダー行をスキップ
+				.map((line) => {
+					const [tags, frequency, abbreviation, english, japanese] = line.split('\t');
+					return {
+						tags,
+						frequency: parseInt(frequency),
+						abbreviation,
+						english,
+						japanese,
+					};
+				});
 
-  private getAllTags(): string[] {
-    const tagsSet = new Set<string>();
-    this.entries.forEach((entry) => {
-      entry.tags.split(',').forEach((tag) => tagsSet.add(tag.trim()));
-    });
-    return Array.from(tagsSet).sort();
-  }
+			this.applyFilters();
+			this.render();
+		} catch (error) {
+			console.error('データ読み込みエラー:', error);
+			this.renderError();
+		}
+	}
 
-  private filterByTags(): void {
-    if (this.selectedTags.size === 0) {
-      this.filteredEntries = [...this.entries];
-    } else {
-      this.filteredEntries = this.entries.filter((entry) => {
-        const entryTags = entry.tags.split(',').map((t) => t.trim());
-        return Array.from(this.selectedTags).some((tag) => entryTags.includes(tag));
-      });
-    }
-    this.renderEntries();
-  }
+	private getAllTags(): string[] {
+		const tagsSet = new Set<string>();
+		this.entries.forEach((entry) => {
+			entry.tags.split(',').forEach((tag) => tagsSet.add(tag.trim()));
+		});
+		return Array.from(tagsSet).sort();
+	}
 
-  private toggleTag(tag: string): void {
-    if (this.selectedTags.has(tag)) {
-      this.selectedTags.delete(tag);
-    } else {
-      this.selectedTags.add(tag);
-    }
-    this.filterByTags();
-    this.renderTags();
-  }
+	private applyFilters(): void {
+		let result = this.entries;
 
-  private toggleDisplayMode(): void {
-    this.displayMode = this.displayMode === 'card' ? 'list' : 'card';
-    this.renderEntries();
-    this.renderModeToggle();
-  }
+		// タグでフィルタ
+		if (this.selectedTags.size > 0) {
+			result = result.filter((entry) => {
+				const entryTags = entry.tags.split(',').map((t) => t.trim());
+				return Array.from(this.selectedTags).some((tag) => entryTags.includes(tag));
+			});
+		}
 
-  private render(): void {
-    const app = document.getElementById('app');
-    if (!app) return;
+		// 使用頻度でフィルタ
+		result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
 
-    app.innerHTML = `
-      <div class="container">
-        <header class="header">
-          <button id="backBtn" class="back-btn">← 戻る</button>
-          <h1>CW略語・Q符号</h1>
-          <div class="mode-toggle" id="modeToggle"></div>
-        </header>
+		this.filteredEntries = result;
+	}
 
-        <div class="tags-container" id="tagsContainer"></div>
+	private toggleTag(tag: string): void {
+		if (this.selectedTags.has(tag)) {
+			this.selectedTags.delete(tag);
+		} else {
+			this.selectedTags.add(tag);
+		}
+		this.applyFilters();
+		this.saveFilters();
+		this.render();
+	}
 
-        <div class="entries-container" id="entriesContainer"></div>
-      </div>
-    `;
+	private toggleFrequency(freq: number): void {
+		if (this.selectedFrequencies.has(freq)) {
+			this.selectedFrequencies.delete(freq);
+		} else {
+			this.selectedFrequencies.add(freq);
+		}
+		this.applyFilters();
+		this.saveFilters();
+		this.render();
+	}
 
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        window.location.href = './index.html';
-      });
-    }
+	private toggleDisplayMode(): void {
+		this.displayMode = this.displayMode === 'card' ? 'list' : 'card';
+		this.render();
+	}
 
-    this.renderModeToggle();
-    this.renderTags();
-    this.renderEntries();
-  }
+	private getFrequencyStars(frequency: number): string {
+		// 使用頻度を星で表示（1-5の範囲）。
+		const stars = '★'.repeat(frequency) + '☆'.repeat(5 - frequency);
+		return stars;
+	}
 
-  private renderModeToggle(): void {
-    const modeToggle = document.getElementById('modeToggle');
-    if (!modeToggle) return;
+	private formatAbbreviation(abbr: string): string {
+		// prosign ([AR]など) をオーバーラインで表示
+		const prosignMatch = abbr.match(/^\[([A-Z]+)\]$/);
+		if (prosignMatch) {
+			return `<span class="prosign">${prosignMatch[1]}</span>`;
+		}
+		return abbr;
+	}
 
-    modeToggle.innerHTML = `
-      <button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
-        ${this.displayMode === 'card' ? '📋 リスト表示' : '🃏 カード表示'}
-      </button>
-    `;
+	private getCardCountText(): string {
+		const total = this.filteredEntries.length;
+		const unknown = this.filteredEntries.filter(e =>
+			this.progress.unknown.has(e.abbreviation)
+		).length;
+		const known = this.filteredEntries.filter(e =>
+			this.progress.known.has(e.abbreviation)
+		).length;
 
-    const toggleBtn = document.getElementById('toggleModeBtn');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => this.toggleDisplayMode());
-    }
-  }
+		return `全${total}件 / わかる:${known}件 / わからない:${unknown}件`;
+	}
 
-  private renderTags(): void {
-    const tagsContainer = document.getElementById('tagsContainer');
-    if (!tagsContainer) return;
+	private shuffleCards(cards: FlashcardEntry[]): FlashcardEntry[] {
+		const shuffled = [...cards];
+		for (let i = shuffled.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		}
+		return shuffled;
+	}
 
-    const allTags = this.getAllTags();
+	private startLearning(): void {
+		if (this.reviewMode) {
+			// 復習モード: わからないカードのみ
+			this.currentCards = this.filteredEntries.filter(e =>
+				this.progress.unknown.has(e.abbreviation)
+			);
+		} else {
+			// 通常モード: フィルタされた全カードをシャッフル
+			this.currentCards = this.shuffleCards(this.filteredEntries);
+		}
 
-    tagsContainer.innerHTML = `
-      <h2>タグでフィルター</h2>
-      <div class="tags-list">
-        ${allTags
-          .map(
-            (tag) => `
-          <button class="tag-btn ${this.selectedTags.has(tag) ? 'active' : ''}" data-tag="${tag}">
-            ${tag}
-          </button>
-        `
-          )
-          .join('')}
-      </div>
-    `;
+		this.currentIndex = 0;
+		this.isFlipped = false;
+		this.viewMode = 'learn';
+		this.render();
+	}
 
-    tagsContainer.querySelectorAll('.tag-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const tag = btn.getAttribute('data-tag');
-        if (tag) this.toggleTag(tag);
-      });
-    });
-  }
+	private flipCard(): void {
+		this.isFlipped = !this.isFlipped;
+		this.render();
+	}
 
-  private getFrequencyStars(frequency: number): string {
-    // 使用頻度を星で表示（1-5の範囲）。
-    const stars = '★'.repeat(frequency) + '☆'.repeat(5 - frequency);
-    return stars;
-  }
+	private nextCard(): void {
+		if (this.currentIndex < this.currentCards.length - 1) {
+			this.currentIndex++;
+			this.isFlipped = false;
+			this.render();
+		}
+	}
 
-  private renderEntries(): void {
-    const entriesContainer = document.getElementById('entriesContainer');
-    if (!entriesContainer) return;
+	private previousCard(): void {
+		if (this.currentIndex > 0) {
+			this.currentIndex--;
+			this.isFlipped = false;
+			this.render();
+		}
+	}
 
-    if (this.displayMode === 'card') {
-      this.renderCardView(entriesContainer);
-    } else {
-      this.renderListView(entriesContainer);
-    }
-  }
+	private markAsKnown(): void {
+		const card = this.currentCards[this.currentIndex];
+		this.progress.known.add(card.abbreviation);
+		this.progress.unknown.delete(card.abbreviation);
+		this.saveProgress();
 
-  private renderCardView(container: HTMLElement): void {
-    container.innerHTML = `
-      <h2>略語一覧（${this.filteredEntries.length}件）</h2>
-      <div class="entries-list">
-        ${this.filteredEntries
-          .map(
-            (entry) => `
-          <div class="entry-card">
-            <div class="entry-header">
-              <div class="entry-abbr">${entry.abbreviation}</div>
-              <div class="entry-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</div>
-            </div>
-            <div class="entry-english">${entry.english}</div>
-            <div class="entry-japanese">${entry.japanese}</div>
-            <div class="entry-tags">${entry.tags}</div>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-    `;
-  }
+		// 自動的に次のカードへ
+		if (this.currentIndex < this.currentCards.length - 1) {
+			this.currentIndex++;
+			this.isFlipped = false;
+		}
+		this.render();
+	}
 
-  private renderListView(container: HTMLElement): void {
-    container.innerHTML = `
-      <h2>略語一覧（${this.filteredEntries.length}件）</h2>
-      <div class="list-table-container">
-        <table class="list-table">
-          <thead>
-            <tr>
-              <th>頻度</th>
-              <th>略語</th>
-              <th>英文</th>
-              <th>和訳</th>
-              <th>タグ</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${this.filteredEntries
-              .map(
-                (entry) => `
-              <tr>
-                <td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
-                <td class="list-abbr">${entry.abbreviation}</td>
-                <td class="list-english">${entry.english}</td>
-                <td class="list-japanese">${entry.japanese}</td>
-                <td class="list-tags">${entry.tags}</td>
-              </tr>
-            `
-              )
-              .join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
+	private markAsUnknown(): void {
+		const card = this.currentCards[this.currentIndex];
+		this.progress.unknown.add(card.abbreviation);
+		this.progress.known.delete(card.abbreviation);
+		this.saveProgress();
 
-  private renderError(): void {
-    const app = document.getElementById('app');
-    if (!app) return;
+		// 自動的に次のカードへ
+		if (this.currentIndex < this.currentCards.length - 1) {
+			this.currentIndex++;
+			this.isFlipped = false;
+		}
+		this.render();
+	}
 
-    app.innerHTML = `
-      <div class="container">
-        <header class="header">
-          <button onclick="window.location.href='./index.html'" class="back-btn">← 戻る</button>
-          <h1>CW略語・Q符号</h1>
-        </header>
-        <div class="error">
-          データの読み込みに失敗しました。flashcard.tsvを確認してください。
-        </div>
-      </div>
-    `;
-  }
+	private backToBrowse(): void {
+		this.viewMode = 'browse';
+		this.render();
+	}
+
+	private async playMorse(text: string): Promise<void> {
+		try {
+			const morseSequence = MorseCode.textToMorse(text);
+			if (morseSequence) {
+				await this.audioSystem.playMorseString(morseSequence);
+			}
+		} catch (error) {
+			console.error('モールス再生エラー:', error);
+		}
+	}
+
+	private render(): void {
+		if (this.viewMode === 'browse') {
+			this.renderBrowseMode();
+		} else {
+			this.renderLearnMode();
+		}
+	}
+
+	private renderBrowseMode(): void {
+		const app = document.getElementById('app');
+		if (!app) return;
+
+		const allTags = this.getAllTags();
+
+		app.innerHTML = `
+			<div class="container">
+				<header class="header">
+					<button id="backBtn" class="back-btn">← 戻る</button>
+					<h1>CW略語・Q符号</h1>
+					<div class="mode-toggle" id="modeToggle"></div>
+				</header>
+
+				<div class="filter-section">
+					<div class="filter-group">
+						<h2>タグでフィルター</h2>
+						<div class="tags-list">
+							${allTags.map(tag => `
+								<button class="tag-btn ${this.selectedTags.has(tag) ? 'active' : ''}" data-tag="${tag}">
+									${tag}
+								</button>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h2>使用頻度</h2>
+						<div class="frequency-list">
+							${[5, 4, 3, 2, 1].map(freq => `
+								<label class="frequency-checkbox">
+									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
+									<span>${this.getFrequencyStars(freq)}</span>
+								</label>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h2>モード</h2>
+						<label class="mode-checkbox">
+							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
+							<span>復習モード（わからないカードのみ）</span>
+						</label>
+					</div>
+
+					<div class="result-count">
+						${this.getCardCountText()}
+					</div>
+
+					<div class="action-buttons">
+						<button id="start-learning-btn" class="primary-button">学習開始</button>
+						<button id="clear-progress-btn" class="secondary-button">進捗をリセット</button>
+					</div>
+				</div>
+
+				<div class="entries-container" id="entriesContainer"></div>
+			</div>
+		`;
+
+		const backBtn = document.getElementById('backBtn');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => {
+				window.location.href = './index.html';
+			});
+		}
+
+		this.renderModeToggle();
+		this.renderEntries();
+		this.attachBrowseModeListeners();
+	}
+
+	private renderModeToggle(): void {
+		const modeToggle = document.getElementById('modeToggle');
+		if (!modeToggle) return;
+
+		modeToggle.innerHTML = `
+			<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
+				${this.displayMode === 'card' ? '📋 リスト表示' : '🃏 カード表示'}
+			</button>
+		`;
+
+		const toggleBtn = document.getElementById('toggleModeBtn');
+		if (toggleBtn) {
+			toggleBtn.addEventListener('click', () => this.toggleDisplayMode());
+		}
+	}
+
+	private renderEntries(): void {
+		const entriesContainer = document.getElementById('entriesContainer');
+		if (!entriesContainer) return;
+
+		if (this.displayMode === 'card') {
+			this.renderCardView(entriesContainer);
+		} else {
+			this.renderListView(entriesContainer);
+		}
+	}
+
+	private renderCardView(container: HTMLElement): void {
+		container.innerHTML = `
+			<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+			<div class="entries-list">
+				${this.filteredEntries
+					.map(
+						(entry) => `
+					<div class="entry-card">
+						<div class="entry-header">
+							<div class="entry-abbr">${this.formatAbbreviation(entry.abbreviation)}</div>
+							<div class="entry-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</div>
+						</div>
+						<div class="entry-english">${entry.english}</div>
+						<div class="entry-japanese">${entry.japanese}</div>
+						<div class="entry-tags">${entry.tags}</div>
+					</div>
+				`
+					)
+					.join('')}
+			</div>
+		`;
+	}
+
+	private renderListView(container: HTMLElement): void {
+		container.innerHTML = `
+			<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+			<div class="list-table-container">
+				<table class="list-table">
+					<thead>
+						<tr>
+							<th>頻度</th>
+							<th>略語</th>
+							<th>英文</th>
+							<th>和訳</th>
+							<th>タグ</th>
+						</tr>
+					</thead>
+					<tbody>
+						${this.filteredEntries
+							.map(
+								(entry) => `
+							<tr>
+								<td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
+								<td class="list-abbr">${entry.abbreviation}</td>
+								<td class="list-english">${entry.english}</td>
+								<td class="list-japanese">${entry.japanese}</td>
+								<td class="list-tags">${entry.tags}</td>
+							</tr>
+						`
+							)
+							.join('')}
+					</tbody>
+				</table>
+			</div>
+		`;
+	}
+
+	private renderLearnMode(): void {
+		const app = document.getElementById('app');
+		if (!app) return;
+
+		if (this.currentCards.length === 0) {
+			app.innerHTML = `
+				<div class="container">
+					<div class="no-cards">
+						${this.reviewMode ? '復習するカードがありません' : '学習するカードがありません'}
+					</div>
+					<button id="back-to-browse-btn" class="secondary-button">設定に戻る</button>
+				</div>
+			`;
+
+			const backBtn = document.getElementById('back-to-browse-btn');
+			if (backBtn) {
+				backBtn.addEventListener('click', () => this.backToBrowse());
+			}
+			return;
+		}
+
+		const card = this.currentCards[this.currentIndex];
+		const currentNum = this.currentIndex + 1;
+		const totalNum = this.currentCards.length;
+
+		app.innerHTML = `
+			<div class="container learning-view">
+				<div class="learning-header">
+					<button id="back-to-browse-btn" class="back-btn">← 設定に戻る</button>
+					<div class="progress-indicator">${currentNum} / ${totalNum}</div>
+				</div>
+
+				<div class="card-container">
+					<div class="flashcard ${this.isFlipped ? 'flipped' : ''}" id="flashcard">
+						<div class="card-front">
+							<div class="card-label">略語</div>
+							<div class="card-content">${this.formatAbbreviation(card.abbreviation)}</div>
+							<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+						</div>
+						<div class="card-back">
+							<div class="card-label">意味</div>
+							<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
+							<div class="card-content-text">${card.english}</div>
+							<div class="card-content-text">${card.japanese}</div>
+							<div class="card-tags">${card.tags} / ${this.getFrequencyStars(card.frequency)}</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card-controls">
+					<button id="flip-card-btn" class="control-button">
+						${this.isFlipped ? '問題に戻る' : '正解を確認する'} (Space)
+					</button>
+				</div>
+
+				${this.isFlipped ? this.renderJudgmentButtons(card) : ''}
+
+				<div class="navigation-controls">
+					<button id="prev-card-btn" class="nav-button" ${this.currentIndex === 0 ? 'disabled' : ''}>
+						← 前のカード
+					</button>
+					<button id="next-card-btn" class="nav-button" ${this.currentIndex >= this.currentCards.length - 1 ? 'disabled' : ''}>
+						次のカード →
+					</button>
+				</div>
+			</div>
+		`;
+
+		this.attachLearnModeListeners();
+	}
+
+	private renderJudgmentButtons(card: FlashcardEntry): string {
+		const isKnown = this.progress.known.has(card.abbreviation);
+		const isUnknown = this.progress.unknown.has(card.abbreviation);
+
+		return `
+			<div class="judgment-controls">
+				<button id="mark-unknown-btn" class="judgment-button unknown ${isUnknown ? 'active' : ''}">
+					× わからない
+				</button>
+				<button id="mark-known-btn" class="judgment-button known ${isKnown ? 'active' : ''}">
+					○ わかる
+				</button>
+			</div>
+		`;
+	}
+
+	private attachBrowseModeListeners(): void {
+		// タグボタン
+		const tagButtons = document.querySelectorAll('.tag-btn');
+		tagButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tag = btn.getAttribute('data-tag');
+				if (tag) this.toggleTag(tag);
+			});
+		});
+
+		// 使用頻度チェックボックス
+		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
+		frequencyCheckboxes.forEach(checkbox => {
+			checkbox.addEventListener('change', (e) => {
+				const freq = parseInt((e.target as HTMLInputElement).value, 10);
+				this.toggleFrequency(freq);
+			});
+		});
+
+		// 復習モードチェックボックス
+		const reviewModeCheckbox = document.getElementById('review-mode-checkbox') as HTMLInputElement;
+		if (reviewModeCheckbox) {
+			reviewModeCheckbox.addEventListener('change', () => {
+				this.reviewMode = reviewModeCheckbox.checked;
+			});
+		}
+
+		// 学習開始ボタン
+		const startBtn = document.getElementById('start-learning-btn');
+		if (startBtn) {
+			startBtn.addEventListener('click', () => this.startLearning());
+		}
+
+		// 進捗リセットボタン
+		const clearBtn = document.getElementById('clear-progress-btn');
+		if (clearBtn) {
+			clearBtn.addEventListener('click', () => {
+				if (confirm('学習進捗をすべてリセットしますか？')) {
+					this.progress = { known: new Set(), unknown: new Set() };
+					this.saveProgress();
+					this.render();
+				}
+			});
+		}
+	}
+
+	private attachLearnModeListeners(): void {
+		// 戻るボタン
+		const backBtn = document.getElementById('back-to-browse-btn');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => this.backToBrowse());
+		}
+
+		// カードめくり
+		const flipBtn = document.getElementById('flip-card-btn');
+		if (flipBtn) {
+			flipBtn.addEventListener('click', () => this.flipCard());
+		}
+
+		// モールス再生
+		const playBtn = document.getElementById('play-morse-btn');
+		if (playBtn) {
+			playBtn.addEventListener('click', () => {
+				const card = this.currentCards[this.currentIndex];
+				this.playMorse(card.abbreviation);
+			});
+		}
+
+		// ナビゲーション
+		const prevBtn = document.getElementById('prev-card-btn');
+		const nextBtn = document.getElementById('next-card-btn');
+
+		if (prevBtn) {
+			prevBtn.addEventListener('click', () => this.previousCard());
+		}
+		if (nextBtn) {
+			nextBtn.addEventListener('click', () => this.nextCard());
+		}
+
+		// 判定ボタン
+		if (this.isFlipped) {
+			const knownBtn = document.getElementById('mark-known-btn');
+			const unknownBtn = document.getElementById('mark-unknown-btn');
+
+			if (knownBtn) {
+				knownBtn.addEventListener('click', () => this.markAsKnown());
+			}
+			if (unknownBtn) {
+				unknownBtn.addEventListener('click', () => this.markAsUnknown());
+			}
+		}
+
+		// キーボードショートカット
+		this.attachKeyboardListeners();
+	}
+
+	private attachKeyboardListeners(): void {
+		const handler = (e: KeyboardEvent) => {
+			if (this.viewMode !== 'learn') return;
+
+			if (e.key === ' ' || e.key === 'Spacebar') {
+				e.preventDefault();
+				this.flipCard();
+			} else if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				this.nextCard();
+			} else if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				this.previousCard();
+			}
+		};
+
+		// 既存のリスナーを削除してから追加
+		document.removeEventListener('keydown', handler);
+		document.addEventListener('keydown', handler);
+	}
+
+	private saveFilters(): void {
+		try {
+			const data = {
+				tags: Array.from(this.selectedTags),
+				frequencies: Array.from(this.selectedFrequencies),
+			};
+			localStorage.setItem('v4.flashcard.filters', JSON.stringify(data));
+		} catch (error) {
+			console.error('フィルタ保存エラー:', error);
+		}
+	}
+
+	private loadFilters(): void {
+		try {
+			const saved = localStorage.getItem('v4.flashcard.filters');
+			if (saved) {
+				const data = JSON.parse(saved);
+				this.selectedTags = new Set(Array.isArray(data.tags) ? data.tags : []);
+				this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : [1, 2, 3, 4, 5]);
+			}
+		} catch (error) {
+			console.error('フィルタ読み込みエラー:', error);
+		}
+	}
+
+	private saveProgress(): void {
+		try {
+			const data = {
+				known: Array.from(this.progress.known),
+				unknown: Array.from(this.progress.unknown),
+			};
+			localStorage.setItem('v4.flashcard.progress', JSON.stringify(data));
+		} catch (error) {
+			console.error('進捗保存エラー:', error);
+		}
+	}
+
+	private loadProgress(): void {
+		try {
+			const saved = localStorage.getItem('v4.flashcard.progress');
+			if (saved) {
+				const data = JSON.parse(saved);
+				this.progress = {
+					known: new Set(data.known || []),
+					unknown: new Set(data.unknown || []),
+				};
+			}
+		} catch (error) {
+			console.error('進捗読み込みエラー:', error);
+		}
+	}
+
+	private renderError(): void {
+		const app = document.getElementById('app');
+		if (!app) return;
+
+		app.innerHTML = `
+			<div class="container">
+				<header class="header">
+					<button onclick="window.location.href='./index.html'" class="back-btn">← 戻る</button>
+					<h1>CW略語・Q符号</h1>
+				</header>
+				<div class="error">
+					データの読み込みに失敗しました。flashcard.tsvを確認してください。
+				</div>
+			</div>
+		`;
+	}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new FlashcardApp();
+	new FlashcardApp();
 });
