@@ -1,113 +1,138 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モールス体験</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>モールス体験</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 
-        body {
-            font-family: 'Segoe UI', 'Courier New', monospace;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+		}
 
-        .container {
-            max-width: 700px;
-            width: 100%;
-            background: white;
-            border-radius: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            text-align: center;
-            padding: 60px 40px;
-        }
+		.container {
+			max-width: 1200px;
+			width: 100%;
+		}
 
-        h1 {
-            font-size: 36px;
-            color: #333;
-            margin-bottom: 20px;
-        }
+		.header {
+			text-align: center;
+			color: white;
+			margin-bottom: 40px;
+		}
 
-        .subtitle {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 50px;
-        }
+		.header h1 {
+			font-size: 2.5rem;
+			margin-bottom: 10px;
+		}
 
-        .version-links {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
+		.subtitle {
+			font-size: 1.1rem;
+			opacity: 0.9;
+		}
 
-        a {
-            display: block;
-            padding: 25px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 15px;
-            font-size: 20px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+		.menu-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 20px;
+			margin-bottom: 40px;
+		}
 
-        a:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
+		.menu-card {
+			background: white;
+			border-radius: 12px;
+			padding: 30px;
+			text-decoration: none;
+			color: #333;
+			transition: transform 0.3s, box-shadow 0.3s;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
 
-        a:active {
-            transform: translateY(0);
-        }
+		.menu-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+		}
 
-        .badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-left: 10px;
-            font-weight: 400;
-        }
+		.menu-icon {
+			font-size: 3rem;
+			margin-bottom: 15px;
+		}
 
-        .version-info {
-            margin-top: 50px;
-            font-size: 14px;
-            color: #999;
-            line-height: 1.8;
-        }
+		.menu-title {
+			font-size: 1.3rem;
+			margin-bottom: 10px;
+			color: #667eea;
+		}
 
-        .version-info p {
-            margin-bottom: 8px;
-        }
-    </style>
+		.menu-description {
+			font-size: 0.95rem;
+			color: #666;
+			line-height: 1.5;
+		}
+
+		.footer {
+			text-align: center;
+			color: white;
+			opacity: 0.8;
+			font-size: 0.9rem;
+		}
+
+		@media (max-width: 768px) {
+			.header h1 {
+				font-size: 2rem;
+			}
+
+			.menu-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 <body>
-    <div class="container">
-        <h1>モールス体験</h1>
-        <p class="subtitle">バージョンを選択してください</p>
+	<div class="container">
+		<header class="header">
+			<h1>モールス体験</h1>
+			<p class="subtitle">練習メニューを選択してください</p>
+		</header>
 
-        <div class="version-links">
-            <a href="v4/">
-                コッホ法訓練
-            </a>
-            <a href="v2/">
-                モールス訓練
-            </a>
-            <a href="v3/">
-                略語訓練
-            </a>
-        </div>
-    </div>
+		<div class="menu-grid">
+			<a href="v4/" class="menu-card">
+				<div class="menu-icon">🎓</div>
+				<h2 class="menu-title">コッホ法によるモールス信号学習</h2>
+				<p class="menu-description">40文字を段階的に習得。スマホ対応を目的としたlcwo.netの移植</p>
+			</a>
+
+			<a href="v2/" class="menu-card">
+				<div class="menu-icon">📡</div>
+				<h2 class="menu-title">モールス体験</h2>
+				<p class="menu-description">電鍵の操作を体験、文字列とモールス信号の変換</p>
+			</a>
+
+			<a href="v3/" class="menu-card">
+				<div class="menu-icon">📚</div>
+				<h2 class="menu-title">略語学習</h2>
+				<p class="menu-description">電信で使用される略語学習</p>
+			</a>
+		</div>
+
+		<footer class="footer">
+			<p>モールス体験サイト</p>
+		</footer>
+	</div>
 </body>
 </html>
