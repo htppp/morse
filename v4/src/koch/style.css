@@ -171,14 +171,15 @@ body {
 }
 
 .instructions {
-  background: rgba(255, 255, 255, 0.1);
+  background: white;
   border-radius: 12px;
   padding: 20px;
-  color: white;
+  color: #333;
 }
 
 .instructions h3 {
   margin-bottom: 15px;
+  color: #667eea;
 }
 
 .instructions ul {
@@ -199,15 +200,16 @@ body {
 
 /* Lesson List Section */
 .lesson-list-section {
-  background: rgba(255, 255, 255, 0.1);
+  background: white;
   border-radius: 12px;
   padding: 20px;
-  color: white;
+  color: #333;
   margin-top: 20px;
 }
 
 .lesson-list-section h3 {
   margin-bottom: 15px;
+  color: #667eea;
 }
 
 .lesson-list {
@@ -217,7 +219,7 @@ body {
 }
 
 .lesson-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f9f9f9;
   border-radius: 8px;
   padding: 10px;
   display: flex;
@@ -229,14 +231,14 @@ body {
 }
 
 .lesson-item:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #f0f0f0;
   transform: translateY(-2px);
 }
 
 .lesson-item.current {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  background: #e8ebff;
+  border-color: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
 }
 
 .lesson-item.passed {
@@ -246,13 +248,13 @@ body {
 .lesson-num {
   font-weight: 600;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #667eea;
 }
 
 .lesson-chars {
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  color: white;
+  color: #333;
   word-wrap: break-word;
 }
 
