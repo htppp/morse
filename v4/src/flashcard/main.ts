@@ -58,6 +58,7 @@ class FlashcardApp {
 	private progress: CardProgress = { known: new Set(), unknown: new Set() };
 	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
 	private hideAbbreviation: boolean = false; // 略語を非表示（モールス再生のみ）
+	private isLearning: boolean = false; // 学習中かどうか
 	private audioSystem: AudioSystem;
 	private currentlyPlaying: string | null = null; // 再生中の略語
 
@@ -132,8 +133,10 @@ class FlashcardApp {
 			});
 		}
 
-		// 使用頻度でフィルタ
-		result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
+		// 使用頻度でフィルタ（すべてOFFの場合は全て表示）
+		if (this.selectedFrequencies.size > 0) {
+			result = result.filter(entry => this.selectedFrequencies.has(entry.frequency));
+		}
 
 		// 検索フィルタ
 		if (this.searchQuery.trim()) {
@@ -214,6 +217,19 @@ class FlashcardApp {
 		this.render();
 	}
 
+	private toggleAllFrequencies(): void {
+		const allFrequencies = [1, 2, 3, 4, 5];
+		// 全てチェック済みなら全て外す、それ以外は全てチェック
+		if (allFrequencies.every(f => this.selectedFrequencies.has(f))) {
+			this.selectedFrequencies.clear();
+		} else {
+			allFrequencies.forEach(f => this.selectedFrequencies.add(f));
+		}
+		this.applyFilters();
+		this.saveFilters();
+		this.render();
+	}
+
 	private toggleDisplayMode(): void {
 		this.displayMode = this.displayMode === 'card' ? 'list' : 'card';
 		this.render();
@@ -268,7 +284,7 @@ class FlashcardApp {
 
 		this.currentIndex = 0;
 		this.isFlipped = false;
-		this.viewMode = 'learn';
+		this.isLearning = true;
 		this.render();
 	}
 
@@ -321,8 +337,11 @@ class FlashcardApp {
 		this.render();
 	}
 
-	private backToBrowse(): void {
-		this.viewMode = 'browse';
+	private backToLearnSetup(): void {
+		this.isLearning = false;
+		this.currentCards = [];
+		this.currentIndex = 0;
+		this.isFlipped = false;
 		this.render();
 	}
 
@@ -422,7 +441,7 @@ class FlashcardApp {
 					</div>
 
 					<div class="filter-group">
-						<h2>使用頻度</h2>
+						<h2>使用頻度 <button id="toggle-freq-btn" class="toggle-freq-btn" title="チェックを反転">⇆</button></h2>
 						<div class="frequency-list">
 							${[5, 4, 3, 2, 1].map(freq => `
 								<label class="frequency-checkbox">
@@ -438,25 +457,8 @@ class FlashcardApp {
 						<input type="text" id="search-input" class="search-input" placeholder="略語、英文、和訳、タグで検索..." value="${this.searchQuery}">
 					</div>
 
-					<div class="filter-group">
-						<h2>モード</h2>
-						<label class="mode-checkbox">
-							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
-							<span>復習モード（わからないカードのみ）</span>
-						</label>
-						<label class="mode-checkbox">
-							<input type="checkbox" id="hide-abbreviation-checkbox" ${this.hideAbbreviation ? 'checked' : ''}>
-							<span>略語を非表示（モールス再生のみ）</span>
-						</label>
-					</div>
-
 					<div class="result-count">
-						${this.getCardCountText()}
-					</div>
-
-					<div class="action-buttons">
-						<button id="start-learning-btn" class="primary-button">学習開始</button>
-						<button id="clear-progress-btn" class="secondary-button">進捗をリセット</button>
+						全 ${this.filteredEntries.length} 件
 					</div>
 				</div>
 
@@ -629,19 +631,26 @@ class FlashcardApp {
 		const app = document.getElementById('app');
 		if (!app) return;
 
+		// 学習中でない場合は設定画面を表示
+		if (!this.isLearning) {
+			this.renderLearnSetupView(app);
+			return;
+		}
+
+		// 学習中の場合
 		if (this.currentCards.length === 0) {
 			app.innerHTML = `
 				<div class="container">
 					<div class="no-cards">
 						${this.reviewMode ? '復習するカードがありません' : '学習するカードがありません'}
 					</div>
-					<button id="back-to-browse-btn" class="secondary-button">設定に戻る</button>
+					<button id="back-to-setup-btn" class="secondary-button">設定に戻る</button>
 				</div>
 			`;
 
-			const backBtn = document.getElementById('back-to-browse-btn');
+			const backBtn = document.getElementById('back-to-setup-btn');
 			if (backBtn) {
-				backBtn.addEventListener('click', () => this.backToBrowse());
+				backBtn.addEventListener('click', () => this.backToLearnSetup());
 			}
 			return;
 		}
@@ -653,7 +662,7 @@ class FlashcardApp {
 		app.innerHTML = `
 			<div class="container learning-view">
 				<div class="learning-header">
-					<button id="back-to-browse-btn" class="back-btn">← 設定に戻る</button>
+					<button id="back-to-setup-btn" class="back-btn">← 設定に戻る</button>
 					<div class="progress-indicator">${currentNum} / ${totalNum}</div>
 				</div>
 
@@ -700,6 +709,108 @@ class FlashcardApp {
 		this.attachLearnModeListeners();
 	}
 
+	private renderLearnSetupView(app: HTMLElement): void {
+		const allTags = this.getAllTags();
+
+		app.innerHTML = `
+			<div class="container">
+				<header class="header">
+					<button id="backBtn" class="back-btn">← 戻る</button>
+					<h1>CW略語・Q符号</h1>
+					<div class="settings-icon" id="settingsBtn">
+						<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+						</svg>
+					</div>
+				</header>
+
+				<div class="tabs">
+					<button class="tab-button" data-tab="browse">一覧</button>
+					<button class="tab-button active" data-tab="learn">学習モード</button>
+					<button class="tab-button" data-tab="exam">試験モード</button>
+				</div>
+
+				<div class="filter-section">
+					<div class="filter-group">
+						<h2>タグでフィルター</h2>
+						<div class="tags-list">
+							${allTags.map(tag => `
+								<button class="tag-btn ${this.selectedTags.has(tag) ? 'active' : ''}" data-tag="${tag}">
+									${tag}
+								</button>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h2>使用頻度 <button id="toggle-freq-btn" class="toggle-freq-btn" title="チェックを反転">⇆</button></h2>
+						<div class="frequency-list">
+							${[5, 4, 3, 2, 1].map(freq => `
+								<label class="frequency-checkbox">
+									<input type="checkbox" value="${freq}" ${this.selectedFrequencies.has(freq) ? 'checked' : ''}>
+									<span>${this.getFrequencyStars(freq)}</span>
+								</label>
+							`).join('')}
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h2>モード</h2>
+						<label class="mode-checkbox">
+							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
+							<span>復習モード（わからないカードのみ）</span>
+						</label>
+						<label class="mode-checkbox">
+							<input type="checkbox" id="hide-abbreviation-checkbox" ${this.hideAbbreviation ? 'checked' : ''}>
+							<span>略語を非表示（モールス再生のみ）</span>
+						</label>
+					</div>
+
+					<div class="result-count">
+						${this.getCardCountText()}
+					</div>
+
+					<div class="action-buttons">
+						<button id="start-learning-btn" class="primary-button">学習開始</button>
+						<button id="clear-progress-btn" class="secondary-button">進捗をリセット</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		const backBtn = document.getElementById('backBtn');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => {
+				window.location.href = './index.html';
+			});
+		}
+
+		const settingsBtn = document.getElementById('settingsBtn');
+		if (settingsBtn) {
+			settingsBtn.addEventListener('click', () => {
+				this.openSettingsModal();
+			});
+		}
+
+		// タブボタンのイベントリスナー
+		const tabButtons = document.querySelectorAll('.tab-button');
+		tabButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tab = btn.getAttribute('data-tab');
+				if (tab === 'browse') {
+					this.viewMode = 'browse';
+					this.render();
+				} else if (tab === 'exam') {
+					this.viewMode = 'exam';
+					this.render();
+				}
+				// learnはすでに表示中なので何もしない
+			});
+		});
+
+		this.attachLearnSetupListeners();
+	}
+
 	private renderJudgmentButtons(card: FlashcardEntry): string {
 		const isKnown = this.progress.known.has(card.abbreviation);
 		const isUnknown = this.progress.unknown.has(card.abbreviation);
@@ -735,6 +846,12 @@ class FlashcardApp {
 			});
 		});
 
+		// 使用頻度反転ボタン
+		const toggleFreqBtn = document.getElementById('toggle-freq-btn');
+		if (toggleFreqBtn) {
+			toggleFreqBtn.addEventListener('click', () => this.toggleAllFrequencies());
+		}
+
 		// 検索入力
 		const searchInput = document.getElementById('search-input') as HTMLInputElement;
 		if (searchInput) {
@@ -743,6 +860,32 @@ class FlashcardApp {
 				this.applyFilters();
 				this.render();
 			});
+		}
+	}
+
+	private attachLearnSetupListeners(): void {
+		// タグボタン
+		const tagButtons = document.querySelectorAll('.tag-btn');
+		tagButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const tag = btn.getAttribute('data-tag');
+				if (tag) this.toggleTag(tag);
+			});
+		});
+
+		// 使用頻度チェックボックス
+		const frequencyCheckboxes = document.querySelectorAll('.frequency-checkbox input');
+		frequencyCheckboxes.forEach(checkbox => {
+			checkbox.addEventListener('change', (e) => {
+				const freq = parseInt((e.target as HTMLInputElement).value, 10);
+				this.toggleFrequency(freq);
+			});
+		});
+
+		// 使用頻度反転ボタン
+		const toggleFreqBtn = document.getElementById('toggle-freq-btn');
+		if (toggleFreqBtn) {
+			toggleFreqBtn.addEventListener('click', () => this.toggleAllFrequencies());
 		}
 
 		// 復習モードチェックボックス
@@ -782,9 +925,9 @@ class FlashcardApp {
 
 	private attachLearnModeListeners(): void {
 		// 戻るボタン
-		const backBtn = document.getElementById('back-to-browse-btn');
+		const backBtn = document.getElementById('back-to-setup-btn');
 		if (backBtn) {
-			backBtn.addEventListener('click', () => this.backToBrowse());
+			backBtn.addEventListener('click', () => this.backToLearnSetup());
 		}
 
 		// カードめくり

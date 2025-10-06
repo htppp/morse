@@ -356,6 +356,25 @@ body {
   font-size: 1.1rem;
   color: #667eea;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-freq-btn {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid #667eea;
+  color: #667eea;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.toggle-freq-btn:hover {
+  background: #667eea;
+  color: white;
 }
 
 .search-input {
