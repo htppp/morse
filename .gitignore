@@ -11,3 +11,6 @@ v3/src/.turbo/
 v3/src/build/
 v3/src/dist/
 
+# v4 build artifacts (copied from root during build)
+v4/flashcard.tsv
+
