@@ -22,6 +22,8 @@ export class AudioSystem {
   constructor(settings: AudioSettings = { frequency: 750, volume: 0.7, wpm: 20 }) {
     this.settings = settings;
     this.loadSettings();
+    // AudioContextを即座に初期化
+    this.ensureAudioContext();
     this.init();
   }
 
@@ -38,7 +40,7 @@ export class AudioSystem {
   }
 
   /**
-   * 初期化（ユーザーインタラクション後にAudioContextを有効化）
+   * 初期化（ユーザーインタラクション時にダミートーンで完全初期化）
    */
   private init(): void {
     const handler = () => {
