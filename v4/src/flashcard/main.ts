@@ -332,7 +332,10 @@ class FlashcardApp {
 			if (this.currentlyPlaying === text) {
 				this.audioSystem.stopPlaying();
 				this.currentlyPlaying = null;
-				this.render();
+				// 試験モード以外の場合のみレンダリング
+				if (this.viewMode !== 'exam') {
+					this.render();
+				}
 				return;
 			}
 
@@ -342,7 +345,10 @@ class FlashcardApp {
 			}
 
 			this.currentlyPlaying = text;
-			this.render();
+			// 試験モード以外の場合のみレンダリング
+			if (this.viewMode !== 'exam') {
+				this.render();
+			}
 
 			const morseSequence = MorseCode.textToMorse(text);
 			if (morseSequence) {
@@ -350,11 +356,17 @@ class FlashcardApp {
 			}
 
 			this.currentlyPlaying = null;
-			this.render();
+			// 試験モード以外の場合のみレンダリング
+			if (this.viewMode !== 'exam') {
+				this.render();
+			}
 		} catch (error) {
 			console.error('モールス再生エラー:', error);
 			this.currentlyPlaying = null;
-			this.render();
+			// 試験モード以外の場合のみレンダリング
+			if (this.viewMode !== 'exam') {
+				this.render();
+			}
 		}
 	}
 
