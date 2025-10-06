@@ -144,7 +144,7 @@ body {
   gap: 8px;
 }
 
-.setting-item label {
+.setting-item > label {
   font-weight: 600;
   color: #555;
   font-size: 15px;
@@ -189,7 +189,7 @@ body {
   position: absolute;
 }
 
-.toggle-label {
+.toggle-switch .toggle-label {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -204,7 +204,7 @@ body {
   box-sizing: border-box;
 }
 
-.toggle-label:hover {
+.toggle-switch .toggle-label:hover {
   border-color: #667eea;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 2px 12px rgba(102, 126, 234, 0.2);
 }
