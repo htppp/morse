@@ -396,10 +396,13 @@ class HorizontalKeyTrainer {
   private setupEventListeners(): void {
     let mouseLeftDown = false;
     let mouseRightDown = false;
+    let touchLeftDown = false;
+    let touchRightDown = false;
 
     // 左パドル
     const leftPaddle = document.getElementById('paddleLeft');
     if (leftPaddle) {
+      // マウスイベント
       leftPaddle.addEventListener('mousedown', (e) => {
         e.preventDefault();
         if (!mouseLeftDown) {
@@ -414,11 +417,28 @@ class HorizontalKeyTrainer {
           this.onLeftUp();
         }
       });
+
+      // タッチイベント
+      leftPaddle.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!touchLeftDown) {
+          touchLeftDown = true;
+          this.onLeftDown();
+        }
+      }, { passive: false });
+      leftPaddle.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (touchLeftDown) {
+          touchLeftDown = false;
+          this.onLeftUp();
+        }
+      }, { passive: false });
     }
 
     // 右パドル
     const rightPaddle = document.getElementById('paddleRight');
     if (rightPaddle) {
+      // マウスイベント
       rightPaddle.addEventListener('mousedown', (e) => {
         e.preventDefault();
         if (!mouseRightDown) {
@@ -433,6 +453,22 @@ class HorizontalKeyTrainer {
           this.onRightUp();
         }
       });
+
+      // タッチイベント
+      rightPaddle.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!touchRightDown) {
+          touchRightDown = true;
+          this.onRightDown();
+        }
+      }, { passive: false });
+      rightPaddle.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (touchRightDown) {
+          touchRightDown = false;
+          this.onRightUp();
+        }
+      }, { passive: false });
     }
 
     // マウスが離れた場合
@@ -446,6 +482,18 @@ class HorizontalKeyTrainer {
         this.onRightUp();
       }
     });
+
+    // タッチが離れた場合
+    document.addEventListener('touchend', () => {
+      if (touchLeftDown) {
+        touchLeftDown = false;
+        this.onLeftUp();
+      }
+      if (touchRightDown) {
+        touchRightDown = false;
+        this.onRightUp();
+      }
+    }, { passive: false });
 
     // クリアボタン
     const clearBtn = document.getElementById('paddleClear');
