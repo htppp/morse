@@ -1,6 +1,7 @@
 # Claude Code settings
 .claude/*
 !.claude/context.md
+!.claude/settings.json
 
 # Ignore common build / deps in v3 to avoid committing node_modules/dist
 v3/src/node_modules/

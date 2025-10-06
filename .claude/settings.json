@@ -1,0 +1,48 @@
+{
+	"$schema": "https://claude.com/schemas/claude-code-settings.json",
+	"description": "モールス練習アプリ - Claude Code設定",
+	"fileExclusions": [
+		"**/.git/**",
+		"**/node_modules/**",
+		"**/dist/**",
+		"**/.vite/**",
+		"**/.turbo/**",
+		"**/build/**",
+		"**/*.min.js",
+		"**/*.min.css",
+		"**/*.map",
+		"**/package-lock.json",
+		"**/yarn.lock",
+		"**/pnpm-lock.yaml",
+		"v2/**",
+		"v3/**",
+		"v4/src/dist/**",
+		"v4/src/node_modules/**",
+		"v4/*.html",
+		"ts-tutorial/**"
+	],
+	"instructions": [
+		"プロジェクトの全体像は .claude/context.md を参照してください",
+		"v4が開発対象です。v2, v3は参考程度に確認してください",
+		"ビルド済みのHTMLファイル(v4/*.html)は直接編集せず、v4/src/以下のソースを編集してください",
+		"ビルドは v4/src/ ディレクトリで npm run build を実行してください",
+		"重要な実装状況や課題は v4/TODO.md に記載されています",
+		"変更後は必ず .claude/context.md を更新してください"
+	],
+	"contextOptimization": {
+		"priorityFiles": [
+			".claude/context.md",
+			"v4/TODO.md",
+			"v4/src/**/main.ts",
+			"v4/src/**/style.css",
+			"v4/src/shared/**/*.ts"
+		],
+		"lowPriorityPatterns": [
+			"**/test/**",
+			"**/tests/**",
+			"**/*.test.ts",
+			"**/*.spec.ts",
+			"**/README.md"
+		]
+	}
+}
