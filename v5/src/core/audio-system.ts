@@ -22,71 +22,9 @@ export class AudioSystem {
   constructor(settings: AudioSettings = { frequency: 750, volume: 0.7, wpm: 20 }) {
     this.settings = settings;
     this.loadSettings();
-    this.showAudioWarning();
     this.init();
   }
 
-  /**
-   * 音声初期化警告を表示
-   */
-  private showAudioWarning(): void {
-    // 既に警告が表示されている場合は何もしない
-    if (document.getElementById('audio-init-warning')) {
-      return;
-    }
-
-    const warning = document.createElement('div');
-    warning.id = 'audio-init-warning';
-    warning.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background-color: #fff3cd;
-      border-bottom: 2px solid #ffc107;
-      padding: 12px 16px;
-      text-align: center;
-      z-index: 9999;
-      font-size: 14px;
-      line-height: 1.5;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      cursor: pointer;
-    `;
-    warning.innerHTML = `
-      <strong>⚠️ お知らせ</strong><br>
-      <span style="font-size: 12px;">
-        スマートフォンでは、ブラウザの制限により初回の音声再生時に音が乱れることがあります。<br>
-        このバナーをタップまたはクリックして音声を初期化してください。
-      </span>
-    `;
-
-    // バナークリックで初期化
-    const handleBannerClick = async (e: Event) => {
-      e.stopPropagation();
-      this.ensureAudioContext();
-      await this.playInitializationTone();
-      this.hideAudioWarning();
-    };
-
-    warning.addEventListener('click', handleBannerClick);
-    warning.addEventListener('touchstart', handleBannerClick);
-
-    document.body.appendChild(warning);
-  }
-
-  /**
-   * 音声初期化警告を非表示
-   */
-  private hideAudioWarning(): void {
-    const warning = document.getElementById('audio-init-warning');
-    if (warning) {
-      warning.style.transition = 'opacity 0.3s ease-out';
-      warning.style.opacity = '0';
-      setTimeout(() => {
-        warning.remove();
-      }, 300);
-    }
-  }
 
   /**
    * AudioContextの初期化
@@ -101,32 +39,10 @@ export class AudioSystem {
   }
 
   /**
-   * 初期化（バナークリックでのみ初期化を行う）
+   * 初期化
    */
   private init(): void {
-    // バナークリックでのみ初期化を行うため、ここでは何もしない
-  }
-
-  /**
-   * 初期化用トーンを再生
-   * 音量0%の短いトーンでAudioContextを初期化
-   */
-  private async playInitializationTone(): Promise<void> {
-    // 現在の音量を保存
-    const originalVolume = this.settings.volume;
-
-    // 一時的に0%音量に設定
-    this.settings.volume = 0;
-
-    try {
-      // playMorseStringメソッドを使用して短いトーンを再生
-      await this.playMorseString('.');
-    } catch (error) {
-      console.error('初期化トーンエラー:', error);
-    } finally {
-      // 元の音量に戻す
-      this.settings.volume = originalVolume;
-    }
+    // SPA化によりユーザー操作後に音声が再生されるため、事前初期化は不要
   }
 
   /**
