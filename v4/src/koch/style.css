@@ -171,15 +171,19 @@ body {
 }
 
 .instructions {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  color: #333;
+  color: #000;
 }
 
 .instructions h3 {
   margin-bottom: 15px;
   color: #667eea;
+}
+
+.instructions li {
+  color: #000;
 }
 
 .instructions ul {
@@ -200,10 +204,10 @@ body {
 
 /* Lesson List Section */
 .lesson-list-section {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  color: #333;
+  color: #000;
   margin-top: 20px;
 }
 
@@ -254,7 +258,7 @@ body {
 .lesson-chars {
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  color: #333;
+  color: #000;
   word-wrap: break-word;
 }
 
