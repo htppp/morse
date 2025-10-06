@@ -37,6 +37,7 @@ jobs:
           cache-dependency-path: |
             v3/src/package-lock.json
             v4/src/package-lock.json
+            v5/src/package-lock.json
 
       - name: Build v3 (if v3/src exists)
         shell: bash
@@ -62,6 +63,19 @@ jobs:
             cd -
           else
             echo "Skipping v4 build: no v4/src/package-lock.json found."
+          fi
+
+      - name: Build v5 (if v5/src exists)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ -f "v5/src/package-lock.json" ]; then
+            cd v5/src
+            npm ci
+            npm run build
+            cd -
+          else
+            echo "Skipping v5 build: no v5/src/package-lock.json found."
           fi
 
       - name: Upload Pages artifact
