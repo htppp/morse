@@ -144,7 +144,9 @@ body {
   gap: 8px;
 }
 
-.setting-item > label {
+.setting-item > label:not(.toggle-label) {
+  display: block;
+  margin-bottom: 8px;
   font-weight: 600;
   color: #555;
   font-size: 15px;
