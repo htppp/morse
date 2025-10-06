@@ -1,23 +1,28 @@
 タグ	使用頻度	略語	英文	和訳	説明	具体例
-送受,制御,プロサイン	5	[BK]	Break in conversation	交信の区切り(転送交代)	コンテストでの数字交換や短い会話で、コールサインを省略し、BKだけで迅速に送受信を交代する。	相手に「599 BK」でレポートを送り交代を促す。
-送受,制御	5	K	Go ahead (invite any station to transmit)	どうぞ(送信をどうぞ)	通常の交信でメッセージ送信後、Kを送って任意の局に送信を許可する。	挨拶後「DE JA1ABC K」で送信を促す。
+送受,制御,プロサイン	5	[BK]	Break in conversation	交信の区切り(転送交代)	コンテストや短い会話で、コールサインを省略し、BKで送受信を交代。	相手に「599 BK」でレポートを送り交代を促す。
+送受,制御	5	K	Go ahead (invite any station to transmit)	どうぞ(送信をどうぞ)	通常の交信でメッセージ送信後、Kを送って任意の局に送信を許可。	挨拶後「DE JA1ABC K」で送信を促す。
 送受,制御	5	KN	Go ahead (specific station only)	特定局どうぞ(他局送信禁止)	特定局との交信で、他局の割り込みを防ぎKNを送る。	CQ応答後「KN」でその局だけに送信を限定。
 送受,制御,プロサイン	5	[AR]	End of message	送信終了	メッセージの終わりを示し、ARを送って次の送信を待つ。	レポート後「AR」で終了を明示。
 送受,制御,プロサイン	4	[AS]	Stand by	待機	一時的な待機を指示。	信号調整中「AS」で相手に待ってもらう。
 送受,制御,プロサイン	5	[BT]	Break (between parts of message)	メッセージ内の区切り	長いメッセージを区切るためにBTを使用。	住所の部分ごとに「BT」で区切る。
 送受,制御,プロサイン	2	[HH]	Error (correction signal)	訂正(誤り)	送信ミス時にHHを送り訂正を依頼。	数字を間違えたら「HH 5NN」で訂正。
 送受,制御,プロサイン	3	[VA]	End of contact	交信終了(さようなら)	交信の完全終了を示す。	最終挨拶後「VA」で連絡を切る。
-送受,制御,プロサイン	5	[SK]	End of contact	交信終了/(別意)故人オペレーター	交信終了を伝え、SKで締めくくる。	「TU SK」で感謝し終了。別意で故人オペレーターを指す。
+送受,制御,プロサイン	5	[SK]	End of contact	交信終了/(別意)故人オペレーター	交信終了を伝え、SKで締めくくる。別意で故人オペレーターを指す。	「TU SK」で感謝し終了。
 送受,制御,プロサイン	1	[CL]	Closing station	これで閉局します	運用終了を宣言。	夜間運用後「CL」で閉局を伝える。
 送受,制御,プロサイン	2	[CT]	Start of transmission	送信開始またはテスト信号	送信開始時にCTを送りテストや本開始を示す。	テスト送信「CT CT」で確認。
+送受,制御,プロサイン	3	[AA]	All after	以降すべて	メッセージの指定点以降の繰り返しを依頼。	? AA で以降の部分を再送依頼。
+送受,制御,プロサイン	3	[AB]	All before	以前すべて	メッセージの指定点以前の繰り返しを依頼。	? AB で以前の部分を再送依頼。
+送受,制御,プロサイン	4	[BN]	All between	間すべて	メッセージの2点間の繰り返しを依頼。	BN AA AB で間の部分を再送。
 確認,返答	5	C	Yes; Correct	はい、正しい	肯定や正解の確認にCを使用。	相手の質問に「C」でYesと答える。
-確認,返答	4	CFM	Confirm	確認します/確認してください	確認を求める際にCFM。	住所確認「CFM MY ADR?」
+確認,返答	4	CFM	Confirm	確認します/確認してください	確認を求める際にCFM。	住所確認「CFM MY ADR?」。
 確認,返答,疑問	5	QSL?	Can you acknowledge receipt?	交信証をいただけますか	QSLカードの受信確認を求める。	交信後「QSL?」で確認依頼。
 確認,返答	5	QSL	I acknowledge receipt	交信証を送ります	QSLカードの発行を意味。	終了時「QSL TU」で確認と感謝。
 確認,返答	5	R	All received OK	了解	受信確認の略。	メッセージ後「R」でOKを示す。
 確認,返答	5	TU	Thank you	ありがとう	感謝の意を伝える。	交信後「TU SK」で礼を述べる。
 確認,返答	4	AGN	Again	もう一度	聞き取れなかった部分を再送依頼。	「AGN RST」でレポート再送。
 確認,返答,プロサイン	4	[RPT]	Repeat (again)	繰り返してください	繰り返しを依頼。	ノイズで「RPT QTH」で位置再送。
+確認,返答	3	[IMI]	Repeat; Say again	繰り返し/もう一度言って	特定の部分の繰り返しを依頼。	「IMI last word」で最後の単語を再送。
+確認,返答	4	CPY	Copy	コピー/受信	受信状況を確認。	「CPY ALL」で全受信。
 交信,状態,Q符号,疑問	1	QRA?	What is your station name?	あなたの局名は？	局名を尋ねる。	新局に「QRA?」でコールサイン確認。
 交信,状態,Q符号	1	QRA	My station name is ...	私の局名は…	自分の局名を伝える。	「QRA JA1ABC」で自己紹介。
 交信,状態,Q符号,疑問	1	QRH?	Does my frequency vary?	私の周波数は変動していますか？	周波数の変動を尋ねる。	ドリフト疑い「QRH?」
@@ -79,6 +84,8 @@
 挨拶,定型表現	4	HI	Laugh (like "haha")	(笑)	笑いの表現。	ジョーク後「HI HI」で笑う。
 挨拶,定型表現	4	FN	Fine, nice	元気です/よい	調子の良さを伝える。	「RST 599 FN」で良好。
 挨拶,定型表現	3	FN WX	Good weather	いい天気です	天気の良さを共有。	「FN WX HI」で天気いいよ。
+挨拶,定型表現	4	GL	Good luck	幸運を祈る	コンテストや運用開始時の励まし。	「GL DE JA1ABC」で幸運を。
+挨拶,定型表現	3	HNY	Happy New Year	明けましておめでとう	新年の挨拶。	「HNY 73」でおめでとう。
 設備,用語	4	RIG	Radio equipment	無線機	使用機材を説明。	「RIG IC-7300」で無線機紹介。
 設備,用語	3	ANT	Antenna	アンテナ	アンテナの種類を伝える。	「ANT DIPOLE 20M」で説明。
 設備,用語	4	OP	Operator	オペレーター	オペレーターを指す。	「OP IS YL」で女性が運用。
@@ -125,11 +132,11 @@
 設備,用語	3	CNT	Can't or Cannot	できない	できない。	「CNT HRD」で聞こえない。
 設備,用語	4	CONDX	Condition	状態	条件。	「CONDX POOR」で条件悪い。
 設備,用語	2	CP	CP	特定の呼び出し	特定の呼び。	「CP JA1ABC」でコール。
-設備,用語	3	CPI	Copy	コピー	コピー。	「CPI 599」で受信。
-設備,用語	3	CPY	Copy	コピー	コピー。	「CPY ALL」で全受信。
+設備,用語	3	CPI	Copy	受信	受信状況を示す。	「CPI 599」で受信。
+設備,用語	3	CPY	Copy	受信	受信状況を示す。	「CPY ALL」で全受信。
 設備,用語	2	CRD	Card	カード	カード。	「CRD QSL」でカード。
 設備,用語	3	CSE	Because	なぜなら	理由。	「CSE QRM」で干渉のため。
-設備,用語	2	CUD	Could	できた	できた。	「CUD QSY」で変更できた。
+設備,用語	3	CUD	Could	?できますか？	可能性を尋ねる丁寧表現。	「CUD U MOVE UP 3 ?」で「3kHz上がってもらえませんか？」。
 設備,用語	4	CUL	See you later	また後で	また後で。	「CUL 73」で後で。
 設備,用語	3	CUZ	Because	なぜなら	理由。	「CUZ QRN」でノイズで。
 設備,用語	5	CW	Continuous Wave	連続波	連続波。	「CW ONLY」でCW運用。
@@ -275,3 +282,10 @@ RST,詳細	5	S9	Extremely strong signals	非常に強い	極強信号。	非常�
 RST,詳細	3	T1	Extremely rough, very harsh note	極めて粗く耳障り	粗悪音。	耳障り「T1」で悪い。
 RST,詳細	4	T5	Fairly pure tone	かなり純粋な音	やや純音。	まあまあ「T5」で良い。
 RST,詳細	5	T9	Extremely pure tone, crystal clear	非常に純粋で澄んだ音	澄んだ音。	完璧「T9」でクリア。
+メッセージ処理	3	ADEE	Addressee	宛先	メッセージの受信者。	正式メッセージで「ADEE JA1ABC」。
+メッセージ処理	2	DLD	Delivered	配達済み	メッセージの配信確認。	「DLD OK」で配信完了。
+メッセージ処理	3	NM	No more	以上なし	送信終了の意味。	「NM to send」でこれ以上なし。
+干渉関連	3	BCI	Broadcast interference	放送干渉	放送局からの干渉。	「BCI on TV」でTV干渉報告。
+干渉関連	2	RFI	Radio frequency interference	無線周波干渉	RF源からの干渉。	「RFI bad PSE QSY」で周波変更依頼。
+送受,制御,プロサイン	4	[QSK]	Can you operate break-in?	ブレイクイン可能ですか？	送受信の即時切り替えを尋ねる。	「QSK?」でフルブレイクイン確認。
+設備,用語	4	FIST	Unique characteristic of an operator’s sending of CW	オペレーターの送信癖	個々の送信スタイルを指す。	「Nice FIST」で送信が上手いと褒める。
