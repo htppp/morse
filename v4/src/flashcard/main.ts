@@ -57,6 +57,7 @@ class FlashcardApp {
 	private isFlipped: boolean = false;
 	private progress: CardProgress = { known: new Set(), unknown: new Set() };
 	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
+	private hideAbbreviation: boolean = false; // 略語を非表示（モールス再生のみ）
 	private audioSystem: AudioSystem;
 	private currentlyPlaying: string | null = null; // 再生中の略語
 
@@ -426,6 +427,10 @@ class FlashcardApp {
 							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
 							<span>復習モード（わからないカードのみ）</span>
 						</label>
+						<label class="mode-checkbox">
+							<input type="checkbox" id="hide-abbreviation-checkbox" ${this.hideAbbreviation ? 'checked' : ''}>
+							<span>略語を非表示（モールス再生のみ）</span>
+						</label>
 					</div>
 
 					<div class="result-count">
@@ -638,8 +643,10 @@ class FlashcardApp {
 				<div class="card-container">
 					<div class="flashcard ${this.isFlipped ? 'flipped' : ''}" id="flashcard">
 						<div class="card-front">
-							<div class="card-label">略語</div>
-							<div class="card-content">${this.formatAbbreviation(card.abbreviation)}</div>
+							${this.hideAbbreviation ? '' : `
+								<div class="card-label">略語</div>
+								<div class="card-content">${this.formatAbbreviation(card.abbreviation)}</div>
+							`}
 							<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
 						</div>
 						<div class="card-back">
@@ -726,6 +733,14 @@ class FlashcardApp {
 		if (reviewModeCheckbox) {
 			reviewModeCheckbox.addEventListener('change', () => {
 				this.reviewMode = reviewModeCheckbox.checked;
+			});
+		}
+
+		// 略語非表示チェックボックス
+		const hideAbbreviationCheckbox = document.getElementById('hide-abbreviation-checkbox') as HTMLInputElement;
+		if (hideAbbreviationCheckbox) {
+			hideAbbreviationCheckbox.addEventListener('change', () => {
+				this.hideAbbreviation = hideAbbreviationCheckbox.checked;
 			});
 		}
 
