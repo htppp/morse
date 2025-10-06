@@ -12,6 +12,8 @@ interface FlashcardEntry {
 	abbreviation: string;
 	english: string;
 	japanese: string;
+	description: string;  // 説明
+	example: string;      // 具体例
 }
 
 type DisplayMode = 'card' | 'list';
@@ -56,13 +58,15 @@ class FlashcardApp {
 				.split('\n')
 				.slice(1) // ヘッダー行をスキップ
 				.map((line) => {
-					const [tags, frequency, abbreviation, english, japanese] = line.split('\t');
+					const [tags, frequency, abbreviation, english, japanese, description, example] = line.split('\t');
 					return {
 						tags,
 						frequency: parseInt(frequency),
 						abbreviation,
 						english,
 						japanese,
+						description: description || '',
+						example: example || '',
 					};
 				});
 
@@ -263,7 +267,6 @@ class FlashcardApp {
 				<header class="header">
 					<button id="backBtn" class="back-btn">← 戻る</button>
 					<h1>CW略語・Q符号</h1>
-					<div class="mode-toggle" id="modeToggle"></div>
 				</header>
 
 				<div class="filter-section">
@@ -319,25 +322,8 @@ class FlashcardApp {
 			});
 		}
 
-		this.renderModeToggle();
 		this.renderEntries();
 		this.attachBrowseModeListeners();
-	}
-
-	private renderModeToggle(): void {
-		const modeToggle = document.getElementById('modeToggle');
-		if (!modeToggle) return;
-
-		modeToggle.innerHTML = `
-			<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
-				${this.displayMode === 'card' ? '📋 リスト表示' : '🃏 カード表示'}
-			</button>
-		`;
-
-		const toggleBtn = document.getElementById('toggleModeBtn');
-		if (toggleBtn) {
-			toggleBtn.addEventListener('click', () => this.toggleDisplayMode());
-		}
 	}
 
 	private renderEntries(): void {
@@ -349,11 +335,22 @@ class FlashcardApp {
 		} else {
 			this.renderListView(entriesContainer);
 		}
+
+		// モード切り替えボタンのイベントリスナーを設定
+		const toggleBtn = document.getElementById('toggleModeBtn');
+		if (toggleBtn) {
+			toggleBtn.addEventListener('click', () => this.toggleDisplayMode());
+		}
 	}
 
 	private renderCardView(container: HTMLElement): void {
 		container.innerHTML = `
-			<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+			<div class="entries-header">
+				<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+				<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
+					📋 リスト表示
+				</button>
+			</div>
 			<div class="entries-list">
 				${this.filteredEntries
 					.map(
@@ -365,6 +362,8 @@ class FlashcardApp {
 						</div>
 						<div class="entry-english">${entry.english}</div>
 						<div class="entry-japanese">${entry.japanese}</div>
+						${entry.description ? `<div class="entry-description">${entry.description}</div>` : ''}
+						${entry.example ? `<div class="entry-example">例: ${entry.example}</div>` : ''}
 						<div class="entry-tags">${entry.tags}</div>
 					</div>
 				`
@@ -376,7 +375,12 @@ class FlashcardApp {
 
 	private renderListView(container: HTMLElement): void {
 		container.innerHTML = `
-			<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+			<div class="entries-header">
+				<h2>略語一覧（${this.filteredEntries.length}件）</h2>
+				<button id="toggleModeBtn" class="toggle-mode-btn" title="表示モード切り替え">
+					🃏 カード表示
+				</button>
+			</div>
 			<div class="list-table-container">
 				<table class="list-table">
 					<thead>
@@ -452,6 +456,8 @@ class FlashcardApp {
 							<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
 							<div class="card-content-text">${card.english}</div>
 							<div class="card-content-text">${card.japanese}</div>
+							${card.description ? `<div class="card-description">${card.description}</div>` : ''}
+							${card.example ? `<div class="card-example">例: ${card.example}</div>` : ''}
 							<div class="card-tags">${card.tags} / ${this.getFrequencyStars(card.frequency)}</div>
 						</div>
 					</div>
