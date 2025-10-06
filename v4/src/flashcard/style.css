@@ -340,6 +340,21 @@ body {
   font-style: italic;
 }
 
+.list-description {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  min-width: 200px;
+}
+
+.list-example {
+  color: #777;
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.4;
+  min-width: 200px;
+}
+
 /* フィルターセクション */
 .filter-section {
   background: white;

@@ -586,6 +586,8 @@ class FlashcardApp {
 							<th class="sortable" data-column="japanese">和訳${this.getSortIndicator('japanese')}</th>
 							<th class="sortable" data-column="frequency">頻度${this.getSortIndicator('frequency')}</th>
 							<th class="sortable" data-column="tags">タグ${this.getSortIndicator('tags')}</th>
+							<th>説明</th>
+							<th>具体例</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -602,6 +604,8 @@ class FlashcardApp {
 								<td class="list-japanese">${entry.japanese}</td>
 								<td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
 								<td class="list-tags">${entry.tags}</td>
+								<td class="list-description">${entry.description}</td>
+								<td class="list-example">${entry.example}</td>
 							</tr>
 						`
 							)
