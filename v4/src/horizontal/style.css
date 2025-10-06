@@ -320,11 +320,6 @@ body {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.paddle-left:hover {
-  transform: translateY(-5px);
-}
-
-.paddle-left:active,
 .paddle-left.active {
   transform: scale(0.95);
 }
@@ -333,11 +328,6 @@ body {
   background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
-.paddle-right:hover {
-  transform: translateY(-5px);
-}
-
-.paddle-right:active,
 .paddle-right.active {
   transform: scale(0.95);
 }
