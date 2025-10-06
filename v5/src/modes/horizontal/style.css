@@ -178,8 +178,9 @@ body {
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 30px;
+  width: 60px !important;
+  height: 30px !important;
+  line-height: 1;
 }
 
 .toggle-input {
