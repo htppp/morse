@@ -22,7 +22,57 @@ export class AudioSystem {
   constructor(settings: AudioSettings = { frequency: 750, volume: 0.7, wpm: 20 }) {
     this.settings = settings;
     this.loadSettings();
+    this.showAudioWarning();
     this.init();
+  }
+
+  /**
+   * 音声初期化警告を表示
+   */
+  private showAudioWarning(): void {
+    // 既に警告が表示されている場合は何もしない
+    if (document.getElementById('audio-init-warning')) {
+      return;
+    }
+
+    const warning = document.createElement('div');
+    warning.id = 'audio-init-warning';
+    warning.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #fff3cd;
+      border-bottom: 2px solid #ffc107;
+      padding: 12px 16px;
+      text-align: center;
+      z-index: 9999;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    `;
+    warning.innerHTML = `
+      <strong>⚠️ お知らせ</strong><br>
+      <span style="font-size: 12px;">
+        スマートフォンでは、ブラウザの制限により初回の音声再生時に音が乱れることがあります。<br>
+        画面をタップまたはクリックすると、この警告は自動的に消えます。
+      </span>
+    `;
+    document.body.appendChild(warning);
+  }
+
+  /**
+   * 音声初期化警告を非表示
+   */
+  private hideAudioWarning(): void {
+    const warning = document.getElementById('audio-init-warning');
+    if (warning) {
+      warning.style.transition = 'opacity 0.3s ease-out';
+      warning.style.opacity = '0';
+      setTimeout(() => {
+        warning.remove();
+      }, 300);
+    }
   }
 
   /**
@@ -44,6 +94,9 @@ export class AudioSystem {
     const handleFirstInteraction = async () => {
       this.ensureAudioContext();
       await this.playInitializationTone();
+
+      // 警告を非表示
+      this.hideAudioWarning();
 
       // イベントリスナーを削除
       document.removeEventListener('click', handleFirstInteraction);
