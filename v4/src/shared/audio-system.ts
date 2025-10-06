@@ -59,18 +59,18 @@ export class AudioSystem {
 
   /**
    * 初期化用トーンを再生
-   * デバッグ用に「... ... ... ... ...」(S×5)を50%音量で再生
+   * 音量0%の短いトーンでAudioContextを初期化
    */
   private async playInitializationTone(): Promise<void> {
     // 現在の音量を保存
     const originalVolume = this.settings.volume;
 
-    // 一時的に50%音量に設定
-    this.settings.volume = originalVolume * 0.5;
+    // 一時的に0%音量に設定
+    this.settings.volume = 0;
 
     try {
-      // playMorseStringメソッドを使用してS×5を再生
-      await this.playMorseString('... ... ... ... ...');
+      // playMorseStringメソッドを使用して短いトーンを再生
+      await this.playMorseString('.');
     } catch (error) {
       console.error('初期化トーンエラー:', error);
     } finally {
