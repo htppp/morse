@@ -22,8 +22,6 @@ export class AudioSystem {
   constructor(settings: AudioSettings = { frequency: 750, volume: 0.7, wpm: 20 }) {
     this.settings = settings;
     this.loadSettings();
-    // AudioContextを即座に初期化
-    this.ensureAudioContext();
     this.init();
   }
 
@@ -40,21 +38,24 @@ export class AudioSystem {
   }
 
   /**
-   * 初期化（ユーザーインタラクション時にダミートーンで完全初期化）
+   * 初期化（HTML表示後にダミートーンで完全初期化）
    */
   private init(): void {
-    const handler = () => {
+    // HTML表示直後にダミートーンを再生
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.ensureAudioContext();
+        this.playDummyTone();
+      }, { once: true });
+    } else {
+      // 既にDOMContentLoadedが完了している場合は即座に実行
       this.ensureAudioContext();
-      // 無音のダミートーンを再生してAudioContextを完全に初期化
       this.playDummyTone();
-    };
-    document.addEventListener('click', handler, { once: true });
-    document.addEventListener('keydown', handler, { once: true });
-    document.addEventListener('touchstart', handler, { once: true });
+    }
   }
 
   /**
-   * 無音のダミートーンを再生してAudioContextを初期化
+   * ダミートーンを再生してAudioContextを初期化（デバッグ用に10%音量）
    */
   private playDummyTone(): void {
     if (!this.audioContext) return;
@@ -70,11 +71,11 @@ export class AudioSystem {
       oscillator.type = 'sine';
 
       const now = this.audioContext.currentTime;
-      // 無音（volume 0）で極短時間再生
-      gainNode.gain.setValueAtTime(0, now);
+      // デバッグ用に10%音量で短時間再生
+      gainNode.gain.setValueAtTime(this.settings.volume * 0.1, now);
 
       oscillator.start(now);
-      oscillator.stop(now + 0.001);
+      oscillator.stop(now + 0.1); // 0.1秒再生
     } catch (error) {
       console.error('ダミートーンエラー:', error);
     }
