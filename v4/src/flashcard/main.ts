@@ -30,7 +30,7 @@ class FlashcardApp {
 	private entries: FlashcardEntry[] = [];
 	private filteredEntries: FlashcardEntry[] = [];
 	private selectedTags: Set<string> = new Set();
-	private selectedFrequencies: Set<number> = new Set([1, 2, 3, 4, 5]);
+	private selectedFrequencies: Set<number> = new Set([5]);
 	private displayMode: DisplayMode = 'card';
 	private viewMode: ViewMode = 'browse';
 	private sortColumn: SortColumn = 'abbreviation';
@@ -738,7 +738,7 @@ class FlashcardApp {
 			if (saved) {
 				const data = JSON.parse(saved);
 				this.selectedTags = new Set(Array.isArray(data.tags) ? data.tags : []);
-				this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : [1, 2, 3, 4, 5]);
+				this.selectedFrequencies = new Set(Array.isArray(data.frequencies) ? data.frequencies : [5]);
 			}
 		} catch (error) {
 			console.error('フィルタ読み込みエラー:', error);
