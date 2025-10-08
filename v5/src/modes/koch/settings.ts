@@ -26,7 +26,7 @@ export class KochSettings {
     effectiveSpeed: 20,
     frequency: 750,
     volume: 0.7,
-    groupSize: 5,
+    groupSize: 9,
     displayMode: 'fixed',
     practiceDuration: 60,
     showInput: true,

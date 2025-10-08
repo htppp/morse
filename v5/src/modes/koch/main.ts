@@ -295,6 +295,11 @@ export class KochTrainer implements ModeController {
       });
 
       modal.remove();
+
+      // キーボード表示を更新（練習中の場合）
+      if (this.state.groups.length > 0) {
+        this.renderPractice();
+      }
     });
 
     // キャンセル
@@ -499,24 +504,26 @@ export class KochTrainer implements ModeController {
           <button id="spaceBtn" class="key-btn special">スペース</button>
           <button id="backspaceBtn" class="key-btn special">1字削除</button>
         </div>
-        <div class="keyboard-groups">
-          ${groups.map((group, groupIndex) => `
-            <div class="keyboard-group">
-              <div class="group-label">G${groupIndex + 1}</div>
-              <div class="group-keys">
-                ${group.map(char => {
-                  const isLearned = availableChars.includes(char);
-                  return `
-                    <button class="key-btn ${isLearned ?'' :'disabled'}"
-                            data-char="${char}"
-                            ${isLearned ?'' :'disabled'}>
-                      ${char}
-                    </button>
-                  `;
-                }).join('')}
+        <div class="keyboard-groups-wrapper">
+          <div class="keyboard-groups">
+            ${groups.map((group, groupIndex) => `
+              <div class="keyboard-group">
+                <div class="group-label">G${groupIndex + 1}</div>
+                <div class="group-keys">
+                  ${group.map(char => {
+                    const isLearned = availableChars.includes(char);
+                    return `
+                      <button class="key-btn ${isLearned ?'' :'disabled'}"
+                              data-char="${char}"
+                              ${isLearned ?'' :'disabled'}>
+                        ${char}
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
               </div>
-            </div>
-          `).join('')}
+            `).join('')}
+          </div>
         </div>
       </div>
     `;

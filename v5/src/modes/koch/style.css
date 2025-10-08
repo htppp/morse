@@ -505,44 +505,51 @@ body {
   color: #666;
 }
 
-.keyboard-groups {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+.keyboard-groups-wrapper {
+  overflow-x: auto;
   margin-bottom: 15px;
+}
+
+.keyboard-groups {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  min-width: min-content;
 }
 
 .keyboard-group {
   background: white;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 6px;
+  padding: 6px;
+  flex-shrink: 0;
 }
 
 .group-label {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #667eea;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .group-keys {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 
 .key-btn {
   background: #667eea;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 10px;
-  font-size: 1rem;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   font-family: 'Courier New', monospace;
+  min-width: 30px;
 }
 
 .key-btn:hover:not(:disabled) {
@@ -582,10 +589,6 @@ body {
 @media (max-width: 768px) {
   .header h1 {
     font-size: 1.5rem;
-  }
-
-  .keyboard-groups {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
 
   .keyboard-controls .key-btn {
