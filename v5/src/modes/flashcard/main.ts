@@ -766,14 +766,10 @@ export class FlashcardTrainer {
 
 					<div class="filter-group">
 						<h2>モード</h2>
-						<label class="mode-checkbox">
-							<input type="checkbox" id="review-mode-checkbox" ${this.reviewMode ? 'checked' : ''}>
-							<span>復習モード（わからないカードのみ）</span>
-						</label>
-						<label class="mode-checkbox">
-							<input type="checkbox" id="hide-abbreviation-checkbox" ${this.hideAbbreviation ? 'checked' : ''}>
-							<span>略語を非表示（モールス再生のみ）</span>
-						</label>
+						<div class="mode-buttons">
+							<button class="mode-btn ${this.reviewMode ? 'selected' : ''}" id="review-mode-btn">復習モード（わからないカードのみ）</button>
+							<button class="mode-btn ${this.hideAbbreviation ? 'selected' : ''}" id="hide-abbreviation-btn">略語を非表示（モールス再生のみ）</button>
+						</div>
 					</div>
 
 					<div class="result-count">
@@ -901,19 +897,21 @@ export class FlashcardTrainer {
 			toggleFreqBtn.addEventListener('click', () => this.toggleAllFrequencies());
 		}
 
-		// 復習モードチェックボックス
-		const reviewModeCheckbox = document.getElementById('review-mode-checkbox') as HTMLInputElement;
-		if (reviewModeCheckbox) {
-			reviewModeCheckbox.addEventListener('change', () => {
-				this.reviewMode = reviewModeCheckbox.checked;
+		// 復習モードボタン
+		const reviewModeBtn = document.getElementById('review-mode-btn');
+		if (reviewModeBtn) {
+			reviewModeBtn.addEventListener('click', () => {
+				this.reviewMode = !this.reviewMode;
+				this.render();
 			});
 		}
 
-		// 略語非表示チェックボックス
-		const hideAbbreviationCheckbox = document.getElementById('hide-abbreviation-checkbox') as HTMLInputElement;
-		if (hideAbbreviationCheckbox) {
-			hideAbbreviationCheckbox.addEventListener('change', () => {
-				this.hideAbbreviation = hideAbbreviationCheckbox.checked;
+		// 略語非表示ボタン
+		const hideAbbreviationBtn = document.getElementById('hide-abbreviation-btn');
+		if (hideAbbreviationBtn) {
+			hideAbbreviationBtn.addEventListener('click', () => {
+				this.hideAbbreviation = !this.hideAbbreviation;
+				this.render();
 			});
 		}
 

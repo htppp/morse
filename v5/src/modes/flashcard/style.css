@@ -435,15 +435,32 @@ body {
   border-color: #667eea;
 }
 
-.mode-checkbox {
+.mode-buttons {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.mode-checkbox input {
+.mode-btn {
+  padding: 10px 15px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.mode-btn:hover {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.mode-btn.selected {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
 }
 
 .result-count {
