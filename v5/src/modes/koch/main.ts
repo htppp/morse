@@ -187,34 +187,37 @@ export class KochTrainer implements ModeController {
         </div>
         <div class="modal-body">
           <div class="setting-item">
-            <label>文字速度 (Character Speed): <span id="charSpeedValue">${settings.characterSpeed}</span> WPM</label>
-            <input type="range" id="characterSpeed" min="5" max="40" step="1" value="${settings.characterSpeed}">
+            <label>文字速度 (Character Speed) WPM:</label>
+            <input type="number" id="characterSpeed" min="5" max="40" step="1" value="${settings.characterSpeed}">
           </div>
 
           <div class="setting-item">
-            <label>実効速度 (Effective Speed): <span id="effSpeedValue">${settings.effectiveSpeed}</span> WPM</label>
-            <input type="range" id="effectiveSpeed" min="5" max="40" step="1" value="${settings.effectiveSpeed}">
+            <label>実効速度 (Effective Speed) WPM:</label>
+            <input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${settings.effectiveSpeed}">
             <small>※現在は文字速度のみ実装。実効速度は将来実装予定</small>
           </div>
 
           <div class="setting-item">
-            <label>周波数: <span id="frequencyValue">${settings.frequency}</span> Hz</label>
-            <input type="range" id="frequency" min="400" max="1000" step="10" value="${settings.frequency}">
+            <label>周波数 (Hz):</label>
+            <input type="number" id="frequency" min="400" max="1000" step="10" value="${settings.frequency}">
           </div>
 
           <div class="setting-item">
-            <label>音量: <span id="volumeValue">${Math.round(settings.volume * 100)}</span>%</label>
-            <input type="range" id="volume" min="0" max="100" step="5" value="${settings.volume * 100}">
+            <label>音量 (%):</label>
+            <div class="volume-control">
+              <input type="range" id="volumeRange" min="0" max="100" step="5" value="${settings.volume * 100}">
+              <input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(settings.volume * 100)}">
+            </div>
           </div>
 
           <div class="setting-item">
-            <label>練習時間: <span id="durationValue">${settings.practiceDuration}</span> 秒</label>
-            <input type="range" id="practiceDuration" min="30" max="300" step="30" value="${settings.practiceDuration}">
+            <label>練習時間 (秒):</label>
+            <input type="number" id="practiceDuration" min="30" max="300" step="30" value="${settings.practiceDuration}">
           </div>
 
           <div class="setting-item">
-            <label>グループサイズ: <span id="groupSizeValue">${settings.groupSize}</span> 文字</label>
-            <input type="range" id="groupSize" min="3" max="10" step="1" value="${settings.groupSize}">
+            <label>グループサイズ (文字):</label>
+            <input type="number" id="groupSize" min="3" max="10" step="1" value="${settings.groupSize}">
             <small>※キーボードUI実装時に有効化</small>
           </div>
 
@@ -234,43 +237,20 @@ export class KochTrainer implements ModeController {
 
     document.body.appendChild(modal);
 
-    // リアルタイム更新
-    const charSpeedSlider = document.getElementById('characterSpeed') as HTMLInputElement;
-    const effSpeedSlider = document.getElementById('effectiveSpeed') as HTMLInputElement;
-    const frequencySlider = document.getElementById('frequency') as HTMLInputElement;
-    const volumeSlider = document.getElementById('volume') as HTMLInputElement;
-    const durationSlider = document.getElementById('practiceDuration') as HTMLInputElement;
-    const groupSizeSlider = document.getElementById('groupSize') as HTMLInputElement;
+    // 音量のレンジと入力欄を連携
+    const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
+    const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
 
-    charSpeedSlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('charSpeedValue')!.textContent = value;
-    });
-
-    effSpeedSlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('effSpeedValue')!.textContent = value;
-    });
-
-    frequencySlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('frequencyValue')!.textContent = value;
-    });
-
-    volumeSlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('volumeValue')!.textContent = value;
-    });
-
-    durationSlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('durationValue')!.textContent = value;
-    });
-
-    groupSizeSlider?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      document.getElementById('groupSizeValue')!.textContent = value;
-    });
+    if (volumeRange && volumeInput) {
+      volumeRange.oninput = (e) => {
+        const value = (e.target as HTMLInputElement).value;
+        volumeInput.value = value;
+      };
+      volumeInput.oninput = (e) => {
+        const value = (e.target as HTMLInputElement).value;
+        volumeRange.value = value;
+      };
+    }
 
     // 設定を復元する関数
     const restoreSettings = () => {
@@ -292,13 +272,20 @@ export class KochTrainer implements ModeController {
 
     // OK（保存）
     document.getElementById('saveSettings')?.addEventListener('click', () => {
-      KochSettings.set('characterSpeed', parseInt(charSpeedSlider.value));
-      KochSettings.set('effectiveSpeed', parseInt(effSpeedSlider.value));
-      KochSettings.set('frequency', parseInt(frequencySlider.value));
-      KochSettings.set('volume', parseInt(volumeSlider.value) / 100);
-      KochSettings.set('practiceDuration', parseInt(durationSlider.value));
-      KochSettings.set('groupSize', parseInt(groupSizeSlider.value));
-      KochSettings.set('showInput', (document.getElementById('showInput') as HTMLInputElement).checked);
+      const charSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
+      const effSpeed = document.getElementById('effectiveSpeed') as HTMLInputElement;
+      const frequency = document.getElementById('frequency') as HTMLInputElement;
+      const duration = document.getElementById('practiceDuration') as HTMLInputElement;
+      const groupSize = document.getElementById('groupSize') as HTMLInputElement;
+      const showInput = document.getElementById('showInput') as HTMLInputElement;
+
+      KochSettings.set('characterSpeed', parseInt(charSpeed.value));
+      KochSettings.set('effectiveSpeed', parseInt(effSpeed.value));
+      KochSettings.set('frequency', parseInt(frequency.value));
+      KochSettings.set('volume', parseInt(volumeInput.value) / 100);
+      KochSettings.set('practiceDuration', parseInt(duration.value));
+      KochSettings.set('groupSize', parseInt(groupSize.value));
+      KochSettings.set('showInput', showInput.checked);
 
       // AudioSystemを更新
       this.audioSystem.updateSettings({
@@ -510,7 +497,7 @@ export class KochTrainer implements ModeController {
         </div>
         <div class="keyboard-controls">
           <button id="spaceBtn" class="key-btn special">スペース</button>
-          <button id="backspaceBtn" class="key-btn special">←削除</button>
+          <button id="backspaceBtn" class="key-btn special">1字削除</button>
         </div>
         <div class="keyboard-groups">
           ${groups.map((group, groupIndex) => `
@@ -542,27 +529,30 @@ export class KochTrainer implements ModeController {
     // 文字キー
     document.querySelectorAll('.key-btn:not(.special)').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.preventDefault(); // デフォルト動作を防止
         const char = (e.target as HTMLButtonElement).getAttribute('data-char');
         if (char && availableChars.includes(char)) {
           inputEl.value += char;
           this.state.userInput = inputEl.value.toUpperCase();
-          inputEl.focus();
+          // フォーカスしない（スマホでキーボードが出ないようにする）
         }
       });
     });
 
     // スペースキー
-    document.getElementById('spaceBtn')?.addEventListener('click', () => {
-      inputEl.value +='';
+    document.getElementById('spaceBtn')?.addEventListener('click', (e) => {
+      e.preventDefault(); // デフォルト動作を防止
+      inputEl.value +=' '; // 空白文字を追加
       this.state.userInput = inputEl.value.toUpperCase();
-      inputEl.focus();
+      // フォーカスしない（スマホでキーボードが出ないようにする）
     });
 
     // バックスペースキー
-    document.getElementById('backspaceBtn')?.addEventListener('click', () => {
+    document.getElementById('backspaceBtn')?.addEventListener('click', (e) => {
+      e.preventDefault(); // デフォルト動作を防止
       inputEl.value = inputEl.value.slice(0, -1);
       this.state.userInput = inputEl.value.toUpperCase();
-      inputEl.focus();
+      // フォーカスしない（スマホでキーボードが出ないようにする）
     });
 
     // 物理キーボード対応

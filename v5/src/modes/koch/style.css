@@ -464,6 +464,33 @@ body {
   margin-right: 8px;
 }
 
+.setting-item input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.setting-item input[type="number"]:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.volume-control {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.volume-control input[type="range"] {
+  flex: 1;
+}
+
+.volume-control input[type="number"] {
+  width: 80px;
+}
+
 /* Keyboard */
 .keyboard {
   margin: 20px 0;
