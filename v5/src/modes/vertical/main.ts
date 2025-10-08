@@ -35,8 +35,8 @@ export class VerticalKeyTrainer implements ModeController {
     return {
       dot: unit,
       dash: unit * 3,
-      charGap: unit * 4,
-      wordGap: unit * 7,
+      charGap: unit * 4 * 1.1,  // 10%長く（判定を甘く）
+      wordGap: unit * 7 * 1.1,  // 10%長く（判定を甘く）
     };
   }
 
