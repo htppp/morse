@@ -85,6 +85,7 @@ export class KochTrainer implements ModeController {
     this.state.isPlaying = true;
     this.state.currentGroupIndex = 0;
     this.updateProgress();
+    this.updatePlaybackButtons(); // ボタン状態を即座に更新
 
     // モールス信号を再生
     for (let i = 0; i < this.state.groups.length && this.state.isPlaying; i++) {
@@ -97,6 +98,7 @@ export class KochTrainer implements ModeController {
     }
 
     this.state.isPlaying = false;
+    this.updatePlaybackButtons(); // ボタン状態を更新
     if (this.state.currentGroupIndex >= this.state.groups.length) {
       this.showResult();
     }
@@ -105,6 +107,7 @@ export class KochTrainer implements ModeController {
   private pauseMorse(): void {
     this.state.isPlaying = false;
     this.audioSystem.stopPlaying();
+    this.updatePlaybackButtons();
   }
 
   private stopLesson(): void {
@@ -461,12 +464,10 @@ export class KochTrainer implements ModeController {
 
     document.getElementById('playBtn')?.addEventListener('click', () => {
       this.playMorse();
-      this.updatePlaybackButtons();
     });
 
     document.getElementById('pauseBtn')?.addEventListener('click', () => {
       this.pauseMorse();
-      this.updatePlaybackButtons();
     });
 
     document.getElementById('stopBtn')?.addEventListener('click', () => {
