@@ -594,4 +594,16 @@ body {
   .keyboard-controls .key-btn {
     flex: 1;
   }
+
+  .settings-icon {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .settings-icon svg {
+    width: 20px;
+    height: 20px;
+  }
 }
