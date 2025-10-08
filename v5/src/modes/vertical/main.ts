@@ -35,8 +35,8 @@ export class VerticalKeyTrainer implements ModeController {
     return {
       dot: unit,
       dash: unit * 3,
-      charGap: unit * 4 * 1.1,  // 10%長く（判定を甘く）
-      wordGap: unit * 7 * 1.1,  // 10%長く（判定を甘く）
+      charGap: unit * 4 * 0.9,  // 10%短く（短い無入力期間も許容）
+      wordGap: unit * 7 * 0.9,  // 10%短く（短い無入力期間も許容）
     };
   }
 
