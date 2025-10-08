@@ -1,5 +1,5 @@
 /**
- * メニューページ - v5の4つの機能へのナビゲーション
+ * メニューページ - v6の4つの機能へのナビゲーション
  */
 
 import { ModeController } from '../../core/router';
@@ -56,7 +56,7 @@ export class MenuPage implements ModeController {
 		app.innerHTML = `
 			<div class="container">
 				<header class="header">
-					<h1>モールス練習アプリ v5</h1>
+					<h1>モールス練習アプリ v6</h1>
 					<p class="subtitle">練習メニューを選択してください</p>
 				</header>
 
@@ -75,7 +75,7 @@ export class MenuPage implements ModeController {
 				</div>
 
 				<footer class="footer">
-					<p>モールス練習アプリ v5 - 完全SPA版</p>
+					<p>モールス練習アプリ v6 - コッホ法マルチモード版</p>
 				</footer>
 			</div>
 		`;
