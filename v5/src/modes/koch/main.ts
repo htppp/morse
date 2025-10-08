@@ -67,7 +67,7 @@ export class KochTrainer implements ModeController {
     this.state.currentGroupIndex = 0;
     this.state.userInput ='';
     this.state.correctAnswer = this.state.groups.join('');
-    this.state.isPlaying = true;
+    this.state.isPlaying = false; // 自動再生を停止
 
     // AudioSystemの設定を更新
     this.audioSystem.updateSettings({
@@ -77,6 +77,14 @@ export class KochTrainer implements ModeController {
     });
 
     this.renderPractice();
+  }
+
+  private async playMorse(): Promise<void> {
+    if (this.state.isPlaying) return; // 既に再生中なら何もしない
+
+    this.state.isPlaying = true;
+    this.state.currentGroupIndex = 0;
+    this.updateProgress();
 
     // モールス信号を再生
     for (let i = 0; i < this.state.groups.length && this.state.isPlaying; i++) {
@@ -89,7 +97,14 @@ export class KochTrainer implements ModeController {
     }
 
     this.state.isPlaying = false;
-    this.showResult();
+    if (this.state.currentGroupIndex >= this.state.groups.length) {
+      this.showResult();
+    }
+  }
+
+  private pauseMorse(): void {
+    this.state.isPlaying = false;
+    this.audioSystem.stopPlaying();
   }
 
   private stopLesson(): void {
@@ -143,10 +158,15 @@ export class KochTrainer implements ModeController {
 
   private updateProgress(): void {
     const progressEl = document.getElementById('lessonProgress');
-    if (progressEl) {
+    const progressBar = document.getElementById('progressBar');
+
+    if (progressEl && progressBar) {
       const percent = (this.state.currentGroupIndex / this.state.groups.length) * 100;
       progressEl.textContent = `進行: ${this.state.currentGroupIndex}/${this.state.groups.length} (${percent.toFixed(0)}%)`;
+      progressBar.style.width = `${percent}%`;
     }
+
+    this.updatePlaybackButtons();
   }
 
   private showSettings(): void {
@@ -402,10 +422,33 @@ export class KochTrainer implements ModeController {
 
     practiceContainer.innerHTML = `
       <div class="practice-area">
-        <div id="lessonProgress" class="progress">準備中...</div>
+        <div class="progress-section">
+          <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+          </div>
+          <div id="lessonProgress" class="progress-text">準備完了 - 再生ボタンを押してください</div>
+        </div>
+
+        <div class="playback-controls">
+          <button id="playBtn" class="control-btn" title="再生">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <button id="pauseBtn" class="control-btn" title="一時停止" disabled>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+          </button>
+          <button id="stopBtn" class="control-btn" title="停止">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12"/>
+            </svg>
+          </button>
+        </div>
+
         <textarea id="userInput" class="input-area" placeholder="聞こえた文字を入力..." ${settings.showInput ?'' :'style="opacity: 0.3; pointer-events: none;"'}></textarea>
         ${this.renderKeyboard(chars)}
-        <button id="stopBtn" class="btn">停止</button>
       </div>
     `;
 
@@ -416,12 +459,38 @@ export class KochTrainer implements ModeController {
       });
     }
 
+    document.getElementById('playBtn')?.addEventListener('click', () => {
+      this.playMorse();
+      this.updatePlaybackButtons();
+    });
+
+    document.getElementById('pauseBtn')?.addEventListener('click', () => {
+      this.pauseMorse();
+      this.updatePlaybackButtons();
+    });
+
     document.getElementById('stopBtn')?.addEventListener('click', () => {
       this.stopLesson();
     });
 
     // キーボードボタンのイベント設定
     this.setupKeyboardEvents(chars);
+    this.updatePlaybackButtons();
+  }
+
+  private updatePlaybackButtons(): void {
+    const playBtn = document.getElementById('playBtn') as HTMLButtonElement;
+    const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
+
+    if (playBtn && pauseBtn) {
+      if (this.state.isPlaying) {
+        playBtn.disabled = true;
+        pauseBtn.disabled = false;
+      } else {
+        playBtn.disabled = false;
+        pauseBtn.disabled = true;
+      }
+    }
   }
 
   private renderKeyboard(availableChars: string[]): string {
@@ -437,6 +506,10 @@ export class KochTrainer implements ModeController {
       <div class="keyboard">
         <div class="keyboard-header">
           <small>グループベースキーボード（学習済み文字のみ有効）</small>
+        </div>
+        <div class="keyboard-controls">
+          <button id="spaceBtn" class="key-btn special">スペース</button>
+          <button id="backspaceBtn" class="key-btn special">←削除</button>
         </div>
         <div class="keyboard-groups">
           ${groups.map((group, groupIndex) => `
@@ -456,10 +529,6 @@ export class KochTrainer implements ModeController {
               </div>
             </div>
           `).join('')}
-        </div>
-        <div class="keyboard-controls">
-          <button id="spaceBtn" class="key-btn special">スペース</button>
-          <button id="backspaceBtn" class="key-btn special">←削除</button>
         </div>
       </div>
     `;
