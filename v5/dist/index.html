@@ -454,7 +454,7 @@
 				</div>
 			</div>
 		`)}openSettingsModal(){this.settingsModalOpen=!0,this.tempSettings={volume:this.audioSystem.getVolume(),frequency:this.audioSystem.getFrequency(),wpm:this.audioSystem.getWPM()},this.renderSettingsModal()}closeSettingsModal(e){this.isTestPlaying&&(this.audioSystem.stopPlaying(),this.isTestPlaying=!1),!e&&this.tempSettings?(this.audioSystem.setVolume(this.tempSettings.volume),this.audioSystem.setFrequency(this.tempSettings.frequency),this.audioSystem.setWPM(this.tempSettings.wpm)):e&&this.audioSystem.saveSettings(),this.settingsModalOpen=!1,this.tempSettings=null;const t=document.getElementById("settings-modal");t&&t.remove()}renderSettingsModal(){const e=document.getElementById("settings-modal");e&&e.remove();const t=this.audioSystem.getVolume(),s=this.audioSystem.getFrequency(),n=this.audioSystem.getWPM(),i=`
-			<div class="settings-modal" id="settings-modal">
+			<div class="settings-modal active" id="settings-modal">
 				<div class="settings-content">
 					<h2>設定</h2>
 					<div class="settings-grid">

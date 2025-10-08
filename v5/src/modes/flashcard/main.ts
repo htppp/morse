@@ -1125,7 +1125,7 @@ export class FlashcardTrainer {
 		const wpm = this.audioSystem.getWPM();
 
 		const modalHTML = `
-			<div class="settings-modal" id="settings-modal">
+			<div class="settings-modal active" id="settings-modal">
 				<div class="settings-content">
 					<h2>設定</h2>
 					<div class="settings-grid">
