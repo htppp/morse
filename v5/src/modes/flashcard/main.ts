@@ -1130,21 +1130,21 @@ export class FlashcardTrainer {
 					<h2>設定</h2>
 					<div class="settings-grid">
 						<div class="setting-item">
-							<label>音量</label>
-							<input type="range" id="volumeRange" min="0" max="100" value="${volume * 100}">
-							<input type="number" id="volumeInput" min="0" max="100" value="${Math.round(volume * 100)}">
+							<label for="volumeRange">音量</label>
+							<input type="range" id="volumeRange" min="0" max="100" value="${volume * 100}" aria-label="音量スライダー">
+							<input type="number" id="volumeInput" min="0" max="100" value="${Math.round(volume * 100)}" aria-label="音量数値入力">
 							<span>%</span>
 						</div>
 						<div class="setting-item">
-							<label>周波数 (Hz)</label>
+							<label for="frequencyInput">周波数 (Hz)</label>
 							<input type="number" id="frequencyInput" min="400" max="1200" value="${frequency}" step="50">
 						</div>
 						<div class="setting-item">
-							<label>WPM (速度: 5-40)</label>
+							<label for="wpmInput">WPM (速度: 5-40)</label>
 							<input type="number" id="wpmInput" min="5" max="40" value="${wpm}">
 						</div>
 						<div class="setting-item">
-							<label>テスト再生</label>
+							<span>テスト再生</span>
 							<button id="testMorseBtn" class="test-button">再生</button>
 						</div>
 					</div>
