@@ -218,7 +218,6 @@ export class KochTrainer implements ModeController {
           <div class="setting-item">
             <label>グループサイズ (文字):</label>
             <input type="number" id="groupSize" min="3" max="10" step="1" value="${settings.groupSize}">
-            <small>※キーボードUI実装時に有効化</small>
           </div>
 
           <div class="setting-item">
