@@ -67,7 +67,7 @@ export class FlashcardTrainer {
 	private examQuestions: ExamQuestion[] = [];
 	private currentQuestionIndex: number = 0;
 	private examResults: ExamResult[] = [];
-	private questionCount: number = 10;
+	private questionCount: number | 'all' = 10;
 	private questionType: QuestionType = 'abbr-to-meaning';
 
 	// 設定モーダル用
@@ -1317,6 +1317,7 @@ export class FlashcardTrainer {
 							<button class="question-count-btn ${this.questionCount === 10 ? 'selected' : ''}" data-count="10">10問</button>
 							<button class="question-count-btn ${this.questionCount === 20 ? 'selected' : ''}" data-count="20">20問</button>
 							<button class="question-count-btn ${this.questionCount === 50 ? 'selected' : ''}" data-count="50">50問</button>
+							<button class="question-count-btn ${this.questionCount === 'all' ? 'selected' : ''}" data-count="all">全問</button>
 						</div>
 					</div>
 
@@ -1408,8 +1409,8 @@ export class FlashcardTrainer {
 		const questionCountButtons = document.querySelectorAll('.question-count-btn');
 		questionCountButtons.forEach(btn => {
 			btn.addEventListener('click', () => {
-				const count = parseInt(btn.getAttribute('data-count') || '10', 10);
-				this.questionCount = count;
+				const countAttr = btn.getAttribute('data-count') || '10';
+				this.questionCount = countAttr === 'all' ? 'all' : parseInt(countAttr, 10);
 				this.render();
 			});
 		});
@@ -1431,7 +1432,9 @@ export class FlashcardTrainer {
 	}
 
 	private generateExamQuestions(): ExamQuestion[] {
-		const count = Math.min(this.questionCount, this.filteredEntries.length);
+		const count = this.questionCount === 'all'
+			? this.filteredEntries.length
+			: Math.min(this.questionCount, this.filteredEntries.length);
 		const shuffled = [...this.filteredEntries].sort(() => Math.random() - 0.5);
 		const selected = shuffled.slice(0, count);
 
