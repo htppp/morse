@@ -561,11 +561,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
 
-  .keyboard-controls {
-    flex-direction: column;
-  }
-
   .keyboard-controls .key-btn {
-    width: 100%;
+    flex: 1;
   }
 }
