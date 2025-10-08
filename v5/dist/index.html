@@ -532,10 +532,8 @@
 				</div>
 
 				<div class="filter-section">
-					<h2>試験モード設定</h2>
-
 					<div class="filter-group">
-						<h3>タグでフィルター</h3>
+						<h2>タグでフィルター</h2>
 						<div class="tags-list">
 							${e.map(s=>`
 								<button class="tag-btn ${this.selectedTags.has(s)?"active":""}" data-tag="${s}">
@@ -546,7 +544,7 @@
 					</div>
 
 					<div class="filter-group">
-						<h3>使用頻度</h3>
+						<h2>使用頻度</h2>
 						<div class="frequency-list">
 							${[5,4,3,2,1].map(s=>`
 								<button class="freq-btn ${this.selectedFrequencies.has(s)?"active":""}" data-freq="${s}">
@@ -557,7 +555,7 @@
 					</div>
 
 					<div class="filter-group">
-						<h3>出題形式</h3>
+						<h2>出題形式</h2>
 						<div class="question-type-buttons">
 							<button class="question-type-btn ${this.questionType==="abbr-to-meaning"?"selected":""}" data-type="abbr-to-meaning">略語→意味（基礎）</button>
 							<button class="question-type-btn ${this.questionType==="meaning-to-abbr"?"selected":""}" data-type="meaning-to-abbr">意味→略語（応用）</button>
@@ -567,7 +565,7 @@
 					</div>
 
 					<div class="filter-group">
-						<h3>問題数</h3>
+						<h2>問題数</h2>
 						<div class="question-count-buttons">
 							<button class="question-count-btn ${this.questionCount===5?"selected":""}" data-count="5">5問</button>
 							<button class="question-count-btn ${this.questionCount===10?"selected":""}" data-count="10">10問</button>
