@@ -60,6 +60,7 @@ export class FlashcardTrainer {
 	private reviewMode: boolean = false; // 復習モード（わからないカードのみ）
 	private hideAbbreviation: boolean = false; // 略語を非表示（モールス再生のみ）
 	private isLearning: boolean = false; // 学習中かどうか
+	private learnQuestionType: QuestionType = 'abbr-to-meaning'; // 学習モードの出題形式
 	private audioSystem: AudioSystem;
 	private currentlyPlaying: string | null = null; // 再生中の略語
 
@@ -670,6 +671,60 @@ export class FlashcardTrainer {
 		const currentNum = this.currentIndex + 1;
 		const totalNum = this.currentCards.length;
 
+		// 出題形式に応じた問題面と解答面を生成
+		let frontContent = '';
+		let backContent = '';
+
+		switch (this.learnQuestionType) {
+			case 'abbr-to-meaning':
+				frontContent = `
+					<div class="card-label">略語</div>
+					<div class="card-content">${this.formatAbbreviation(card.abbreviation)}</div>
+					<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+				`;
+				backContent = `
+					<div class="card-label">意味</div>
+					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
+					<div class="card-content-text">${card.english}</div>
+					<div class="card-content-text">${card.japanese}</div>
+				`;
+				break;
+			case 'meaning-to-abbr':
+				frontContent = `
+					<div class="card-label">意味</div>
+					<div class="card-content-text">${card.english}</div>
+					<div class="card-content-text">${card.japanese}</div>
+				`;
+				backContent = `
+					<div class="card-label">略語</div>
+					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
+					<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+				`;
+				break;
+			case 'morse-to-abbr':
+				frontContent = `
+					<div class="card-label">モールス音を聞いて略語を答えてください</div>
+					<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+				`;
+				backContent = `
+					<div class="card-label">略語</div>
+					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
+				`;
+				break;
+			case 'morse-to-meaning':
+				frontContent = `
+					<div class="card-label">モールス音を聞いて意味を答えてください</div>
+					<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+				`;
+				backContent = `
+					<div class="card-label">意味</div>
+					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
+					<div class="card-content-text">${card.english}</div>
+					<div class="card-content-text">${card.japanese}</div>
+				`;
+				break;
+		}
+
 		app.innerHTML = `
 			<div class="container learning-view">
 				<div class="learning-header">
@@ -680,17 +735,10 @@ export class FlashcardTrainer {
 				<div class="card-container">
 					<div class="flashcard ${this.isFlipped ? 'flipped' : ''}" id="flashcard">
 						<div class="card-front">
-							${this.hideAbbreviation ? '' : `
-								<div class="card-label">略語</div>
-								<div class="card-content">${this.formatAbbreviation(card.abbreviation)}</div>
-							`}
-							<button class="play-morse-btn" id="play-morse-btn" title="モールス符号を再生">🔊 モールス再生</button>
+							${frontContent}
 						</div>
 						<div class="card-back">
-							<div class="card-label">意味</div>
-							<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
-							<div class="card-content-text">${card.english}</div>
-							<div class="card-content-text">${card.japanese}</div>
+							${backContent}
 							${card.description ? `<div class="card-description">${card.description}</div>` : ''}
 							${card.example ? `<div class="card-example">例: ${card.example}</div>` : ''}
 							<div class="card-tags">${card.tags} / ${this.getFrequencyStars(card.frequency)}</div>
@@ -769,6 +817,16 @@ export class FlashcardTrainer {
 						<div class="mode-buttons">
 							<button class="mode-btn ${this.reviewMode ? 'selected' : ''}" id="review-mode-btn">復習モード（わからないカードのみ）</button>
 							<button class="mode-btn ${this.hideAbbreviation ? 'selected' : ''}" id="hide-abbreviation-btn">略語を非表示（モールス再生のみ）</button>
+						</div>
+					</div>
+
+					<div class="filter-group">
+						<h2>出題形式</h2>
+						<div class="question-type-buttons">
+							<button class="question-type-btn ${this.learnQuestionType === 'abbr-to-meaning' ? 'selected' : ''}" data-type="abbr-to-meaning">略語→意味（基本）</button>
+							<button class="question-type-btn ${this.learnQuestionType === 'meaning-to-abbr' ? 'selected' : ''}" data-type="meaning-to-abbr">意味→略語（応用）</button>
+							<button class="question-type-btn ${this.learnQuestionType === 'morse-to-abbr' ? 'selected' : ''}" data-type="morse-to-abbr">モールス音→略語（実践）</button>
+							<button class="question-type-btn ${this.learnQuestionType === 'morse-to-meaning' ? 'selected' : ''}" data-type="morse-to-meaning">モールス音→意味（実践）</button>
 						</div>
 					</div>
 
@@ -914,6 +972,18 @@ export class FlashcardTrainer {
 				this.render();
 			});
 		}
+
+		// 出題形式ボタン（学習モード）
+		const learnQuestionTypeButtons = document.querySelectorAll('.question-type-btn');
+		learnQuestionTypeButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const type = btn.getAttribute('data-type') as QuestionType | null;
+				if (type) {
+					this.learnQuestionType = type;
+					this.render();
+				}
+			});
+		});
 
 		// 学習開始ボタン
 		const startBtn = document.getElementById('start-learning-btn');

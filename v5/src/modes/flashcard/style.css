@@ -437,24 +437,24 @@ body {
 
 .mode-buttons {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 .mode-btn {
-  padding: 10px 15px;
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
+  background: #f0f0f0;
+  border: 2px solid transparent;
+  color: #667eea;
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-  text-align: left;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  user-select: none;
 }
 
 .mode-btn:hover {
-  border-color: #667eea;
-  background: #f7fafc;
+  background: #e0e0e0;
 }
 
 .mode-btn.selected {
