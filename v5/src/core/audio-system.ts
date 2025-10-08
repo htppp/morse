@@ -4,9 +4,10 @@
  */
 
 export interface AudioSettings {
-  frequency: number;  // Hz
-  volume: number;     // 0-1
-  wpm?: number;       // Words Per Minute (for morse playback)
+  frequency: number;      // Hz
+  volume: number;         // 0-1
+  wpm?: number;           // Words Per Minute (character speed)
+  effectiveWpm?: number;  // Effective WPM (word spacing speed)
 }
 
 /**
@@ -149,13 +150,18 @@ export class AudioSystem {
 
     this.isPlaying = true;
 
-    const wpm = this.settings.wpm || 20;
-    const unit = 1200 / wpm;
+    const charWpm = this.settings.wpm || 20;
+    const effectiveWpm = Math.min(this.settings.effectiveWpm || charWpm, charWpm);
+
+    const unit = 1200 / charWpm;
     const dot = unit;
     const dash = 3 * unit;
     const egap = unit;
     const lgap = 3 * unit;
-    const wgap = 7 * unit;
+
+    // 実効速度を実装: 単語間の空白時間を調整
+    const wgapBase = 7 * (1200 / effectiveWpm);
+    const wgap = wgapBase;
 
     let t = this.audioContext.currentTime + 0.02;
 

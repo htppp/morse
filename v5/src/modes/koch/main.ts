@@ -73,7 +73,8 @@ export class KochTrainer implements ModeController {
     this.audioSystem.updateSettings({
       frequency: settings.frequency,
       volume: settings.volume,
-      wpm: settings.characterSpeed
+      wpm: settings.characterSpeed,
+      effectiveWpm: settings.effectiveSpeed
     });
 
     this.renderPractice();
@@ -194,7 +195,6 @@ export class KochTrainer implements ModeController {
           <div class="setting-item">
             <label>実効速度 (Effective Speed) WPM:</label>
             <input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${settings.effectiveSpeed}">
-            <small>※現在は文字速度のみ実装。実効速度は将来実装予定</small>
           </div>
 
           <div class="setting-item">
@@ -278,8 +278,17 @@ export class KochTrainer implements ModeController {
       const groupSize = document.getElementById('groupSize') as HTMLInputElement;
       const showInput = document.getElementById('showInput') as HTMLInputElement;
 
-      KochSettings.set('characterSpeed', parseInt(charSpeed.value));
-      KochSettings.set('effectiveSpeed', parseInt(effSpeed.value));
+      const charSpeedValue = parseInt(charSpeed.value);
+      let effSpeedValue = parseInt(effSpeed.value);
+
+      // 実効速度は文字速度を上限とする
+      if (effSpeedValue > charSpeedValue) {
+        effSpeedValue = charSpeedValue;
+        effSpeed.value = charSpeedValue.toString();
+      }
+
+      KochSettings.set('characterSpeed', charSpeedValue);
+      KochSettings.set('effectiveSpeed', effSpeedValue);
       KochSettings.set('frequency', parseInt(frequency.value));
       KochSettings.set('volume', parseInt(volumeInput.value) / 100);
       KochSettings.set('practiceDuration', parseInt(duration.value));
@@ -290,7 +299,8 @@ export class KochTrainer implements ModeController {
       this.audioSystem.updateSettings({
         frequency: KochSettings.get('frequency'),
         volume: KochSettings.get('volume'),
-        wpm: KochSettings.get('characterSpeed')
+        wpm: KochSettings.get('characterSpeed'),
+        effectiveWpm: KochSettings.get('effectiveSpeed')
       });
 
       modal.remove();
