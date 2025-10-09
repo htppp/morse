@@ -2,6 +2,35 @@
  * モールス信号聞き取り練習のスタイル
  */
 
+/* 設定アイコン */
+.settings-icon {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	width: 40px;
+	height: 40px;
+	background: #667eea;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	z-index: 999;
+	transition: all 0.3s;
+}
+
+.settings-icon:hover {
+	background: #5568d3;
+	transform: scale(1.1);
+}
+
+.settings-icon svg {
+	width: 24px;
+	height: 24px;
+	fill: white;
+}
+
 .container {
 	max-width: 1200px;
 	margin: 0 auto;
@@ -387,6 +416,46 @@
 .form-textarea:focus {
 	outline: none;
 	border-color: #667eea;
+}
+
+/* 設定項目 */
+.setting-item {
+	margin-bottom: 20px;
+}
+
+.setting-item label {
+	display: block;
+	margin-bottom: 8px;
+	color: #333;
+	font-weight: bold;
+}
+
+.setting-item input[type="number"] {
+	width: 100%;
+	padding: 10px;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	font-size: 1rem;
+	transition: border-color 0.3s;
+}
+
+.setting-item input[type="number"]:focus {
+	outline: none;
+	border-color: #667eea;
+}
+
+.volume-control {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.volume-control input[type="range"] {
+	flex: 1;
+}
+
+.volume-control input[type="number"] {
+	width: 80px;
 }
 
 .modal-footer {

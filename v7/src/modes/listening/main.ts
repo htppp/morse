@@ -13,6 +13,7 @@ import {
 	deleteCustomTemplate,
 	getTemplateById
 } from './templates';
+import { ListeningSettings } from './settings';
 import './style.css';
 
 type CategoryType = 'qso' | 'text100' | 'text200' | 'text300' | 'custom';
@@ -36,11 +37,16 @@ export class ListeningTrainer implements ModeController {
 	};
 
 	constructor() {
+		//! 設定を読み込み。
+		ListeningSettings.load();
+		const settings = ListeningSettings.getAll();
+
 		//! AudioSystemを初期化。
 		this.audioSystem = new AudioSystem({
-			frequency: 600,
-			volume: 0.5,
-			wpm: 20
+			frequency: settings.frequency,
+			volume: settings.volume,
+			wpm: settings.characterSpeed,
+			effectiveWpm: settings.effectiveSpeed
 		});
 		this.render();
 	}
@@ -53,6 +59,12 @@ export class ListeningTrainer implements ModeController {
 		if (!app) return;
 
 		app.innerHTML = `
+			<div class="settings-icon" id="settingsIcon">
+				<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+				</svg>
+			</div>
+
 			<div class="container">
 				<header class="header">
 					<button id="backBtn" class="back-btn">← 戻る</button>
@@ -227,6 +239,11 @@ export class ListeningTrainer implements ModeController {
 			window.location.href = './index.html';
 		});
 
+		//! 設定アイコン。
+		document.getElementById('settingsIcon')?.addEventListener('click', () => {
+			this.showSettings();
+		});
+
 		//! カテゴリータブ。
 		document.querySelectorAll('.tab-button').forEach(btn => {
 			btn.addEventListener('click', () => {
@@ -366,6 +383,138 @@ export class ListeningTrainer implements ModeController {
 		this.state.userInput = '';
 		this.state.showResult = false;
 		this.render();
+	}
+
+	/**
+	 * 設定画面を表示する関数。
+	 */
+	private showSettings(): void {
+		//! 現在の設定を保存（キャンセル時の復元用）。
+		const savedSettings = { ...ListeningSettings.getAll() };
+
+		const settings = ListeningSettings.getAll();
+		const modal = document.createElement('div');
+		modal.className = 'modal';
+		modal.innerHTML = `
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2>設定</h2>
+					<button id="closeSettings" class="close-btn">×</button>
+				</div>
+				<div class="modal-body">
+					<div class="setting-item">
+						<label>文字速度 (Character Speed) WPM:</label>
+						<input type="number" id="characterSpeed" min="5" max="40" step="1" value="${settings.characterSpeed}">
+					</div>
+
+					<div class="setting-item">
+						<label>実効速度 (Effective Speed) WPM:</label>
+						<input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${settings.effectiveSpeed}">
+					</div>
+
+					<div class="setting-item">
+						<label>周波数 (Hz):</label>
+						<input type="number" id="frequency" min="400" max="1000" step="10" value="${settings.frequency}">
+					</div>
+
+					<div class="setting-item">
+						<label>音量 (%):</label>
+						<div class="volume-control">
+							<input type="range" id="volumeRange" min="0" max="100" step="5" value="${settings.volume * 100}">
+							<input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(settings.volume * 100)}">
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="cancelSettings" class="btn">キャンセル</button>
+					<button id="saveSettings" class="btn primary">OK</button>
+				</div>
+			</div>
+		`;
+
+		document.body.appendChild(modal);
+
+		//! 音量のレンジと入力欄を連携。
+		const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
+		const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
+
+		if (volumeRange && volumeInput) {
+			volumeRange.oninput = e => {
+				const value = (e.target as HTMLInputElement).value;
+				volumeInput.value = value;
+			};
+			volumeInput.oninput = e => {
+				const value = (e.target as HTMLInputElement).value;
+				volumeRange.value = value;
+			};
+		}
+
+		//! 設定を復元する関数。
+		const restoreSettings = () => {
+			ListeningSettings.set('characterSpeed', savedSettings.characterSpeed);
+			ListeningSettings.set('effectiveSpeed', savedSettings.effectiveSpeed);
+			ListeningSettings.set('frequency', savedSettings.frequency);
+			ListeningSettings.set('volume', savedSettings.volume);
+
+			//! AudioSystemを元に戻す。
+			this.audioSystem.updateSettings({
+				frequency: savedSettings.frequency,
+				volume: savedSettings.volume,
+				wpm: savedSettings.characterSpeed,
+				effectiveWpm: savedSettings.effectiveSpeed
+			});
+		};
+
+		//! OK（保存）ボタン。
+		document.getElementById('saveSettings')?.addEventListener('click', () => {
+			const charSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
+			const effSpeed = document.getElementById('effectiveSpeed') as HTMLInputElement;
+			const frequency = document.getElementById('frequency') as HTMLInputElement;
+
+			const charSpeedValue = parseInt(charSpeed.value);
+			let effSpeedValue = parseInt(effSpeed.value);
+
+			//! 実効速度は文字速度を上限とする。
+			if (effSpeedValue > charSpeedValue) {
+				effSpeedValue = charSpeedValue;
+				effSpeed.value = charSpeedValue.toString();
+			}
+
+			ListeningSettings.set('characterSpeed', charSpeedValue);
+			ListeningSettings.set('effectiveSpeed', effSpeedValue);
+			ListeningSettings.set('frequency', parseInt(frequency.value));
+			ListeningSettings.set('volume', parseInt(volumeInput.value) / 100);
+
+			//! AudioSystemを更新。
+			this.audioSystem.updateSettings({
+				frequency: ListeningSettings.get('frequency'),
+				volume: ListeningSettings.get('volume'),
+				wpm: ListeningSettings.get('characterSpeed'),
+				effectiveWpm: ListeningSettings.get('effectiveSpeed')
+			});
+
+			modal.remove();
+		});
+
+		//! キャンセルボタン。
+		document.getElementById('cancelSettings')?.addEventListener('click', () => {
+			restoreSettings();
+			modal.remove();
+		});
+
+		//! ×ボタンで閉じる（キャンセル扱い）。
+		document.getElementById('closeSettings')?.addEventListener('click', () => {
+			restoreSettings();
+			modal.remove();
+		});
+
+		//! モーダル外クリックで閉じる（キャンセル扱い）。
+		modal.addEventListener('click', e => {
+			if (e.target === modal) {
+				restoreSettings();
+				modal.remove();
+			}
+		});
 	}
 
 	/**
