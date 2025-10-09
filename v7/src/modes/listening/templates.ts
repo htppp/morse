@@ -82,7 +82,7 @@ export function generateRandomQSO(): Template {
 	return {
 		id: `qso-random-${Date.now()}`,
 		category: 'qso',
-		title: `ランダムQSO: ${myCall} - ${urCall}`,
+		title: 'ランダムQSO',
 		content: qsoText
 	};
 }

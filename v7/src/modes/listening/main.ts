@@ -661,8 +661,47 @@ export class ListeningTrainer implements ModeController {
 			const frequency = settings.frequency;
 			const volume = settings.volume;
 
-			//! モールス符号に変換。
-			const morse = MorseCode.textToMorse(this.state.selectedTemplate.content);
+			//! QSOの場合、テキストをBTで分割して話者ごとに周波数を変える。
+			const isQSO = this.state.selectedTemplate.category === 'qso';
+			let segments: Array<{ text: string; frequency: number }> = [];
+
+			if (isQSO) {
+				//! BTで分割（BTも含める）。
+				const parts = this.state.selectedTemplate.content.split(/(\s+BT\s+)/);
+				let currentText = '';
+				let segmentIndex = 0;
+
+				for (const part of parts) {
+					if (part.trim() === 'BT') {
+						if (currentText.trim()) {
+							//! 偶数番目はAさん（設定周波数）、奇数番目はBさん（+5Hz）。
+							const freq = segmentIndex % 2 === 0 ? frequency : frequency + 5;
+							segments.push({ text: currentText.trim(), frequency: freq });
+							segmentIndex++;
+							currentText = '';
+						}
+					} else {
+						currentText += part;
+					}
+				}
+				//! 最後のセグメント。
+				if (currentText.trim()) {
+					const freq = segmentIndex % 2 === 0 ? frequency : frequency + 5;
+					segments.push({ text: currentText.trim(), frequency: freq });
+				}
+			} else {
+				//! QSO以外は通常通り。
+				segments = [{ text: this.state.selectedTemplate.content, frequency }];
+			}
+
+			//! 全セグメントのモールス符号に変換。
+			const morseSegments = segments.map(seg => ({
+				morse: MorseCode.textToMorse(seg.text),
+				frequency: seg.frequency
+			}));
+
+			//! 全体のモールス符号（時間計算用）。
+			const morse = morseSegments.map(s => s.morse).join(' / ');
 
 			//! タイミングを計算（ミリ秒）。
 			const dotDuration = 1200 / charSpeed;
@@ -693,46 +732,56 @@ export class ListeningTrainer implements ModeController {
 			//! OfflineAudioContextを作成。
 			const offlineContext = new OfflineAudioContext(1, Math.ceil(sampleRate * duration), sampleRate);
 
-			//! モールス信号を生成。
+			//! モールス信号を生成（セグメントごとに周波数を変える）。
 			let currentTime = 0;
-			for (let i = 0; i < morse.length; i++) {
-				const char = morse[i];
-				let toneDuration = 0;
+			for (let segIndex = 0; segIndex < morseSegments.length; segIndex++) {
+				const segment = morseSegments[segIndex];
+				const segmentFreq = segment.frequency;
 
-				if (char === '.') {
-					toneDuration = dotDuration;
-				} else if (char === '-') {
-					toneDuration = dashDuration;
+				for (let i = 0; i < segment.morse.length; i++) {
+					const char = segment.morse[i];
+					let toneDuration = 0;
+
+					if (char === '.') {
+						toneDuration = dotDuration;
+					} else if (char === '-') {
+						toneDuration = dashDuration;
+					}
+
+					if (toneDuration > 0) {
+						//! オシレーターとゲインノードを作成。
+						const oscillator = offlineContext.createOscillator();
+						const gainNode = offlineContext.createGain();
+
+						oscillator.connect(gainNode);
+						gainNode.connect(offlineContext.destination);
+
+						oscillator.frequency.value = segmentFreq;
+						oscillator.type = 'sine';
+
+						//! エンベロープ（フェードイン・フェードアウト）。
+						const startTime = currentTime / 1000;
+						const endTime = startTime + toneDuration / 1000;
+
+						gainNode.gain.setValueAtTime(0, startTime);
+						gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.001);
+						gainNode.gain.setValueAtTime(volume, endTime - 0.001);
+						gainNode.gain.linearRampToValueAtTime(0, endTime);
+
+						oscillator.start(startTime);
+						oscillator.stop(endTime);
+
+						currentTime += toneDuration + symbolGap;
+					} else if (char === ' ') {
+						currentTime += charGap - symbolGap;
+					} else if (char === '/') {
+						currentTime += wordGap - symbolGap;
+					}
 				}
 
-				if (toneDuration > 0) {
-					//! オシレーターとゲインノードを作成。
-					const oscillator = offlineContext.createOscillator();
-					const gainNode = offlineContext.createGain();
-
-					oscillator.connect(gainNode);
-					gainNode.connect(offlineContext.destination);
-
-					oscillator.frequency.value = frequency;
-					oscillator.type = 'sine';
-
-					//! エンベロープ（フェードイン・フェードアウト）。
-					const startTime = currentTime / 1000;
-					const endTime = startTime + toneDuration / 1000;
-
-					gainNode.gain.setValueAtTime(0, startTime);
-					gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.001);
-					gainNode.gain.setValueAtTime(volume, endTime - 0.001);
-					gainNode.gain.linearRampToValueAtTime(0, endTime);
-
-					oscillator.start(startTime);
-					oscillator.stop(endTime);
-
-					currentTime += toneDuration + symbolGap;
-				} else if (char === ' ') {
-					currentTime += charGap - symbolGap;
-				} else if (char === '/') {
-					currentTime += wordGap - symbolGap;
+				//! セグメント間にワードギャップを追加。
+				if (segIndex < morseSegments.length - 1) {
+					currentTime += wordGap;
 				}
 			}
 
