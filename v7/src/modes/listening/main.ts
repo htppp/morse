@@ -179,6 +179,11 @@ export class ListeningTrainer implements ModeController {
 							<rect x="6" y="6" width="12" height="12"/>
 						</svg>
 					</button>
+					<button id="downloadBtn" class="control-btn" title="WAVファイルとしてダウンロード">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+						</svg>
+					</button>
 				</div>
 
 				<div class="input-section">
@@ -335,6 +340,11 @@ export class ListeningTrainer implements ModeController {
 		//! 停止ボタン。
 		document.getElementById('stopBtn')?.addEventListener('click', () => {
 			this.stopMorse();
+		});
+
+		//! ダウンロードボタン。
+		document.getElementById('downloadBtn')?.addEventListener('click', () => {
+			this.downloadMorseAudio();
 		});
 
 		//! 入力欄。
@@ -600,6 +610,179 @@ export class ListeningTrainer implements ModeController {
 				modal.remove();
 			}
 		});
+	}
+
+	/**
+	 * モールス信号をWAVファイルとしてダウンロードする関数。
+	 */
+	private async downloadMorseAudio(): Promise<void> {
+		if (!this.state.selectedTemplate) return;
+
+		try {
+			//! 設定を取得。
+			const settings = ListeningSettings.getAll();
+			const charSpeed = settings.characterSpeed;
+			const effSpeed = settings.effectiveSpeed;
+			const frequency = settings.frequency;
+			const volume = settings.volume;
+
+			//! モールス符号に変換。
+			const morse = MorseCode.textToMorse(this.state.selectedTemplate.content);
+
+			//! タイミングを計算（ミリ秒）。
+			const dotDuration = 1200 / charSpeed;
+			const dashDuration = dotDuration * 3;
+			const symbolGap = dotDuration;
+			const charGap = dotDuration * 3;
+			const wordGap = 7 * (1200 / effSpeed);
+
+			//! 総時間を計算。
+			let totalDuration = 0;
+			for (let i = 0; i < morse.length; i++) {
+				const char = morse[i];
+				if (char === '.') {
+					totalDuration += dotDuration + symbolGap;
+				} else if (char === '-') {
+					totalDuration += dashDuration + symbolGap;
+				} else if (char === ' ') {
+					totalDuration += charGap - symbolGap;
+				} else if (char === '/') {
+					totalDuration += wordGap - symbolGap;
+				}
+			}
+
+			//! サンプルレート。
+			const sampleRate = 44100;
+			const duration = totalDuration / 1000; // 秒に変換。
+
+			//! OfflineAudioContextを作成。
+			const offlineContext = new OfflineAudioContext(1, Math.ceil(sampleRate * duration), sampleRate);
+
+			//! モールス信号を生成。
+			let currentTime = 0;
+			for (let i = 0; i < morse.length; i++) {
+				const char = morse[i];
+				let toneDuration = 0;
+
+				if (char === '.') {
+					toneDuration = dotDuration;
+				} else if (char === '-') {
+					toneDuration = dashDuration;
+				}
+
+				if (toneDuration > 0) {
+					//! オシレーターとゲインノードを作成。
+					const oscillator = offlineContext.createOscillator();
+					const gainNode = offlineContext.createGain();
+
+					oscillator.connect(gainNode);
+					gainNode.connect(offlineContext.destination);
+
+					oscillator.frequency.value = frequency;
+					oscillator.type = 'sine';
+
+					//! エンベロープ（フェードイン・フェードアウト）。
+					const startTime = currentTime / 1000;
+					const endTime = startTime + toneDuration / 1000;
+
+					gainNode.gain.setValueAtTime(0, startTime);
+					gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.001);
+					gainNode.gain.setValueAtTime(volume, endTime - 0.001);
+					gainNode.gain.linearRampToValueAtTime(0, endTime);
+
+					oscillator.start(startTime);
+					oscillator.stop(endTime);
+
+					currentTime += toneDuration + symbolGap;
+				} else if (char === ' ') {
+					currentTime += charGap - symbolGap;
+				} else if (char === '/') {
+					currentTime += wordGap - symbolGap;
+				}
+			}
+
+			//! レンダリング。
+			const audioBuffer = await offlineContext.startRendering();
+
+			//! WAVファイルに変換。
+			const wavBlob = this.audioBufferToWav(audioBuffer);
+
+			//! ダウンロード。
+			const url = URL.createObjectURL(wavBlob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${this.state.selectedTemplate.title.replace(/[^a-zA-Z0-9]/g, '_')}.wav`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('音声ダウンロードエラー:', error);
+			alert('音声ファイルの生成に失敗しました');
+		}
+	}
+
+	/**
+	 * AudioBufferをWAVファイルに変換する関数。
+	 */
+	private audioBufferToWav(buffer: AudioBuffer): Blob {
+		const numberOfChannels = buffer.numberOfChannels;
+		const sampleRate = buffer.sampleRate;
+		const format = 1; // PCM
+		const bitDepth = 16;
+
+		const bytesPerSample = bitDepth / 8;
+		const blockAlign = numberOfChannels * bytesPerSample;
+
+		const data = new Float32Array(buffer.length * numberOfChannels);
+		for (let channel = 0; channel < numberOfChannels; channel++) {
+			const channelData = buffer.getChannelData(channel);
+			for (let i = 0; i < buffer.length; i++) {
+				data[i * numberOfChannels + channel] = channelData[i];
+			}
+		}
+
+		const dataLength = data.length * bytesPerSample;
+		const bufferLength = 44 + dataLength;
+		const arrayBuffer = new ArrayBuffer(bufferLength);
+		const view = new DataView(arrayBuffer);
+
+		//! WAVヘッダーを書き込む。
+		const writeString = (offset: number, string: string) => {
+			for (let i = 0; i < string.length; i++) {
+				view.setUint8(offset + i, string.charCodeAt(i));
+			}
+		};
+
+		//! RIFFチャンク。
+		writeString(0, 'RIFF');
+		view.setUint32(4, bufferLength - 8, true);
+		writeString(8, 'WAVE');
+
+		//! fmtチャンク。
+		writeString(12, 'fmt ');
+		view.setUint32(16, 16, true); // fmtチャンクのサイズ。
+		view.setUint16(20, format, true); // オーディオフォーマット（PCM）。
+		view.setUint16(22, numberOfChannels, true); // チャンネル数。
+		view.setUint32(24, sampleRate, true); // サンプルレート。
+		view.setUint32(28, sampleRate * blockAlign, true); // バイトレート。
+		view.setUint16(32, blockAlign, true); // ブロックアライン。
+		view.setUint16(34, bitDepth, true); // ビット深度。
+
+		//! dataチャンク。
+		writeString(36, 'data');
+		view.setUint32(40, dataLength, true);
+
+		//! PCMデータを書き込む。
+		let offset = 44;
+		for (let i = 0; i < data.length; i++) {
+			const sample = Math.max(-1, Math.min(1, data[i]));
+			const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+			view.setInt16(offset, intSample, true);
+			offset += 2;
+		}
+
+		return new Blob([arrayBuffer], { type: 'audio/wav' });
 	}
 
 	/**
