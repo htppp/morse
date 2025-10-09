@@ -10,6 +10,83 @@ export interface Template {
 	content: string;
 }
 
+//! ランダムQSO生成用データ。
+const JAPANESE_CITIES = [
+	'TOKYO', 'OSAKA', 'KYOTO', 'NAGOYA', 'YOKOHAMA', 'KOBE', 'FUKUOKA', 'SAPPORO', 'SENDAI', 'HIROSHIMA',
+	'KAWASAKI', 'SAITAMA', 'CHIBA', 'KITAKYUSHU', 'SAKAI', 'NIIGATA', 'HAMAMATSU', 'KUMAMOTO', 'OKAYAMA', 'SAGAMIHARA',
+	'SHIZUOKA', 'KAGOSHIMA', 'MATSUYAMA', 'GIFU', 'UTSUNOMIYA', 'KANAZAWA', 'TOYAMA', 'NARA', 'NAGASAKI', 'OITA',
+	'KOCHI', 'MIYAZAKI', 'NAHA', 'WAKAYAMA', 'AOMORI', 'AKITA', 'FUKUSHIMA', 'MORIOKA', 'MAEBASHI', 'KOFU',
+	'MATSUMOTO', 'TOYOHASHI', 'FUKUI', 'OTSU', 'TSU', 'YOKKAICHI', 'MATSUE', 'TOTTORI', 'YAMAGUCHI', 'TOKUSHIMA',
+	'TAKAMATSU', 'MITO', 'KORIYAMA', 'IWAKI', 'TAKASAKI', 'HACHIOJI', 'MACHIDA', 'KURASHIKI', 'HIMEJI', 'NISHINOMIYA',
+	'AMAGASAKI', 'TAKATSUKI', 'TOYONAKA', 'SUITA', 'KAWAGUCHI', 'FUNABASHI', 'HAKODATE', 'ASAHIKAWA', 'OTARU', 'KUSHIRO',
+	'OBIHIRO', 'TOMAKOMAI', 'IWAMIZAWA', 'HACHINOHE', 'HIROSAKI', 'ISHINOMAKI', 'YAMAGATA', 'TSURUOKA', 'YONEZAWA', 'HITACHI',
+	'TSUKUBA', 'KASUKABE', 'KAWAGOE', 'TOKOROZAWA', 'AGEO', 'FUCHU', 'CHOFU', 'HINO', 'KOKUBUNJI', 'ATSUGI',
+	'ODAWARA', 'HIRATSUKA', 'FUJISAWA', 'KAMAKURA', 'ZUSHI', 'NUMAZU', 'FUJI', 'MISHIMA', 'KAKEGAWA', 'IWATA'
+];
+
+const FIRST_NAMES = [
+	'JOHN', 'MIKE', 'TOM', 'DAVE', 'BOB', 'BILL', 'JIM', 'JACK', 'FRANK', 'PAUL',
+	'MARK', 'DAN', 'KEN', 'RON', 'RICK', 'STEVE', 'GEORGE', 'PETE', 'RAY', 'AL',
+	'FRED', 'JEFF', 'GARY', 'LARRY', 'DOUG', 'DENNIS', 'RANDY', 'SCOTT', 'BRIAN', 'BRUCE',
+	'ERIC', 'KEVIN', 'CRAIG', 'GLENN', 'GREG', 'WAYNE', 'CARL', 'TONY', 'KEITH', 'CHRIS',
+	'DONALD', 'EDWARD', 'JOSEPH', 'RICHARD', 'ROBERT', 'CHARLES', 'WILLIAM', 'THOMAS', 'JAMES', 'PATRICK',
+	'HENRY', 'HAROLD', 'HOWARD', 'WALTER', 'ARTHUR', 'ALBERT', 'EUGENE', 'RALPH', 'LAWRENCE', 'HERBERT',
+	'CLARENCE', 'ERNEST', 'WILLIE', 'ANDREW', 'SAMUEL', 'LOUIS', 'OSCAR', 'LEONARD', 'ROY', 'EARL',
+	'CHESTER', 'CLIFFORD', 'NORMAN', 'CLYDE', 'HOMER', 'STANLEY', 'LESTER', 'MORRIS', 'RAYMOND', 'LEWIS',
+	'LEON', 'EDDIE', 'CHARLIE', 'FLOYD', 'FRED', 'MARTIN', 'MELVIN', 'MARVIN', 'IRVING', 'HARVEY',
+	'SAM', 'MAX', 'MACK', 'JOE', 'ABE', 'HARRY', 'NED', 'GUS', 'BERT', 'EARL'
+];
+
+const CW_RIGS = [
+	'FT-991A', 'FT-891', 'FT-857D', 'FT-450D', 'FT-101ES',  // Yaesu
+	'IC-7300', 'IC-7610', 'IC-9700', 'IC-705', 'IC-718',   // ICOM
+	'TS-590SG', 'TS-590S', 'TS-480SAT', 'TS-850S', 'TS-2000' // Kenwood
+];
+
+const RST_REPORTS = [
+	'599', '589', '579', '569', '559', '449', '339'
+];
+
+//! ランダムなコールサインを生成する関数。
+function generateCallsign(): string {
+	const prefixes = ['JA', 'JE', 'JF', 'JH', 'JI', 'JJ', 'JK', 'JL', 'JM', 'JN', 'JO', 'JP', 'JQ', 'JR'];
+	const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+	const area = Math.floor(Math.random() * 10);
+	const suffix = String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+		String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+		String.fromCharCode(65 + Math.floor(Math.random() * 26));
+	return `${prefix}${area}${suffix}`;
+}
+
+//! ランダムな要素を配列から選択する関数。
+function randomChoice<T>(array: T[]): T {
+	return array[Math.floor(Math.random() * array.length)];
+}
+
+//! ランダムなQSOを生成する関数。
+export function generateRandomQSO(): Template {
+	const myCall = generateCallsign();
+	const urCall = generateCallsign();
+	const myCity = randomChoice(JAPANESE_CITIES);
+	const urCity = randomChoice(JAPANESE_CITIES);
+	const myName = randomChoice(FIRST_NAMES);
+	const urName = randomChoice(FIRST_NAMES);
+	const myRST = randomChoice(RST_REPORTS);
+	const urRST = randomChoice(RST_REPORTS);
+	const myRig = randomChoice(CW_RIGS);
+	const urRig = randomChoice(CW_RIGS);
+	const greeting = randomChoice(['GM', 'GA', 'GE', 'GN']);
+
+	const qsoText = `CQ CQ CQ DE ${myCall} ${myCall} PSE K BT ${myCall} DE ${urCall} ${urCall} K BT R ${urCall} DE ${myCall} ${greeting} OM TNX FER UR CALL BT UR RST IS ${urRST} ${urRST} BT MI QTH IS ${myCity} ${myCity} ES MI NAME IS ${myName} ${myName} HW ? AR ${myCall} DE ${myCall} KN BT R ${myCall} DE ${urCall} ${greeting} DR ${myName} OM TKS FER FB RPT ${urRST} FM ${myCity} BT UR RST ALSO ${myRST} ${myRST} VY FB MI QTH IS ${urCity} ${urCity} BT NAME IS ${urName} ${urName} HW? ${myCall} DE ${urCall} KN BT R FB DE ${myCall} DR ${urName} OM BT MI RIG IS ${myRig} PWR 100W BT PSE UR QSL CRD VIA JARL ? MI CRD SURE HW? AR ${urCall} DE ${myCall} KN BT R ${myCall} DE ${urCall} OK ${myName} OM BT UR RIG ${myRig} VY FB BT MI RIG IS ${urRig} BT QSL VIA JARL OK SURE BT TNX FB QSO ES 73 AR ${myCall} DE ${urCall} VA BT OK ${urName} SOLID CPI BT TKS FB QSO ES BEST 73 AR ${urCall} DE ${myCall} VA TU E E`;
+
+	return {
+		id: `qso-random-${Date.now()}`,
+		category: 'qso',
+		title: `ランダムQSO: ${myCall} - ${urCall}`,
+		content: qsoText
+	};
+}
+
 //! ラバースタンプQSOのサンプルデータ。
 const QSO_TEMPLATES: Template[] = [
 	{
@@ -119,7 +196,14 @@ export function getAllBuiltinTemplates(): Template[] {
 export function getTemplatesByCategory(category: Template['category']): Template[] {
 	switch (category) {
 		case 'qso':
-			return QSO_TEMPLATES;
+			// ランダムQSO生成ボタンを先頭に追加
+			const randomQSOButton: Template = {
+				id: 'qso-random-generate',
+				category: 'qso',
+				title: '🎲 ランダムQSOを生成',
+				content: ''
+			};
+			return [randomQSOButton, ...QSO_TEMPLATES];
 		case 'text100':
 			return TEXT100_TEMPLATES;
 		case 'text200':

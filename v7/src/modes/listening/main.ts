@@ -11,7 +11,8 @@ import {
 	addCustomTemplate,
 	updateCustomTemplate,
 	deleteCustomTemplate,
-	getTemplateById
+	getTemplateById,
+	generateRandomQSO
 } from './templates';
 import { ListeningSettings } from './settings';
 import './style.css';
@@ -127,10 +128,14 @@ export class ListeningTrainer implements ModeController {
 				${this.state.currentCategory === 'custom' ? '<button id="addCustomBtn" class="btn primary">新規作成</button>' : ''}
 				${templates
 					.map(
-						template => `
+						template => {
+							const preview = template.id === 'qso-random-generate'
+								? 'コールサイン、地名、名前、RSレポート、リグなどがランダムに生成された完全なQSOが作成されます。毎回異なる内容で練習できます。'
+								: `${template.content.substring(0, 100)}${template.content.length > 100 ? '...' : ''}`;
+							return `
 					<div class="template-card" data-template-id="${template.id}">
 						<h3>${template.title}</h3>
-						<p class="template-preview">${template.content.substring(0, 100)}${template.content.length > 100 ? '...' : ''}</p>
+						<p class="template-preview">${preview}</p>
 						<div class="template-actions">
 							<button class="btn select-btn" data-template-id="${template.id}">選択</button>
 							${
@@ -143,7 +148,8 @@ export class ListeningTrainer implements ModeController {
 							}
 						</div>
 					</div>
-				`
+				`;
+						}
 					)
 					.join('')}
 			</div>
@@ -278,12 +284,20 @@ export class ListeningTrainer implements ModeController {
 			btn.addEventListener('click', () => {
 				const id = btn.getAttribute('data-template-id');
 				if (id) {
-					const template = getTemplateById(id);
-					if (template) {
-						this.state.selectedTemplate = template;
+					// ランダムQSO生成ボタンの場合
+					if (id === 'qso-random-generate') {
+						this.state.selectedTemplate = generateRandomQSO();
 						this.state.showResult = false;
 						this.state.userInput = '';
 						this.render();
+					} else {
+						const template = getTemplateById(id);
+						if (template) {
+							this.state.selectedTemplate = template;
+							this.state.showResult = false;
+							this.state.userInput = '';
+							this.render();
+						}
 					}
 				}
 			});
