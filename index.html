@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>モールス体験</title>
+	<title>モールス体験 - リダイレクト中...</title>
 	<style>
 		* {
 			margin: 0;
@@ -21,136 +21,81 @@
 			padding: 20px;
 		}
 
-		.container {
-			max-width: 1200px;
-			width: 100%;
-		}
-
-		.header {
-			text-align: center;
-			color: white;
-			margin-bottom: 40px;
-		}
-
-		.header h1 {
-			font-size: 2.5rem;
-			margin-bottom: 10px;
-		}
-
-		.subtitle {
-			font-size: 1.1rem;
-			opacity: 0.9;
-		}
-
-		.menu-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-			gap: 20px;
-			margin-bottom: 40px;
-		}
-
-		.menu-card {
+		.redirect-message {
 			background: white;
 			border-radius: 12px;
-			padding: 30px;
-			text-decoration: none;
-			color: #333;
-			transition: transform 0.3s, box-shadow 0.3s;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-			display: flex;
-			flex-direction: column;
-			align-items: center;
+			padding: 40px;
 			text-align: center;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+			max-width: 500px;
 		}
 
-		.menu-card:hover {
-			transform: translateY(-5px);
-			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-		}
-
-		.menu-icon {
-			font-size: 3rem;
-			margin-bottom: 15px;
-		}
-
-		.menu-title {
-			font-size: 1.3rem;
-			margin-bottom: 10px;
+		.redirect-message h1 {
 			color: #667eea;
+			font-size: 2rem;
+			margin-bottom: 20px;
 		}
 
-		.menu-description {
-			font-size: 0.95rem;
+		.redirect-message p {
 			color: #666;
-			line-height: 1.5;
+			font-size: 1.1rem;
+			margin-bottom: 10px;
 		}
 
-		.footer {
-			text-align: center;
-			color: white;
-			opacity: 0.8;
+		.spinner {
+			margin: 30px auto;
+			width: 50px;
+			height: 50px;
+			border: 4px solid #f3f3f3;
+			border-top: 4px solid #667eea;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		.manual-link {
+			margin-top: 20px;
 			font-size: 0.9rem;
+			color: #999;
 		}
 
-		@media (max-width: 768px) {
-			.header h1 {
-				font-size: 2rem;
-			}
+		.manual-link a {
+			color: #667eea;
+			text-decoration: none;
+		}
 
-			.menu-grid {
-				grid-template-columns: 1fr;
-			}
+		.manual-link a:hover {
+			text-decoration: underline;
 		}
 	</style>
+	<script>
+		//! 最新バージョンの設定。
+		//! 新しいバージョンをリリースした際は、ここを更新してください。
+		const LATEST_VERSION = 'v7';
+
+		//! 即座にリダイレクト。
+		window.location.href = `./${LATEST_VERSION}/`;
+	</script>
 </head>
 <body>
-	<div class="container">
-		<header class="header">
-			<h1>モールス体験</h1>
-			<p class="subtitle">練習メニューを選択してください</p>
-		</header>
-
-		<div class="menu-grid">
-			<a href="v2/" class="menu-card">
-				<div class="menu-icon">📡</div>
-				<h2 class="menu-title">モールス体験</h2>
-				<p class="menu-description">電鍵の操作を体験、文字列とモールス信号の変換</p>
-			</a>
-
-			<a href="v3/" class="menu-card">
-				<div class="menu-icon">📚</div>
-				<h2 class="menu-title">略語学習</h2>
-				<p class="menu-description">電信で使用される略語学習</p>
-			</a>
-
-			<a href="v4/" class="menu-card">
-				<div class="menu-icon">🎓</div>
-				<h2 class="menu-title">コッホ法によるモールス信号学習</h2>
-				<p class="menu-description">40文字を段階的に習得。スマホ対応を目的としたlcwo.netの移植</p>
-			</a>
-
-			<a href="v5/" class="menu-card">
-				<div class="menu-icon">⚡</div>
-				<h2 class="menu-title">モールス練習アプリ v5</h2>
-				<p class="menu-description">完全SPA版 - 縦振り・横振り電鍵、略語学習、コッホ法を統合</p>
-			</a>
-
-			<a href="v6/" class="menu-card">
-				<div class="menu-icon">🚀</div>
-				<h2 class="menu-title">モールス練習アプリ v6</h2>
-				<p class="menu-description">コッホ法マルチモード版 - 基本学習・試験・任意文字列練習の3モード対応</p>
-			</a>
-
-			<a href="v7/" class="menu-card">
-				<div class="menu-icon">👂</div>
-				<h2 class="menu-title">モールス練習アプリ v7</h2>
-				<p class="menu-description">モールス信号聞き取り練習版 - ラバースタンプQSO・英文練習・ユーザー定義定型文</p>
-			</a>
-		</div>
-
-		<footer class="footer">
-			<p>モールス体験サイト</p>
-		</footer>
+	<div class="redirect-message">
+		<h1>モールス体験</h1>
+		<p>最新バージョンにリダイレクト中...</p>
+		<div class="spinner"></div>
+		<p class="manual-link">
+			自動的にリダイレクトされない場合は
+			<a href="./v7/" id="manualLink">こちらをクリック</a>
+			してください
+		</p>
 	</div>
+
+	<script>
+		//! 手動リンクも最新バージョンに更新。
+		document.getElementById('manualLink').href = `./${LATEST_VERSION}/`;
+	</script>
 </body>
 </html>
