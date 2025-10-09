@@ -164,12 +164,12 @@ export class ListeningTrainer implements ModeController {
 				</div>
 
 				<div class="playback-controls">
-					<button id="playBtn" class="control-btn ${this.state.isPlaying ? 'hidden' : ''}" title="再生">
+					<button id="playBtn" class="control-btn" title="再生" ${this.state.isPlaying ? 'disabled' : ''}>
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M8 5v14l11-7z"/>
 						</svg>
 					</button>
-					<button id="pauseBtn" class="control-btn ${!this.state.isPlaying ? 'hidden' : ''}" title="一時停止">
+					<button id="pauseBtn" class="control-btn" title="一時停止" ${!this.state.isPlaying ? 'disabled' : ''}>
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
 						</svg>

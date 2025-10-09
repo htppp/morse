@@ -229,9 +229,14 @@
 	transition: all 0.3s;
 }
 
-.control-btn:hover {
+.control-btn:hover:not(:disabled) {
 	background: #5568d3;
 	transform: scale(1.1);
+}
+
+.control-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 .control-btn.hidden {
