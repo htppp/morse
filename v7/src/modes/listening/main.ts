@@ -25,6 +25,7 @@ interface State {
 	isPlaying: boolean;
 	userInput: string;
 	showResult: boolean;
+	showAnswer: boolean;
 }
 
 export class ListeningTrainer implements ModeController {
@@ -34,7 +35,8 @@ export class ListeningTrainer implements ModeController {
 		selectedTemplate: null,
 		isPlaying: false,
 		userInput: '',
-		showResult: false
+		showResult: false,
+		showAnswer: false
 	};
 
 	constructor() {
@@ -199,10 +201,25 @@ export class ListeningTrainer implements ModeController {
 
 				<div class="action-buttons">
 					<button id="checkBtn" class="btn primary">採点</button>
-					<button id="showAnswerBtn" class="btn">正解を表示</button>
+					<button id="showAnswerBtn" class="btn">${this.state.showAnswer ? '正解を非表示' : '正解を表示'}</button>
 				</div>
 
+				${this.state.showAnswer ? this.renderAnswer() : ''}
 				${this.state.showResult ? this.renderResult() : ''}
+			</div>
+		`;
+	}
+
+	/**
+	 * 正解を描画する関数。
+	 */
+	private renderAnswer(): string {
+		if (!this.state.selectedTemplate) return '';
+
+		return `
+			<div class="answer-area">
+				<h3>正解</h3>
+				<div class="answer-text">${this.state.selectedTemplate.content}</div>
 			</div>
 		`;
 	}
@@ -273,6 +290,7 @@ export class ListeningTrainer implements ModeController {
 					this.state.currentCategory = category;
 					this.state.selectedTemplate = null;
 					this.state.showResult = false;
+					this.state.showAnswer = false;
 					this.state.userInput = '';
 					this.render();
 				}
@@ -288,6 +306,7 @@ export class ListeningTrainer implements ModeController {
 					if (id === 'qso-random-generate') {
 						this.state.selectedTemplate = generateRandomQSO();
 						this.state.showResult = false;
+						this.state.showAnswer = false;
 						this.state.userInput = '';
 						this.render();
 					} else {
@@ -295,6 +314,7 @@ export class ListeningTrainer implements ModeController {
 						if (template) {
 							this.state.selectedTemplate = template;
 							this.state.showResult = false;
+							this.state.showAnswer = false;
 							this.state.userInput = '';
 							this.render();
 						}
@@ -336,6 +356,7 @@ export class ListeningTrainer implements ModeController {
 		document.getElementById('backToListBtn')?.addEventListener('click', () => {
 			this.state.selectedTemplate = null;
 			this.state.showResult = false;
+			this.state.showAnswer = false;
 			this.state.userInput = '';
 			this.audioSystem.stopPlaying();
 			this.render();
@@ -377,9 +398,8 @@ export class ListeningTrainer implements ModeController {
 
 		//! 正解表示ボタン。
 		document.getElementById('showAnswerBtn')?.addEventListener('click', () => {
-			if (this.state.selectedTemplate) {
-				alert(`正解:\n${this.state.selectedTemplate.content}`);
-			}
+			this.state.showAnswer = !this.state.showAnswer;
+			this.render();
 		});
 	}
 
@@ -416,6 +436,7 @@ export class ListeningTrainer implements ModeController {
 		this.audioSystem.stopPlaying();
 		this.state.userInput = '';
 		this.state.showResult = false;
+		this.state.showAnswer = false;
 		this.render();
 	}
 
