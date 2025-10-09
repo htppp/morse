@@ -9,7 +9,7 @@ import { KochSettings } from'./settings';
 import'./style.css';
 import { ModeController } from '../../core/router';
 
-type ViewMode = 'learning' | 'test' | 'custom';
+type ViewMode = 'learning' | 'custom';
 
 interface LessonState {
   currentLesson: number;
@@ -18,16 +18,6 @@ interface LessonState {
   correctAnswer: string;
   groups: string[];
   currentGroupIndex: number;
-}
-
-interface TestState {
-  selectedLesson: number;
-  isTestRunning: boolean;
-  testUserInput: string;
-  testCorrectAnswer: string;
-  testGroups: string[];
-  testCurrentGroupIndex: number;
-  testIsPlaying: boolean;
 }
 
 interface CustomState {
@@ -50,15 +40,6 @@ export class KochTrainer implements ModeController {
     correctAnswer:'',
     groups: [],
     currentGroupIndex: 0,
-  };
-  private testState: TestState = {
-    selectedLesson: 1,
-    isTestRunning: false,
-    testUserInput:'',
-    testCorrectAnswer:'',
-    testGroups: [],
-    testCurrentGroupIndex: 0,
-    testIsPlaying: false,
   };
   private customState: CustomState = {
     selectedChars: new Set(),
@@ -408,7 +389,6 @@ export class KochTrainer implements ModeController {
 
         <div class="tabs">
           <button class="tab-button ${this.viewMode === 'learning' ? 'active' : ''}" data-tab="learning">基本学習</button>
-          <button class="tab-button ${this.viewMode === 'test' ? 'active' : ''}" data-tab="test">試験モード</button>
           <button class="tab-button ${this.viewMode === 'custom' ? 'active' : ''}" data-tab="custom">任意文字列練習</button>
         </div>
 
@@ -444,8 +424,6 @@ export class KochTrainer implements ModeController {
     switch (this.viewMode) {
       case 'learning':
         return this.renderLearningMode();
-      case 'test':
-        return this.renderTestMode();
       case 'custom':
         return this.renderCustomMode();
       default:
@@ -496,48 +474,10 @@ export class KochTrainer implements ModeController {
     `;
   }
 
-  private renderTestMode(): string {
-    if (!this.testState.isTestRunning) {
-      // レッスン選択画面
-      const lessonList = KOCH_SEQUENCE.slice(0, Math.min(this.state.currentLesson, 40)).map((char, index) => {
-        const lessonNum = index + 1;
-        const lessonChars = getCharsForLesson(lessonNum);
-        const isSelected = lessonNum === this.testState.selectedLesson;
-        return `
-          <div class="lesson-item ${isSelected ?'current' :''}" data-test-lesson="${lessonNum}">
-            <div class="lesson-num">L${lessonNum}</div>
-            <div class="lesson-chars">${lessonChars.join('')}</div>
-          </div>
-        `;
-      }).join('');
-
-      return `
-        <div class="lesson-info">
-          <h2>試験モード</h2>
-          <p>学習済みのレッスンを選択してテストを行います</p>
-          <button id="startTestBtn" class="btn primary">試験開始</button>
-        </div>
-
-        <div class="lesson-list-section">
-          <h3>レッスン選択（学習済みレッスンのみ）</h3>
-          <div class="lesson-list">
-            ${lessonList}
-          </div>
-        </div>
-      `;
-    } else {
-      // 試験実行画面
-      return `
-        <div id="testPracticeContainer"></div>
-        <div id="testResultContainer"></div>
-      `;
-    }
-  }
-
   private renderCustomMode(): string {
     if (!this.customState.isCustomRunning) {
-      // 文字選択画面
-      const availableChars = getCharsForLesson(this.state.currentLesson);
+      // 文字選択画面（全41文字を表示）
+      const availableChars = KOCH_SEQUENCE;
       const charButtons = availableChars.map(char => `
         <button class="char-select-btn ${this.customState.selectedChars.has(char) ? 'selected' : ''}" data-char="${char}">
           ${char}
@@ -589,22 +529,6 @@ export class KochTrainer implements ModeController {
           window.scrollTo({ top: 0, behavior:'smooth' });
         });
       });
-    } else if (this.viewMode === 'test') {
-      if (!this.testState.isTestRunning) {
-        document.getElementById('startTestBtn')?.addEventListener('click', () => {
-          this.startTest();
-        });
-
-        // レッスン選択
-        document.querySelectorAll('[data-test-lesson]').forEach(item => {
-          item.addEventListener('click', () => {
-            const lessonNum = parseInt(item.getAttribute('data-test-lesson') ||'1');
-            this.testState.selectedLesson = lessonNum;
-            this.render();
-            window.scrollTo({ top: 0, behavior:'smooth' });
-          });
-        });
-      }
     } else if (this.viewMode === 'custom') {
       if (!this.customState.isCustomRunning) {
         document.getElementById('startCustomBtn')?.addEventListener('click', () => {
@@ -792,28 +716,6 @@ export class KochTrainer implements ModeController {
       }
     });
   }
-  private async startTest(): Promise<void> {
-    const settings = KochSettings.getAll();
-    const chars = getCharsForLesson(this.testState.selectedLesson);
-    this.testState.testGroups = generateRandomGroups(chars, 5, settings.practiceDuration);
-    this.testState.testCurrentGroupIndex = 0;
-    this.testState.testUserInput ='';
-    this.testState.testCorrectAnswer = this.testState.testGroups.join('');
-    this.testState.testIsPlaying = false;
-    this.testState.isTestRunning = true;
-
-    // AudioSystemの設定を更新
-    this.audioSystem.updateSettings({
-      frequency: settings.frequency,
-      volume: settings.volume,
-      wpm: settings.characterSpeed,
-      effectiveWpm: settings.effectiveSpeed
-    });
-
-    this.render();
-    this.renderTestPractice();
-  }
-
   private async startCustom(): Promise<void> {
     const settings = KochSettings.getAll();
     const chars = Array.from(this.customState.selectedChars);
@@ -834,51 +736,6 @@ export class KochTrainer implements ModeController {
 
     this.render();
     this.renderCustomPractice();
-  }
-
-  private renderTestPractice(): void {
-    const container = document.getElementById('testPracticeContainer');
-    if (!container) return;
-
-    const settings = KochSettings.getAll();
-    const chars = getCharsForLesson(this.testState.selectedLesson);
-
-    container.innerHTML = `
-      <div class="practice-area">
-        <div class="progress-section">
-          <div class="progress-bar-container">
-            <div id="testProgressBar" class="progress-bar" style="width: 0%"></div>
-          </div>
-          <div id="testProgress" class="progress-text">準備完了 - 再生ボタンを押してください</div>
-        </div>
-
-        <div class="playback-controls">
-          <button id="testPlayBtn" class="control-btn" title="再生">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </button>
-          <button id="testPauseBtn" class="control-btn" title="一時停止" disabled>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-            </svg>
-          </button>
-          <button id="testStopBtn" class="control-btn" title="停止">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="6" y="6" width="12" height="12"/>
-            </svg>
-          </button>
-        </div>
-
-        ${settings.showInput ? `
-          <textarea id="testInputArea" class="input-area" placeholder="聞こえた文字を入力してください..."></textarea>
-        ` :''}
-
-        <button id="testSubmitBtn" class="btn primary">採点</button>
-      </div>
-    `;
-
-    this.setupTestControls();
   }
 
   private renderCustomPractice(): void {
@@ -923,42 +780,6 @@ export class KochTrainer implements ModeController {
     `;
 
     this.setupCustomControls();
-  }
-
-  private setupTestControls(): void {
-    // 入力欄のイベントリスナー
-    const inputEl = document.getElementById('testInputArea') as HTMLTextAreaElement;
-    if (inputEl) {
-      inputEl.addEventListener('input', (e) => {
-        this.testState.testUserInput = (e.target as HTMLTextAreaElement).value.toUpperCase();
-      });
-    }
-
-    // 再生ボタン
-    document.getElementById('testPlayBtn')?.addEventListener('click', () => {
-      this.playTestMorse();
-    });
-
-    // 一時停止ボタン
-    document.getElementById('testPauseBtn')?.addEventListener('click', () => {
-      this.pauseTestMorse();
-    });
-
-    // 停止ボタン
-    document.getElementById('testStopBtn')?.addEventListener('click', () => {
-      this.stopTest();
-    });
-
-    // 採点ボタン
-    document.getElementById('testSubmitBtn')?.addEventListener('click', () => {
-      const inputEl = document.getElementById('testInputArea') as HTMLTextAreaElement;
-      if (inputEl) {
-        this.testState.testUserInput = inputEl.value.toUpperCase();
-      }
-      this.checkTestAnswer();
-    });
-
-    this.updateTestPlaybackButtons();
   }
 
   private setupCustomControls(): void {
@@ -1093,111 +914,6 @@ export class KochTrainer implements ModeController {
 
     document.getElementById('backToCustomMenuBtn')?.addEventListener('click', () => {
       this.customState.isCustomRunning = false;
-      this.render();
-    });
-  }
-
-  private async playTestMorse(): Promise<void> {
-    if (this.testState.testIsPlaying) return;
-
-    this.testState.testIsPlaying = true;
-    this.testState.testCurrentGroupIndex = 0;
-    this.updateTestProgress();
-    this.updateTestPlaybackButtons();
-
-    // モールス信号を再生
-    for (let i = 0; i < this.testState.testGroups.length && this.testState.testIsPlaying; i++) {
-      const group = this.testState.testGroups[i];
-      const morse = MorseCode.textToMorse(group);
-      await this.audioSystem.playMorseString(morse +' /');
-
-      this.testState.testCurrentGroupIndex = i + 1;
-      this.updateTestProgress();
-    }
-
-    this.testState.testIsPlaying = false;
-    this.updateTestPlaybackButtons();
-  }
-
-  private pauseTestMorse(): void {
-    this.testState.testIsPlaying = false;
-    this.audioSystem.stopPlaying();
-    this.updateTestPlaybackButtons();
-  }
-
-  private stopTest(): void {
-    this.testState.testIsPlaying = false;
-    this.audioSystem.stopPlaying();
-    this.testState.isTestRunning = false;
-    this.render();
-  }
-
-  private updateTestProgress(): void {
-    const progressEl = document.getElementById('testProgress');
-    const progressBar = document.getElementById('testProgressBar');
-
-    if (progressEl && progressBar) {
-      const percent = (this.testState.testCurrentGroupIndex / this.testState.testGroups.length) * 100;
-      progressEl.textContent = `進行: ${this.testState.testCurrentGroupIndex}/${this.testState.testGroups.length} (${percent.toFixed(0)}%)`;
-      progressBar.style.width = `${percent}%`;
-    }
-
-    this.updateTestPlaybackButtons();
-  }
-
-  private updateTestPlaybackButtons(): void {
-    const playBtn = document.getElementById('testPlayBtn') as HTMLButtonElement;
-    const pauseBtn = document.getElementById('testPauseBtn') as HTMLButtonElement;
-
-    if (playBtn && pauseBtn) {
-      if (this.testState.testIsPlaying) {
-        playBtn.disabled = true;
-        pauseBtn.disabled = false;
-      } else {
-        playBtn.disabled = false;
-        pauseBtn.disabled = true;
-      }
-    }
-  }
-
-  private checkTestAnswer(): void {
-    const resultContainer = document.getElementById('testResultContainer');
-    if (!resultContainer) return;
-
-    const userAnswer = this.testState.testUserInput.replace(/\s+/g,'');
-    const correctAnswer = this.testState.testCorrectAnswer.replace(/\s+/g,'');
-
-    let correct = 0;
-    const maxLen = Math.max(userAnswer.length, correctAnswer.length);
-    for (let i = 0; i < maxLen; i++) {
-      if (userAnswer[i] === correctAnswer[i]) correct++;
-    }
-    const accuracy = maxLen > 0 ? Math.round((correct / maxLen) * 100) : 0;
-    const passed = accuracy >= 90;
-
-    resultContainer.innerHTML = `
-      <div class="result ${passed ?'passed' :'failed'}">
-        <h2>${passed ?'合格!' :'不合格'}</h2>
-        <div class="accuracy">正答率: ${accuracy}%</div>
-        <div class="comparison">
-          <div>正解: ${correctAnswer}</div>
-          <div>あなたの解答: ${userAnswer}</div>
-        </div>
-        <div class="actions">
-          <button id="retryTestBtn" class="btn">もう一度</button>
-          <button id="backToTestMenuBtn" class="btn primary">戻る</button>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('retryTestBtn')?.addEventListener('click', () => {
-      this.testState.isTestRunning = false;
-      this.render();
-      this.startTest();
-    });
-
-    document.getElementById('backToTestMenuBtn')?.addEventListener('click', () => {
-      this.testState.isTestRunning = false;
       this.render();
     });
   }
