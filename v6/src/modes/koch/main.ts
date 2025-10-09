@@ -918,7 +918,7 @@ export class KochTrainer implements ModeController {
           <textarea id="customInputArea" class="input-area" placeholder="聞こえた文字を入力してください..."></textarea>
         ` :''}
 
-        <button id="customEndBtn" class="btn">練習終了</button>
+        <button id="customEndBtn" class="btn primary">結果を見る</button>
       </div>
     `;
 
@@ -926,8 +926,30 @@ export class KochTrainer implements ModeController {
   }
 
   private setupTestControls(): void {
-    // 再生、一時停止、停止ボタンの実装は基本学習モードと同様
-    // 簡略化のため、基本実装のみ
+    // 入力欄のイベントリスナー
+    const inputEl = document.getElementById('testInputArea') as HTMLTextAreaElement;
+    if (inputEl) {
+      inputEl.addEventListener('input', (e) => {
+        this.testState.testUserInput = (e.target as HTMLTextAreaElement).value.toUpperCase();
+      });
+    }
+
+    // 再生ボタン
+    document.getElementById('testPlayBtn')?.addEventListener('click', () => {
+      this.playTestMorse();
+    });
+
+    // 一時停止ボタン
+    document.getElementById('testPauseBtn')?.addEventListener('click', () => {
+      this.pauseTestMorse();
+    });
+
+    // 停止ボタン
+    document.getElementById('testStopBtn')?.addEventListener('click', () => {
+      this.stopTest();
+    });
+
+    // 採点ボタン
     document.getElementById('testSubmitBtn')?.addEventListener('click', () => {
       const inputEl = document.getElementById('testInputArea') as HTMLTextAreaElement;
       if (inputEl) {
@@ -935,13 +957,207 @@ export class KochTrainer implements ModeController {
       }
       this.checkTestAnswer();
     });
+
+    this.updateTestPlaybackButtons();
   }
 
   private setupCustomControls(): void {
+    // 入力欄のイベントリスナー
+    const inputEl = document.getElementById('customInputArea') as HTMLTextAreaElement;
+    if (inputEl) {
+      inputEl.addEventListener('input', (e) => {
+        this.customState.customUserInput = (e.target as HTMLTextAreaElement).value.toUpperCase();
+      });
+    }
+
+    // 再生ボタン
+    document.getElementById('customPlayBtn')?.addEventListener('click', () => {
+      this.playCustomMorse();
+    });
+
+    // 一時停止ボタン
+    document.getElementById('customPauseBtn')?.addEventListener('click', () => {
+      this.pauseCustomMorse();
+    });
+
+    // 停止ボタン
+    document.getElementById('customStopBtn')?.addEventListener('click', () => {
+      this.stopCustom();
+    });
+
+    // 練習終了ボタン
     document.getElementById('customEndBtn')?.addEventListener('click', () => {
+      this.showCustomResult();
+    });
+
+    this.updateCustomPlaybackButtons();
+  }
+
+  private async playCustomMorse(): Promise<void> {
+    if (this.customState.customIsPlaying) return;
+
+    this.customState.customIsPlaying = true;
+    this.customState.customCurrentGroupIndex = 0;
+    this.updateCustomProgress();
+    this.updateCustomPlaybackButtons();
+
+    // モールス信号を再生
+    for (let i = 0; i < this.customState.customGroups.length && this.customState.customIsPlaying; i++) {
+      const group = this.customState.customGroups[i];
+      const morse = MorseCode.textToMorse(group);
+      await this.audioSystem.playMorseString(morse +' /');
+
+      this.customState.customCurrentGroupIndex = i + 1;
+      this.updateCustomProgress();
+    }
+
+    this.customState.customIsPlaying = false;
+    this.updateCustomPlaybackButtons();
+  }
+
+  private pauseCustomMorse(): void {
+    this.customState.customIsPlaying = false;
+    this.audioSystem.stopPlaying();
+    this.updateCustomPlaybackButtons();
+  }
+
+  private stopCustom(): void {
+    this.customState.customIsPlaying = false;
+    this.audioSystem.stopPlaying();
+    this.customState.isCustomRunning = false;
+    this.render();
+  }
+
+  private updateCustomProgress(): void {
+    const progressEl = document.getElementById('customProgress');
+    const progressBar = document.getElementById('customProgressBar');
+
+    if (progressEl && progressBar) {
+      const percent = (this.customState.customCurrentGroupIndex / this.customState.customGroups.length) * 100;
+      progressEl.textContent = `進行: ${this.customState.customCurrentGroupIndex}/${this.customState.customGroups.length} (${percent.toFixed(0)}%)`;
+      progressBar.style.width = `${percent}%`;
+    }
+
+    this.updateCustomPlaybackButtons();
+  }
+
+  private updateCustomPlaybackButtons(): void {
+    const playBtn = document.getElementById('customPlayBtn') as HTMLButtonElement;
+    const pauseBtn = document.getElementById('customPauseBtn') as HTMLButtonElement;
+
+    if (playBtn && pauseBtn) {
+      if (this.customState.customIsPlaying) {
+        playBtn.disabled = true;
+        pauseBtn.disabled = false;
+      } else {
+        playBtn.disabled = false;
+        pauseBtn.disabled = true;
+      }
+    }
+  }
+
+  private showCustomResult(): void {
+    const resultContainer = document.getElementById('customResultContainer');
+    if (!resultContainer) return;
+
+    const userAnswer = this.customState.customUserInput.replace(/\s+/g,'');
+    const correctAnswer = this.customState.customCorrectAnswer.replace(/\s+/g,'');
+
+    let correct = 0;
+    const maxLen = Math.max(userAnswer.length, correctAnswer.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (userAnswer[i] === correctAnswer[i]) correct++;
+    }
+    const accuracy = maxLen > 0 ? Math.round((correct / maxLen) * 100) : 0;
+
+    resultContainer.innerHTML = `
+      <div class="result">
+        <h2>練習結果</h2>
+        <div class="accuracy">正答率: ${accuracy}%</div>
+        <div class="comparison">
+          <div>送信: ${correctAnswer}</div>
+          <div>あなたの入力: ${userAnswer}</div>
+        </div>
+        <div class="actions">
+          <button id="retryCustomBtn" class="btn">もう一度</button>
+          <button id="backToCustomMenuBtn" class="btn primary">戻る</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('retryCustomBtn')?.addEventListener('click', () => {
+      this.customState.isCustomRunning = false;
+      this.render();
+      this.startCustom();
+    });
+
+    document.getElementById('backToCustomMenuBtn')?.addEventListener('click', () => {
       this.customState.isCustomRunning = false;
       this.render();
     });
+  }
+
+  private async playTestMorse(): Promise<void> {
+    if (this.testState.testIsPlaying) return;
+
+    this.testState.testIsPlaying = true;
+    this.testState.testCurrentGroupIndex = 0;
+    this.updateTestProgress();
+    this.updateTestPlaybackButtons();
+
+    // モールス信号を再生
+    for (let i = 0; i < this.testState.testGroups.length && this.testState.testIsPlaying; i++) {
+      const group = this.testState.testGroups[i];
+      const morse = MorseCode.textToMorse(group);
+      await this.audioSystem.playMorseString(morse +' /');
+
+      this.testState.testCurrentGroupIndex = i + 1;
+      this.updateTestProgress();
+    }
+
+    this.testState.testIsPlaying = false;
+    this.updateTestPlaybackButtons();
+  }
+
+  private pauseTestMorse(): void {
+    this.testState.testIsPlaying = false;
+    this.audioSystem.stopPlaying();
+    this.updateTestPlaybackButtons();
+  }
+
+  private stopTest(): void {
+    this.testState.testIsPlaying = false;
+    this.audioSystem.stopPlaying();
+    this.testState.isTestRunning = false;
+    this.render();
+  }
+
+  private updateTestProgress(): void {
+    const progressEl = document.getElementById('testProgress');
+    const progressBar = document.getElementById('testProgressBar');
+
+    if (progressEl && progressBar) {
+      const percent = (this.testState.testCurrentGroupIndex / this.testState.testGroups.length) * 100;
+      progressEl.textContent = `進行: ${this.testState.testCurrentGroupIndex}/${this.testState.testGroups.length} (${percent.toFixed(0)}%)`;
+      progressBar.style.width = `${percent}%`;
+    }
+
+    this.updateTestPlaybackButtons();
+  }
+
+  private updateTestPlaybackButtons(): void {
+    const playBtn = document.getElementById('testPlayBtn') as HTMLButtonElement;
+    const pauseBtn = document.getElementById('testPauseBtn') as HTMLButtonElement;
+
+    if (playBtn && pauseBtn) {
+      if (this.testState.testIsPlaying) {
+        playBtn.disabled = true;
+        pauseBtn.disabled = false;
+      } else {
+        playBtn.disabled = false;
+        pauseBtn.disabled = true;
+      }
+    }
   }
 
   private checkTestAnswer(): void {
