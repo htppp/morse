@@ -39,6 +39,7 @@ jobs:
             v4/src/package-lock.json
             v5/src/package-lock.json
             v6/src/package-lock.json
+            v7/src/package-lock.json
 
       - name: Build v3 (if v3/src exists)
         shell: bash
@@ -106,6 +107,23 @@ jobs:
             fi
           else
             echo "Skipping v6 build: no v6/src/package-lock.json found."
+          fi
+
+      - name: Build v7 (if v7/src exists)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ -f "v7/src/package-lock.json" ]; then
+            cd v7/src
+            npm ci
+            npm run build
+            cd -
+            # Copy built file to v7 root for GitHub Pages
+            if [ -f "v7/dist/index.html" ]; then
+              cp v7/dist/index.html v7/index.html
+            fi
+          else
+            echo "Skipping v7 build: no v7/src/package-lock.json found."
           fi
 
       - name: Upload Pages artifact
