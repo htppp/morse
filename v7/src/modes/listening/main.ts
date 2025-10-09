@@ -26,6 +26,7 @@ interface State {
 	userInput: string;
 	showResult: boolean;
 	showAnswer: boolean;
+	showDialogFormat: boolean;
 }
 
 export class ListeningTrainer implements ModeController {
@@ -36,7 +37,8 @@ export class ListeningTrainer implements ModeController {
 		isPlaying: false,
 		userInput: '',
 		showResult: false,
-		showAnswer: false
+		showAnswer: false,
+		showDialogFormat: false
 	};
 
 	constructor() {
@@ -216,10 +218,43 @@ export class ListeningTrainer implements ModeController {
 	private renderAnswer(): string {
 		if (!this.state.selectedTemplate) return '';
 
+		const isQSO = this.state.selectedTemplate.category === 'qso';
+		const content = this.state.selectedTemplate.content;
+
+		//! 対話形式ボタン（QSOの場合のみ表示）。
+		const dialogButton = isQSO
+			? `<button id="toggleDialogBtn" class="btn" style="margin-left: 10px;">${this.state.showDialogFormat ? '通常表示' : '対話形式で表示'}</button>`
+			: '';
+
+		//! 対話形式表示の生成。
+		let answerContent = '';
+		if (isQSO && this.state.showDialogFormat) {
+			//! BTで区切って話者別に表示。
+			const segments = content.split(/\s+BT\s+/);
+			answerContent = `
+				<table class="dialog-table">
+					<tbody>
+						${segments.map((segment, index) => {
+							const speaker = index % 2 === 0 ? 'A' : 'B';
+							return `
+								<tr>
+									<td class="speaker-cell">${speaker}</td>
+									<td class="content-cell">${segment.trim()}</td>
+								</tr>
+							`;
+						}).join('')}
+					</tbody>
+				</table>
+			`;
+		} else {
+			answerContent = `<div class="answer-text">${content}</div>`;
+		}
+
 		return `
 			<div class="answer-area">
-				<h3>正解</h3>
-				<div class="answer-text">${this.state.selectedTemplate.content}</div>
+				<h3 style="display: inline-block;">正解</h3>
+				${dialogButton}
+				${answerContent}
 			</div>
 		`;
 	}
@@ -268,6 +303,8 @@ export class ListeningTrainer implements ModeController {
 				//! 練習画面から一覧画面に戻る。
 				this.state.selectedTemplate = null;
 				this.state.showResult = false;
+				this.state.showAnswer = false;
+				this.state.showDialogFormat = false;
 				this.state.userInput = '';
 				this.audioSystem.stopPlaying();
 				this.render();
@@ -291,6 +328,7 @@ export class ListeningTrainer implements ModeController {
 					this.state.selectedTemplate = null;
 					this.state.showResult = false;
 					this.state.showAnswer = false;
+					this.state.showDialogFormat = false;
 					this.state.userInput = '';
 					this.render();
 				}
@@ -307,6 +345,7 @@ export class ListeningTrainer implements ModeController {
 						this.state.selectedTemplate = generateRandomQSO();
 						this.state.showResult = false;
 						this.state.showAnswer = false;
+						this.state.showDialogFormat = false;
 						this.state.userInput = '';
 						this.render();
 					} else {
@@ -315,6 +354,7 @@ export class ListeningTrainer implements ModeController {
 							this.state.selectedTemplate = template;
 							this.state.showResult = false;
 							this.state.showAnswer = false;
+							this.state.showDialogFormat = false;
 							this.state.userInput = '';
 							this.render();
 						}
@@ -357,6 +397,7 @@ export class ListeningTrainer implements ModeController {
 			this.state.selectedTemplate = null;
 			this.state.showResult = false;
 			this.state.showAnswer = false;
+			this.state.showDialogFormat = false;
 			this.state.userInput = '';
 			this.audioSystem.stopPlaying();
 			this.render();
@@ -401,6 +442,12 @@ export class ListeningTrainer implements ModeController {
 			this.state.showAnswer = !this.state.showAnswer;
 			this.render();
 		});
+
+		//! 対話形式切り替えボタン。
+		document.getElementById('toggleDialogBtn')?.addEventListener('click', () => {
+			this.state.showDialogFormat = !this.state.showDialogFormat;
+			this.render();
+		});
 	}
 
 	/**
@@ -437,6 +484,7 @@ export class ListeningTrainer implements ModeController {
 		this.state.userInput = '';
 		this.state.showResult = false;
 		this.state.showAnswer = false;
+		this.state.showDialogFormat = false;
 		this.render();
 	}
 
