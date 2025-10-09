@@ -236,7 +236,17 @@ export class ListeningTrainer implements ModeController {
 	private attachEventListeners(): void {
 		//! 戻るボタン。
 		document.getElementById('backBtn')?.addEventListener('click', () => {
-			window.location.href = './index.html';
+			if (this.state.selectedTemplate) {
+				//! 練習画面から一覧画面に戻る。
+				this.state.selectedTemplate = null;
+				this.state.showResult = false;
+				this.state.userInput = '';
+				this.audioSystem.stopPlaying();
+				this.render();
+			} else {
+				//! 一覧画面からメニュー画面に戻る。
+				window.location.href = './index.html';
+			}
 		});
 
 		//! 設定アイコン。
