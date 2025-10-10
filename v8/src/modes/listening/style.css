@@ -93,14 +93,17 @@
 
 /* 空の状態 */
 .empty-state {
-	text-align: center;
+	background: white;
+	border-radius: 12px;
 	padding: 60px 20px;
-	color: #666;
+	text-align: center;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .empty-state p {
 	font-size: 1.2rem;
 	margin-bottom: 20px;
+	color: #666;
 }
 
 /* 定型文リスト */
