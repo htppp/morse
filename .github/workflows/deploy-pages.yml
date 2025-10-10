@@ -136,9 +136,9 @@ jobs:
             npm ci
             npm run build
             cd -
-            # Copy built files to v8 root for GitHub Pages
-            if [ -f "v8/dist/index.html" ]; then
-              cp v8/dist/index.html v8/index.html
+            # Copy all built files to v8 root for GitHub Pages (PWA requires all assets)
+            if [ -d "v8/dist" ]; then
+              cp -r v8/dist/* v8/
             fi
           else
             echo "Skipping v8 build: no v8/src/package-lock.json found."
