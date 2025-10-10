@@ -60,6 +60,8 @@ export class KochTrainer implements ModeController {
       wpm: settings.characterSpeed
     });
     this.loadProgress();
+    this.loadViewMode();
+    this.loadSelectedChars();
     this.render();
   }
 
@@ -79,6 +81,46 @@ export class KochTrainer implements ModeController {
       localStorage.setItem('v4.koch.currentLesson', this.state.currentLesson.toString());
     } catch (error) {
       console.error('Failed to save progress:', error);
+    }
+  }
+
+  private loadViewMode(): void {
+    try {
+      const saved = localStorage.getItem('v8.koch.viewMode') as ViewMode | null;
+      if (saved && ['learning', 'custom'].includes(saved)) {
+        this.viewMode = saved;
+      }
+    } catch (error) {
+      console.error('Failed to load view mode:', error);
+    }
+  }
+
+  private saveViewMode(): void {
+    try {
+      localStorage.setItem('v8.koch.viewMode', this.viewMode);
+    } catch (error) {
+      console.error('Failed to save view mode:', error);
+    }
+  }
+
+  private loadSelectedChars(): void {
+    try {
+      const saved = localStorage.getItem('v8.koch.selectedChars');
+      if (saved) {
+        const chars = JSON.parse(saved) as string[];
+        this.customState.selectedChars = new Set(chars);
+      }
+    } catch (error) {
+      console.error('Failed to load selected chars:', error);
+    }
+  }
+
+  private saveSelectedChars(): void {
+    try {
+      const chars = Array.from(this.customState.selectedChars);
+      localStorage.setItem('v8.koch.selectedChars', JSON.stringify(chars));
+    } catch (error) {
+      console.error('Failed to save selected chars:', error);
     }
   }
 
@@ -411,6 +453,7 @@ export class KochTrainer implements ModeController {
         const tab = btn.getAttribute('data-tab') as ViewMode;
         if (tab) {
           this.viewMode = tab;
+          this.saveViewMode(); // タブ選択状態を保存
           this.render();
         }
       });
@@ -545,6 +588,7 @@ export class KochTrainer implements ModeController {
               } else {
                 this.customState.selectedChars.add(char);
               }
+              this.saveSelectedChars(); // 文字選択状態を保存
               this.render();
             }
           });

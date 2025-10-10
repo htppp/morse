@@ -38,7 +38,7 @@ const menuItems: MenuItem[] = [
 	{
 		id: 'koch',
 		title: 'コッホ法トレーニング',
-		description: '40文字を段階的に習得',
+		description: '41文字を段階的に習得',
 		icon: '🎓',
 		hash: '#koch',
 	},

@@ -81,7 +81,68 @@ export class FlashcardTrainer {
 		this.audioSystem = new AudioSystem();
 		this.loadProgress();
 		this.loadFilters();
+		this.loadViewState();
 		this.loadData();
+	}
+
+	/**
+	 * ビューモードと出題形式の状態を復元する関数。
+	 */
+	private loadViewState(): void {
+		try {
+			// ビューモードを復元
+			const savedViewMode = localStorage.getItem('v8.flashcard.viewMode') as ViewMode | null;
+			if (savedViewMode && ['browse', 'learn', 'exam'].includes(savedViewMode)) {
+				this.viewMode = savedViewMode;
+			}
+
+			// 学習モードの出題形式を復元
+			const savedLearnType = localStorage.getItem('v8.flashcard.learnQuestionType') as QuestionType | null;
+			if (savedLearnType && ['abbr-to-meaning', 'meaning-to-abbr', 'morse-to-abbr', 'morse-to-meaning'].includes(savedLearnType)) {
+				this.learnQuestionType = savedLearnType;
+			}
+
+			// 試験モードの出題形式を復元
+			const savedExamType = localStorage.getItem('v8.flashcard.questionType') as QuestionType | null;
+			if (savedExamType && ['abbr-to-meaning', 'meaning-to-abbr', 'morse-to-abbr', 'morse-to-meaning'].includes(savedExamType)) {
+				this.questionType = savedExamType;
+			}
+		} catch (error) {
+			console.error('Failed to load view state:', error);
+		}
+	}
+
+	/**
+	 * ビューモードを保存する関数。
+	 */
+	private saveViewMode(): void {
+		try {
+			localStorage.setItem('v8.flashcard.viewMode', this.viewMode);
+		} catch (error) {
+			console.error('Failed to save view mode:', error);
+		}
+	}
+
+	/**
+	 * 学習モードの出題形式を保存する関数。
+	 */
+	private saveLearnQuestionType(): void {
+		try {
+			localStorage.setItem('v8.flashcard.learnQuestionType', this.learnQuestionType);
+		} catch (error) {
+			console.error('Failed to save learn question type:', error);
+		}
+	}
+
+	/**
+	 * 試験モードの出題形式を保存する関数。
+	 */
+	private saveExamQuestionType(): void {
+		try {
+			localStorage.setItem('v8.flashcard.questionType', this.questionType);
+		} catch (error) {
+			console.error('Failed to save exam question type:', error);
+		}
 	}
 
 	private async loadData(): Promise<void> {
@@ -489,9 +550,11 @@ export class FlashcardTrainer {
 				const tab = btn.getAttribute('data-tab');
 				if (tab === 'learn') {
 					this.viewMode = 'learn';
+					this.saveViewMode();
 					this.render();
 				} else if (tab === 'exam') {
 					this.viewMode = 'exam';
+					this.saveViewMode();
 					this.render();
 				}
 				// browseはすでに表示中なので何もしない
@@ -1001,6 +1064,7 @@ export class FlashcardTrainer {
 				const type = btn.getAttribute('data-type') as QuestionType | null;
 				if (type) {
 					this.learnQuestionType = type;
+					this.saveLearnQuestionType();
 					this.render();
 				}
 			});
@@ -1487,6 +1551,7 @@ export class FlashcardTrainer {
 				const type = btn.getAttribute('data-type') as QuestionType;
 				if (type) {
 					this.questionType = type;
+					this.saveExamQuestionType();
 					this.render();
 				}
 			});
