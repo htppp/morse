@@ -808,10 +808,10 @@ npm run build
 ## 進捗管理
 
 - [ ] Phase 1: ユニットテスト実装
-  - [ ] 環境構築
-    - [ ] Vitest環境構築
-    - [ ] vitest.setup.ts作成（モック設定）
-    - [ ] package.json更新（テストスクリプト）
+  - [x] 環境構築
+    - [x] Vitest環境構築
+    - [x] vitest.setup.ts作成（モック設定）
+    - [x] package.json更新（テストスクリプト）
   - [ ] 優先度: 高
     - [ ] core/morse-code.test.ts
     - [ ] core/audio-system.test.ts

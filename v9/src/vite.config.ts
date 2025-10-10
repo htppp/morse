@@ -2,6 +2,29 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/mockData/*',
+        'main.ts', // エントリーポイント
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70
+      }
+    }
+  },
   root: '.',
   publicDir: '../public',
   base: './',
