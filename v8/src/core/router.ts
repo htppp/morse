@@ -3,6 +3,8 @@
  * ハッシュベースのルーティングを提供し、各モードのライフサイクルを管理する
  */
 
+import { escapeHtml } from './html-sanitizer';
+
 export type Route = 'menu' | 'vertical' | 'horizontal' | 'flashcard' | 'koch' | 'listening';
 
 export interface ModeController {
@@ -90,10 +92,13 @@ export class Router {
 		const app = document.getElementById('app');
 		if (!app) return;
 
+		// XSS対策: メッセージをエスケープ
+		const safeMessage = escapeHtml(message);
+
 		app.innerHTML = `
 			<div class="error-container">
 				<h2>エラー</h2>
-				<p>${message}</p>
+				<p>${safeMessage}</p>
 				<a href="#menu" class="btn">メニューに戻る</a>
 			</div>
 		`;

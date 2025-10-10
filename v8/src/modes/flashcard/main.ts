@@ -6,6 +6,7 @@ import './style.css';
 import { ModeController } from '../../core/router';
 import { AudioSystem } from '../../core/audio-system';
 import { MorseCode } from '../../core/morse-code';
+import { escapeHtml } from '../../core/html-sanitizer';
 
 interface FlashcardEntry {
 	tags: string;
@@ -536,19 +537,29 @@ export class FlashcardTrainer {
 			<div class="entries-list">
 				${this.filteredEntries
 					.map(
-						(entry) => `
-					<div class="entry-card ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${entry.abbreviation}">
+						(entry) => {
+							// XSS対策: TSVファイルから読み込んだデータをエスケープ
+							const safeAbbr = escapeHtml(entry.abbreviation);
+							const safeEnglish = escapeHtml(entry.english);
+							const safeJapanese = escapeHtml(entry.japanese);
+							const safeDescription = entry.description ? escapeHtml(entry.description) : '';
+							const safeExample = entry.example ? escapeHtml(entry.example) : '';
+							const safeTags = escapeHtml(entry.tags);
+
+							return `
+					<div class="entry-card ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${safeAbbr}">
 						<div class="entry-header">
-							<div class="entry-abbr">${this.formatAbbreviation(entry.abbreviation)}</div>
+							<div class="entry-abbr">${this.formatAbbreviation(safeAbbr)}</div>
 							<div class="entry-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</div>
 						</div>
-						<div class="entry-english">${entry.english}</div>
-						<div class="entry-japanese">${entry.japanese}</div>
-						${entry.description ? `<div class="entry-description">${entry.description}</div>` : ''}
-						${entry.example ? `<div class="entry-example">例: ${entry.example}</div>` : ''}
-						<div class="entry-tags">${entry.tags}</div>
+						<div class="entry-english">${safeEnglish}</div>
+						<div class="entry-japanese">${safeJapanese}</div>
+						${safeDescription ? `<div class="entry-description">${safeDescription}</div>` : ''}
+						${safeExample ? `<div class="entry-example">例: ${safeExample}</div>` : ''}
+						<div class="entry-tags">${safeTags}</div>
 					</div>
-				`
+				`;
+						}
 					)
 					.join('')}
 			</div>
@@ -594,21 +605,31 @@ export class FlashcardTrainer {
 					<tbody>
 						${this.filteredEntries
 							.map(
-								(entry) => `
+								(entry) => {
+									// XSS対策: TSVファイルから読み込んだデータをエスケープ
+									const safeAbbr = escapeHtml(entry.abbreviation);
+									const safeEnglish = escapeHtml(entry.english);
+									const safeJapanese = escapeHtml(entry.japanese);
+									const safeDescription = escapeHtml(entry.description);
+									const safeExample = escapeHtml(entry.example);
+									const safeTags = escapeHtml(entry.tags);
+
+									return `
 							<tr>
 								<td class="list-abbr">
-									<button class="abbr-play-btn ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${entry.abbreviation}">
-										${this.formatAbbreviation(entry.abbreviation)}
+									<button class="abbr-play-btn ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${safeAbbr}">
+										${this.formatAbbreviation(safeAbbr)}
 									</button>
 								</td>
-								<td class="list-english">${entry.english}</td>
-								<td class="list-japanese">${entry.japanese}</td>
+								<td class="list-english">${safeEnglish}</td>
+								<td class="list-japanese">${safeJapanese}</td>
 								<td class="list-frequency" title="使用頻度: ${entry.frequency}/5">${this.getFrequencyStars(entry.frequency)}</td>
-								<td class="list-tags">${entry.tags}</td>
-								<td class="list-description">${entry.description}</td>
-								<td class="list-example">${entry.example}</td>
+								<td class="list-tags">${safeTags}</td>
+								<td class="list-description">${safeDescription}</td>
+								<td class="list-example">${safeExample}</td>
 							</tr>
-						`
+						`;
+								}
 							)
 							.join('')}
 					</tbody>
