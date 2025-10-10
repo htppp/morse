@@ -30,7 +30,7 @@ this.audioSystem=new X({frequency:t.frequency,volume:t.volume,wpm:t.characterSpe
 					<h1>モールス信号聞き取り練習</h1>
 				</header>
 
-				<div class="category-tabs">
+				<div class="tabs">
 					${this.renderCategoryTabs()}
 				</div>
 
