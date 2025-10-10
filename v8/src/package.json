@@ -1,0 +1,20 @@
+{
+	"name": "morse-v5",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build && cp ../flashcard.tsv ../dist/",
+		"preview": "vite preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "Morse Code Training App v5 - Complete SPA version",
+	"devDependencies": {
+		"@types/node": "^24.6.2",
+		"typescript": "^5.9.3",
+		"vite": "^7.1.8",
+		"vite-plugin-singlefile": "^2.3.0"
+	}
+}
