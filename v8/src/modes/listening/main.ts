@@ -46,6 +46,12 @@ export class ListeningTrainer implements ModeController {
 		ListeningSettings.load();
 		const settings = ListeningSettings.getAll();
 
+		//! LocalStorageから最後に選択したカテゴリーを復元。
+		const savedCategory = localStorage.getItem('v8.listening.category') as CategoryType | null;
+		if (savedCategory && ['qso', 'text100', 'text200', 'text300', 'custom'].includes(savedCategory)) {
+			this.state.currentCategory = savedCategory;
+		}
+
 		//! AudioSystemを初期化。
 		this.audioSystem = new AudioSystem({
 			frequency: settings.frequency,
@@ -330,6 +336,8 @@ export class ListeningTrainer implements ModeController {
 					this.state.showAnswer = false;
 					this.state.showDialogFormat = false;
 					this.state.userInput = '';
+					//! LocalStorageに選択したカテゴリーを保存。
+					localStorage.setItem('v8.listening.category', category);
 					this.render();
 				}
 			});
