@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CW略語・Q符号学習 - モールス練習アプリ v4</title>
+  <title>CW略語・Q符号学習 - モールス練習アプリ</title>
   <script type="module" crossorigin>(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const n of document.querySelectorAll('link[rel="modulepreload"]'))s(n);new MutationObserver(n=>{for(const i of n)if(i.type==="childList")for(const r of i.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&s(r)}).observe(document,{childList:!0,subtree:!0});function e(n){const i={};return n.integrity&&(i.integrity=n.integrity),n.referrerPolicy&&(i.referrerPolicy=n.referrerPolicy),n.crossOrigin==="use-credentials"?i.credentials="include":n.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function s(n){if(n.ep)return;n.ep=!0;const i=e(n);fetch(n.href,i)}})();class p{constructor(t={frequency:750,volume:.7,wpm:20}){this.audioContext=null,this.currentOscillator=null,this.currentGain=null,this.isPlaying=!1,this.settings=t,this.loadSettings(),this.showAudioWarning(),this.init()}showAudioWarning(){if(document.getElementById("audio-init-warning"))return;const t=document.createElement("div");t.id="audio-init-warning",t.style.cssText=`
       position: fixed;
       top: 0;

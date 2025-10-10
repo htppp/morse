@@ -63,7 +63,7 @@ export class MenuPage implements ModeController {
 		app.innerHTML = `
 			<div class="container">
 				<header class="header">
-					<h1>モールス練習アプリ v7</h1>
+					<h1>モールス練習アプリ</h1>
 					<p class="subtitle">練習メニューを選択してください</p>
 				</header>
 
@@ -82,7 +82,7 @@ export class MenuPage implements ModeController {
 				</div>
 
 				<footer class="footer">
-					<p>モールス練習アプリ v7 - モールス信号聞き取り練習版</p>
+					<p>モールス練習アプリ - モールス信号聞き取り練習版</p>
 				</footer>
 			</div>
 		`;
