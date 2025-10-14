@@ -19,3 +19,8 @@ v4/src/dist/
 v7/src/node_modules/
 
 v8/src/node_modules/
+
+# v9 build artifacts
+v9/src/node_modules/
+v9/src/.vite/
+v9/src/dist/
