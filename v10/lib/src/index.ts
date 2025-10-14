@@ -1,0 +1,18 @@
+/**
+ * morse-engine - モールス信号エンジンライブラリ
+ *
+ * UI非依存のモールス信号処理エンジン
+ * 各種モールス信号練習機能のコアロジックを提供
+ *
+ * @packageDocumentation
+ */
+
+// コアモジュール
+export { MorseCodec } from './core/morse-codec';
+export { TimingCalculator } from './core/timing';
+export type { MorseTimings, TimingOptions } from './core/timing';
+export { MorseBuffer } from './core/buffer';
+export { TimerManager } from './core/timer';
+export type { TimerCallback } from './core/timer';
+export { AudioGenerator } from './core/audio-generator';
+export type { AudioSettings } from './core/audio-generator';
