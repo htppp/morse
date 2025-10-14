@@ -6,7 +6,8 @@
 import { vi } from 'vitest';
 
 // AudioContextのモック
-const mockOscillator = {
+// モックのファクトリー関数
+const createMockOscillator = () => ({
 	connect: vi.fn(),
 	start: vi.fn(),
 	stop: vi.fn(),
@@ -14,13 +15,13 @@ const mockOscillator = {
 	frequency: { value: 0 },
 	type: 'sine' as OscillatorType,
 	onended: null
-};
+});
 
-const mockGainNode = {
+const createMockGainNode = () => ({
 	connect: vi.fn(),
 	disconnect: vi.fn(),
 	gain: {
-		value: 0,
+		value: 0.7,
 		setValueAtTime: vi.fn(),
 		linearRampToValueAtTime: vi.fn(),
 		exponentialRampToValueAtTime: vi.fn(),
@@ -29,11 +30,11 @@ const mockGainNode = {
 		cancelScheduledValues: vi.fn(),
 		cancelAndHoldAtTime: vi.fn()
 	}
-};
+});
 
 const mockAudioContext = {
-	createOscillator: vi.fn(() => ({ ...mockOscillator })),
-	createGain: vi.fn(() => ({ ...mockGainNode })),
+	createOscillator: vi.fn(() => createMockOscillator()),
+	createGain: vi.fn(() => createMockGainNode()),
 	destination: {},
 	currentTime: 0,
 	resume: vi.fn().mockResolvedValue(undefined),

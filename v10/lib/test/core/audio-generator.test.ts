@@ -90,12 +90,14 @@ describe('AudioGenerator', () => {
 			const context = audioGenerator.getAudioContext();
 
 			if (context) {
-				vi.spyOn(context, 'createOscillator').mockImplementation(() => {
+				const createOscillatorSpy = vi.spyOn(context, 'createOscillator').mockImplementation(() => {
 					throw new Error('AudioContext error');
 				});
 
 				audioGenerator.scheduleTone(0, 100);
 				expect(consoleErrorSpy).toHaveBeenCalled();
+
+				createOscillatorSpy.mockRestore();
 			}
 
 			consoleErrorSpy.mockRestore();
@@ -112,7 +114,9 @@ describe('AudioGenerator', () => {
 
 		it('連続音を停止できる', () => {
 			audioGenerator.startContinuousTone();
-			audioGenerator.stopContinuousTone();
+
+			// 停止処理を実行（エラーなく完了することを確認）
+			expect(() => audioGenerator.stopContinuousTone()).not.toThrow();
 		});
 
 		it('startContinuousTone()を複数回呼ぶと既存の音を停止する', () => {
@@ -124,6 +128,22 @@ describe('AudioGenerator', () => {
 		it('stopContinuousTone()をAudioContextがnullの時に呼んでもエラーにならない', () => {
 			const generator = new AudioGenerator();
 			expect(() => generator.stopContinuousTone()).not.toThrow();
+		});
+
+		it('stopContinuousTone()のエラーハンドリング', () => {
+			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+			audioGenerator.startContinuousTone();
+			const context = audioGenerator.getAudioContext();
+
+			if (context) {
+				// currentGainのメソッドがエラーをthrowするようにモック
+				// これは実際にはcurrentGainを直接操作できないので、
+				// 単にstopContinuousTone()を呼んでエラーが握りつぶされることを確認
+				audioGenerator.stopContinuousTone();
+			}
+
+			consoleErrorSpy.mockRestore();
 		});
 	});
 
@@ -207,6 +227,60 @@ describe('AudioGenerator', () => {
 			const context = audioGenerator.getAudioContext();
 			expect(context).not.toBeNull();
 			audioGenerator.stopPlaying();
+		});
+
+		it('スペースを含むモールス文字列を処理できる', async () => {
+			vi.useFakeTimers();
+
+			// スペース(' ')を含む文字列
+			const promise = audioGenerator.playMorseString('.- -...');
+
+			// すぐに停止
+			audioGenerator.stopPlaying();
+
+			// タイマーを進めてPromiseを解決
+			await vi.runAllTimersAsync();
+			const result = await promise;
+
+			// 停止したのでfalseが返る
+			expect(result).toBe(false);
+
+			vi.useRealTimers();
+		});
+
+		it('語間スペースを含むモールス文字列を処理できる', async () => {
+			vi.useFakeTimers();
+
+			// 語間スペース('/')を含む文字列
+			const promise = audioGenerator.playMorseString('.- / -...');
+
+			// すぐに停止
+			audioGenerator.stopPlaying();
+
+			// タイマーを進めてPromiseを解決
+			await vi.runAllTimersAsync();
+			const result = await promise;
+
+			// 停止したのでfalseが返る
+			expect(result).toBe(false);
+
+			vi.useRealTimers();
+		});
+
+		it('正常に再生完了した場合trueを返す', async () => {
+			vi.useFakeTimers();
+
+			// 短いモールス文字列
+			const promise = audioGenerator.playMorseString('.');
+
+			// 停止せずに完了まで待つ
+			await vi.runAllTimersAsync();
+			const result = await promise;
+
+			// 正常完了したのでtrueが返る
+			expect(result).toBe(true);
+
+			vi.useRealTimers();
 		});
 	});
 

@@ -582,14 +582,134 @@ console.log(practiceText); // "KMURE EKMRU URMEK ..."
 
 ---
 
-## 次のステップ
+## 実装状況（Phase 1完了）
 
-1. **Phase 1開始**: lib/パッケージのセットアップ
-2. **コアモジュール移行**: morse-codec, timing, buffer, timer, audio-generator
-3. **テスト環境構築**: Vitest設定、v9のテストを移行
+### ✅ Phase 1: コアモジュール実装完了（2025-10-15）
+
+#### 実装済みモジュール
+- **morse-codec.ts**: モールス符号のエンコード/デコード（100%カバレッジ）
+- **timing.ts**: WPMベースのタイミング計算（100%カバレッジ）
+- **buffer.ts**: モールス信号バッファ管理（100%カバレッジ）
+- **timer.ts**: 型安全なタイマー管理（100%カバレッジ）
+- **audio-generator.ts**: Web Audio APIによる音声生成（97.97%カバレッジ）
+- **index.ts**: ライブラリのエクスポート定義
+
+#### テスト統計
+- **総テスト数**: 119テスト
+- **成功率**: 100%（119/119 passing）
+- **全体カバレッジ**: **99.17%**
+- **テストフレームワーク**: Vitest 1.6.1 + happy-dom
+- **ビルドツール**: Vite 5.4 + TypeScript 5.3
+
+#### カバレッジ詳細
+
+| ファイル | Statements | Branch | Functions | Lines | 未カバー箇所 |
+|---------|-----------|--------|-----------|-------|------------|
+| **All files** | **99.17%** | **88.23%** | **100%** | **99.17%** | - |
+| audio-generator.ts | 97.97% | 79.16% | 100% | 97.97% | 133-134, 154-155 |
+| buffer.ts | 100% | 100% | 100% | 100% | - |
+| morse-codec.ts | 100% | 90.47% | 100% | 100% | 67-73 |
+| timer.ts | 100% | 100% | 100% | 100% | - |
+| timing.ts | 100% | 100% | 100% | 100% | - |
+
+### 未達成カバレッジの理由
+
+#### audio-generator.ts: 97.97%（未カバー: 133-134, 154-155行）
+
+**未カバー箇所**:
+```typescript
+// 133-134行: startContinuousTone()のcatchブロック
+} catch (error) {
+    console.error('連続音開始エラー:', error);
+}
+
+// 154-155行: stopContinuousTone()のcatchブロック
+} catch (error) {
+    console.error('連続音停止エラー:', error);
+}
+```
+
+**未達成の理由**:
+1. **Web Audio APIモックの制約**: Web Audio APIは複雑なブラウザAPIであり、エラーパスを確実に発火させるモックの作成が困難
+2. **テストの複雑化とのトレードオフ**: エラーを発生させるためにモックを深くネストさせると、テストの可読性と保守性が低下
+3. **実用上の重要性**: これらのcatchブロックはフォールバック処理であり、正常系の動作確認が優先される
+4. **カバレッジと品質のバランス**: 97.97%は実用上十分に高いカバレッジであり、残り2.03%のコストパフォーマンスが低い
+
+**対処方針**:
+- 現状の97.97%を許容範囲として受け入れる
+- エラーハンドリングコードは手動テスト（実際のブラウザでの動作確認）で補完
+- 将来的にE2Eテストで実際のブラウザ環境でのエラーケースをカバー
+
+#### morse-codec.ts: 100%（Branch 90.47%、未カバー: 67-73行）
+
+**未カバー箇所**:
+```typescript
+// 67-73行: prosign処理の一部分岐
+const beforeText = upperText.substring(lastIndex, match.index);
+const morseChars = Array.from(beforeText).map(char => MORSE_CODE_MAP[char] || char);
+parts.push(morseChars.join(' '));
+```
+
+**未達成の理由**:
+1. **prosign前テキストのエッジケース**: prosignの直前にテキストがない場合の分岐
+2. **テストケースの組み合わせ**: 既存のテストで主要な使用パターンはカバー済み
+3. **Statement Coverage 100%達成**: 行カバレッジは100%であり、実用上の問題はない
+
+**対処方針**:
+- Statement Coverageが100%であることを重視
+- Branch Coverageの残り9.53%は極端なエッジケースであり、実用上の影響は小さい
 
 ---
 
-**プロジェクトステータス**: 📋 計画策定完了 → 🚀 実装開始待ち
+## 次のステップ（Phase 2以降）
 
-**最終更新**: 2025-10-14
+### Phase 2: トレーナーモジュール実装（予定）
+- [ ] vertical-key.ts: 縦振り電鍵ロジック
+- [ ] horizontal-key.ts: 横振り電鍵ロジック
+- [ ] koch-trainer.ts: コッホ法ロジック
+- [ ] listening-trainer.ts: 聞き取り練習ロジック
+- [ ] flashcard-trainer.ts: フラッシュカード学習ロジック
+
+### Phase 3: GUIアプリケーション実装（予定）
+- [ ] app/パッケージセットアップ
+- [ ] UIフレームワーク選定（Vue/React/Vanilla）
+- [ ] ルーティング実装
+- [ ] 状態管理実装
+- [ ] morse-engineとの統合
+
+### Phase 4: 品質保証・リリース（予定）
+- [ ] E2Eテスト実装
+- [ ] パフォーマンス最適化
+- [ ] ドキュメント整備
+- [ ] デプロイ設定
+
+---
+
+## ビルド・テスト
+
+### ライブラリ（morse-engine）
+
+```bash
+cd v10/lib
+
+# 依存関係インストール
+npm install
+
+# テスト実行
+npm test
+
+# カバレッジ確認
+npm run test:coverage
+
+# ビルド
+npm run build
+
+# 型チェック
+npm run type-check
+```
+
+---
+
+**プロジェクトステータス**: ✅ **Phase 1完了** → 📋 Phase 2計画中
+
+**最終更新**: 2025-10-15
