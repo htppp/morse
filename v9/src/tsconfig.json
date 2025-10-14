@@ -11,5 +11,6 @@
     "outDir": "./dist",
     "noEmit": true
   },
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "vitest.setup.ts", "node_modules"]
 }
