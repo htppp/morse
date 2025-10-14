@@ -20,10 +20,32 @@ export class Router {
 	private currentMode: Route = 'menu';
 	private currentController: ModeController | null = null;
 	private routes: Map<Route, ModeFactory> = new Map();
+	private hashChangeHandler: () => void;
 
 	constructor() {
 		// ハッシュ変更イベントをリッスン
-		window.addEventListener('hashchange', () => this.handleHashChange());
+		this.hashChangeHandler = () => this.handleHashChange();
+		window.addEventListener('hashchange', this.hashChangeHandler);
+	}
+
+	/**
+	 * クリーンアップ
+	 */
+	destroy(): void {
+		// イベントリスナーを削除
+		window.removeEventListener('hashchange', this.hashChangeHandler);
+
+		// 現在のコントローラーをクリーンアップ
+		if (this.currentController) {
+			this.currentController.destroy();
+			this.currentController = null;
+		}
+
+		// ルートをクリア
+		this.routes.clear();
+
+		// 現在のモードをリセット
+		this.currentMode = 'menu';
 	}
 
 	/**
