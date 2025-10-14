@@ -41,9 +41,9 @@ export class VerticalKeyTrainer extends TrainerBase {
 
     this.audioSystem.stopContinuousTone();
 
-    // dot/dashの判定（v8互換：dashを閾値として使用）
+    // dot/dashの判定: 2dot相当を閾値とする
     const timings = this.getTimings(true);
-    const signal = duration < timings.dash ? '.' : '-';
+    const signal = duration < timings.dot * 2 ? '.' : '-';
     this.bufferManager.addElement(signal);
     this.updateDisplay();
     this.setupCharWordTimers();

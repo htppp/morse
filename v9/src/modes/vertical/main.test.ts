@@ -375,6 +375,124 @@ describe('VerticalKeyTrainer', () => {
 		});
 	});
 
+	describe('dot/dash判定の閾値テスト（2dot相当）', () => {
+		it('WPM=20で119ms押下時はdotと判定される', () => {
+			Settings.set('wpm', 20);
+			const morseKey = document.getElementById('morseKey');
+
+			// 119ms押下（2dot未満 = 120ms未満）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(119);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dotが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('.');
+			expect(morseDisplay!.textContent).not.toContain('-');
+		});
+
+		it('WPM=20で120ms押下時はdashと判定される', () => {
+			Settings.set('wpm', 20);
+			const morseKey = document.getElementById('morseKey');
+
+			// 120ms押下（2dot = 120ms）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(120);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dashが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('-');
+			expect(morseDisplay!.textContent).not.toContain('.');
+		});
+
+		it('WPM=20で121ms押下時はdashと判定される', () => {
+			Settings.set('wpm', 20);
+			const morseKey = document.getElementById('morseKey');
+
+			// 121ms押下（2dotより長い）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(121);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dashが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('-');
+			expect(morseDisplay!.textContent).not.toContain('.');
+		});
+
+		it('WPM=30で79ms押下時はdotと判定される', () => {
+			Settings.set('wpm', 30);
+			const morseKey = document.getElementById('morseKey');
+
+			// WPM=30: unit=40ms, 2dot=80ms
+			// 79ms押下（2dot未満）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(79);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dotが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('.');
+			expect(morseDisplay!.textContent).not.toContain('-');
+		});
+
+		it('WPM=30で80ms押下時はdashと判定される', () => {
+			Settings.set('wpm', 30);
+			const morseKey = document.getElementById('morseKey');
+
+			// WPM=30: unit=40ms, 2dot=80ms
+			// 80ms押下（2dot）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(80);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dashが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('-');
+			expect(morseDisplay!.textContent).not.toContain('.');
+		});
+
+		it('WPM=10で239ms押下時はdotと判定される', () => {
+			Settings.set('wpm', 10);
+			const morseKey = document.getElementById('morseKey');
+
+			// WPM=10: unit=120ms, 2dot=240ms
+			// 239ms押下（2dot未満）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(239);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dotが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('.');
+			expect(morseDisplay!.textContent).not.toContain('-');
+		});
+
+		it('WPM=10で240ms押下時はdashと判定される', () => {
+			Settings.set('wpm', 10);
+			const morseKey = document.getElementById('morseKey');
+
+			// WPM=10: unit=120ms, 2dot=240ms
+			// 240ms押下（2dot）
+			morseKey!.dispatchEvent(new MouseEvent('mousedown'));
+			vi.advanceTimersByTime(240);
+			morseKey!.dispatchEvent(new MouseEvent('mouseup'));
+			vi.advanceTimersByTime(1);
+
+			// dashが入力されている
+			const morseDisplay = document.getElementById('morseDisplay');
+			expect(morseDisplay!.textContent).toContain('-');
+			expect(morseDisplay!.textContent).not.toContain('.');
+		});
+	});
+
 	describe('エッジケース', () => {
 		it('重複したキーダウンイベントを無視する', () => {
 			const morseKey = document.getElementById('morseKey');

@@ -99,7 +99,8 @@ export class VerticalKeyTrainer implements ModeController {
     this.audioSystem.stopContinuousTone();
 
     const timings = this.getTimings();
-    const signal = duration < timings.dash ? '.' : '-';
+    // dot/dash判定: 2dot相当を閾値とする
+    const signal = duration < timings.dot * 2 ? '.' : '-';
     this.sequence += signal;
     this.updateDisplay();
     this.setTimers();
