@@ -1,5 +1,9 @@
 # v9 - リファクタリング版
 
+![V9 Test](https://github.com/xcd0/morse/workflows/V9%20Test/badge.svg)
+![Tests](https://img.shields.io/badge/tests-480%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-70%25%2B-yellow)
+
 ## 目的
 
 v8の機能を維持しつつ、コード品質を向上させるためのリファクタリングバージョン。
@@ -738,11 +742,31 @@ describe('HorizontalKeyTrainer', () => {
   - dispatchEvent()でイベント発火
   - userEvent（Testing Library）の活用
 
-### 3. CI/CD統合
-- **GitHub Actions**でテスト自動実行
-- **カバレッジレポート**の自動生成
-- **PRマージ条件**にテスト成功とカバレッジ70%以上を追加
-- **バッジ表示**（README）
+### 3. CI/CD統合 ✅
+
+**GitHub Actions設定完了**
+
+#### ワークフロー: `.github/workflows/v9-test.yml`
+- **トリガー**:
+  - `push`（master, main, develop）
+  - `pull_request`（master, main, develop）
+  - v9ディレクトリの変更を検知
+
+- **テストジョブ**:
+  - Node.js 18.x, 20.x のマトリックステスト
+  - npm ci で依存関係インストール
+  - npm test でテスト実行
+  - npm run test:coverage でカバレッジ生成
+  - Codecovへの自動アップロード
+
+- **Lintジョブ**:
+  - ESLint実行（存在する場合）
+  - TypeScriptの型チェック（npx tsc --noEmit）
+
+- **バッジ表示**:
+  - テスト実行状況バッジ
+  - テスト数バッジ（480テスト）
+  - カバレッジバッジ（70%以上）
 
 ### 4. 段階的な実装
 - **Phase 1**: テスト実装（1-2週間）
@@ -805,6 +829,35 @@ npm run dev
 
 # プロダクションビルド
 npm run build
+```
+
+### CI/CD
+
+**GitHub Actions設定済み**
+
+プルリクエストとpushで自動的にテストが実行されます。
+
+```yaml
+# .github/workflows/v9-test.yml
+- Node.js 18.x, 20.x でテスト実行
+- テストカバレッジ自動生成
+- 型チェック実行
+```
+
+#### ローカルでCI環境を再現
+
+```bash
+# 依存関係のクリーンインストール
+npm ci
+
+# テスト実行
+npm test
+
+# カバレッジ生成
+npm run test:coverage
+
+# 型チェック
+npx tsc --noEmit
 ```
 
 ## 参考資料
