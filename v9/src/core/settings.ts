@@ -52,4 +52,8 @@ export class Settings {
   static getAll(): SettingsData {
     return { ...this.settings };
   }
+
+  static reset(): void {
+    this.settings = { ...this.defaultSettings };
+  }
 }

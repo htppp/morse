@@ -13,9 +13,12 @@
  * // → '&lt;script&gt;alert("XSS")&lt;/script&gt;'
  */
 export function escapeHtml(text: string): string {
-	const div = document.createElement('div');
-	div.textContent = text;
-	return div.innerHTML;
+	return text
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#x27;');
 }
 
 /**
