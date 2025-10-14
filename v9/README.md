@@ -28,7 +28,7 @@ v8の機能を維持しつつ、コード品質を向上させるためのリフ
 ### 2. リリース状態
 - **v9が正式版に昇格**: 2025-10-14
 - rootのindex.htmlがv9にリダイレクト
-- https://xcd0.github.io/morse/ で直接アクセス可能
+- https://morse.hato.life/ で直接アクセス可能
 
 ## v8のコード品質評価（現状）
 
@@ -51,7 +51,7 @@ v8の動作を正として、**v8の全機能を網羅的にテスト**する。
 ### Phase 3: 正式版リリース ✅ 完了（2025-10-14）
 - rootのindex.htmlがv9にリダイレクト
 - 縦振り電鍵のdot/dash判定閾値を2dot相当に改善
-- https://xcd0.github.io/morse/ で公開中
+- https://morse.hato.life/ で公開中
 
 ## v8の全機能リスト（テスト項目マッピング）
 
@@ -893,7 +893,7 @@ masterブランチへのpushで自動的にビルド・デプロイされます�
 - v9/src でビルド実行（npm ci && npm run build）
 - ビルド成果物を v9/ にコピー
 - GitHub Pages にデプロイ
-- 公開URL: https://xcd0.github.io/morse/v9/
+- 公開URL: https://morse.hato.life/
 ```
 
 **ビルドプロセス**:
