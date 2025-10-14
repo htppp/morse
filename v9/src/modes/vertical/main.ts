@@ -4,7 +4,6 @@
 
 import { MorseCode } from '../../core/morse-code';
 import { Settings } from '../../core/settings';
-import { TimingCalculator } from '../../core/timing-calculator';
 import { TrainerBase } from '../base/trainer-base';
 import './style.css';
 
@@ -42,9 +41,9 @@ export class VerticalKeyTrainer extends TrainerBase {
 
     this.audioSystem.stopContinuousTone();
 
-    // dot/dashの判定にTimingCalculatorを使用
+    // dot/dashの判定（v8互換：dashを閾値として使用）
     const timings = this.getTimings(true);
-    const signal = TimingCalculator.classifyElement(duration, timings.dot);
+    const signal = duration < timings.dash ? '.' : '-';
     this.bufferManager.addElement(signal);
     this.updateDisplay();
     this.setupCharWordTimers();
