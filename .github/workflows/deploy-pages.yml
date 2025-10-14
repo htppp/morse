@@ -41,6 +41,7 @@ jobs:
             v6/src/package-lock.json
             v7/src/package-lock.json
             v8/src/package-lock.json
+            v9/src/package-lock.json
 
       - name: Build v3 (if v3/src exists)
         shell: bash
@@ -142,6 +143,23 @@ jobs:
             fi
           else
             echo "Skipping v8 build: no v8/src/package-lock.json found."
+          fi
+
+      - name: Build v9 (if v9/src exists)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ -f "v9/src/package-lock.json" ]; then
+            cd v9/src
+            npm ci
+            npm run build
+            cd -
+            # Copy all built files to v9 root for GitHub Pages (PWA requires all assets)
+            if [ -d "v9/dist" ]; then
+              cp -r v9/dist/* v9/
+            fi
+          else
+            echo "Skipping v9 build: no v9/src/package-lock.json found."
           fi
 
       - name: Upload Pages artifact

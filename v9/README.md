@@ -835,6 +835,8 @@ npm run build
 
 **GitHub Actions設定済み**
 
+#### 1. テストワークフロー（v9-test.yml）
+
 プルリクエストとpushで自動的にテストが実行されます。
 
 ```yaml
@@ -844,13 +846,31 @@ npm run build
 - 型チェック実行
 ```
 
+#### 2. デプロイワークフロー（deploy-pages.yml）
+
+masterブランチへのpushで自動的にビルド・デプロイされます。
+
+```yaml
+# .github/workflows/deploy-pages.yml
+- v9/src でビルド実行（npm ci && npm run build）
+- ビルド成果物を v9/ にコピー
+- GitHub Pages にデプロイ
+- 公開URL: https://xcd0.github.io/morse/v9/
+```
+
+**ビルドプロセス**:
+1. `cd v9/src`
+2. `npm ci` - 依存関係のクリーンインストール
+3. `npm run build` - TypeScriptコンパイル + Viteビルド
+4. `cp -r v9/dist/* v9/` - ビルド成果物をv9/直下にコピー
+5. GitHub Pagesで`/v9/`として公開
+
 #### ローカルでCI環境を再現
 
 ```bash
-# 依存関係のクリーンインストール
+# テスト実行（v9/src）
+cd v9/src
 npm ci
-
-# テスト実行
 npm test
 
 # カバレッジ生成
@@ -858,6 +878,12 @@ npm run test:coverage
 
 # 型チェック
 npx tsc --noEmit
+
+# ビルド実行
+npm run build
+
+# ビルド結果確認
+ls -la ../dist/
 ```
 
 ## 参考資料
