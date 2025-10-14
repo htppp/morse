@@ -844,10 +844,10 @@ npm run build
 
 ### Phase 1 実装統計（2025-10-14）
 
-**全テスト実装完了！**
+**現在のテスト実装状況**
 
-- **総テスト数**: 358テスト（全14ファイル）
-  - **コアモジュール**:
+- **総テスト数**: 408テスト（全17ファイル）
+  - **コアモジュール**（8ファイル）:
     - core/morse-code: 49テスト
     - core/audio-system: 49テスト
     - core/settings: 32テスト
@@ -856,14 +856,17 @@ npm run build
     - core/buffer-manager: 22テスト
     - core/timing-calculator: 14テスト
     - core/router.integration: 14テスト
-  - **モードモジュール**:
+  - **モードモジュール**（9ファイル）:
     - modes/vertical: 23テスト
     - modes/horizontal: 18テスト
     - modes/flashcard: 17テスト
-    - modes/koch: 19テスト
-    - modes/listening: 17テスト
+    - modes/koch/main: 19テスト
+    - modes/koch/settings: 14テスト ✨
+    - modes/koch/koch-sequence: 24テスト ✨
+    - modes/listening/main: 17テスト
+    - modes/listening/settings: 12テスト ✨
     - modes/menu: 17テスト
-- **成功率**: 100% (358/358 passing)
+- **成功率**: 100% (408/408 passing)
 - **主要カバレッジ**:
   - core/morse-code: 100%
   - core/settings: 100%
@@ -882,11 +885,12 @@ npm run build
 
 ### Phase 2 実装統計（2025-10-14）
 
+**第1弾: 優先度 中・低のテスト**
 - **追加テスト数**: 137テスト
   - 優先度: 中のテスト: 53テスト
     - modes/flashcard: 17テスト
-    - modes/koch: 19テスト
-    - modes/listening: 17テスト
+    - modes/koch/main: 19テスト
+    - modes/listening/main: 17テスト
   - 優先度: 低のテスト: 31テスト
     - core/router.integration: 14テスト
     - modes/menu: 17テスト
@@ -896,11 +900,24 @@ npm run build
   - テストの安定性向上
   - イベントリスナーの適切な管理
 
+**第2弾: 未実装テスト発見と実装**
+- **追加テスト数**: 50テスト
+  - modes/koch/settings: 14テスト（LocalStorage設定管理）
+  - modes/listening/settings: 12テスト（LocalStorage設定管理）
+  - modes/koch/koch-sequence: 24テスト（ユーティリティ関数）
+- **残り未実装**: 2ファイル
+  - modes/base/trainer-base.ts（優先度: 高）
+  - modes/listening/templates.ts（優先度: 中）
+
 ---
 
 **作成日**: 2025-10-10
 **最終更新**: 2025-10-14
 **ベース**: v8（PWA版）
 **目標**: **v8の全機能を網羅的にテスト**、カバレッジ70%以上、コード品質A評価
-**Phase 1 完了**: 2025-10-14（221テスト実装、100%成功率）
-**全体完了**: 2025-10-14（**358テスト実装**、100%成功率、全14ファイル）
+
+**進捗**:
+- Phase 1 完了: 2025-10-14（221テスト実装、100%成功率）
+- Phase 2 第1弾完了: 2025-10-14（358テスト、100%成功率、全14ファイル）
+- Phase 2 第2弾完了: 2025-10-14（**408テスト**、100%成功率、全17ファイル）
+- **残り未実装**: 2ファイル（trainer-base, templates）
