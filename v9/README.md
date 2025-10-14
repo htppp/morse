@@ -1,8 +1,9 @@
 # v9 - リファクタリング版
 
 ![V9 Test](https://github.com/xcd0/morse/workflows/V9%20Test/badge.svg)
-![Tests](https://img.shields.io/badge/tests-480%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-487%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-70%25%2B-yellow)
+![Status](https://img.shields.io/badge/status-production-blue)
 
 ## 目的
 
@@ -12,6 +13,22 @@ v8の機能を維持しつつ、コード品質を向上させるためのリフ
 - v8の全機能を維持（PWA、オフライン対応、状態永続化など）
 - **v8の動作を正として、v8の全機能を網羅的にテスト**
 - テストカバレッジを確保した上でリファクタリングを実施
+
+## v9の改善点（v8からの変更）
+
+### 1. 縦振り電鍵のdot/dash判定閾値変更
+- **変更内容**: 判定閾値を3dot相当(dash長)から2dot相当に変更
+- **理由**: より自然な入力感覚を実現
+- **影響**:
+  - WPM=20: 180ms → 120ms
+  - WPM=30: 120ms → 80ms
+  - WPM=10: 360ms → 240ms
+- **テスト**: 境界値テスト7件追加（WPM=10/20/30の各閾値をテスト）
+
+### 2. リリース状態
+- **v9が正式版に昇格**: 2025-10-14
+- rootのindex.htmlがv9にリダイレクト
+- https://xcd0.github.io/morse/ で直接アクセス可能
 
 ## v8のコード品質評価（現状）
 
@@ -172,7 +189,11 @@ v8の動作を正として、**v8の全機能を網羅的にテスト**する。
 - [x] **クリア機能**
   - バッファのクリア
   - タイマーのクリア
-- **テスト**: 23テスト、92.06%カバレッジ
+- [x] **dot/dash判定の閾値テスト**（2dot相当）
+  - WPM=20: 119ms→dot、120ms→dash、121ms→dash
+  - WPM=30: 79ms→dot、80ms→dash
+  - WPM=10: 239ms→dot、240ms→dash
+- **テスト**: 30テスト、92.06%カバレッジ
 
 ### 3. 横振り電鍵（horizontal/main.ts） ✅（部分実装）
 
@@ -925,7 +946,7 @@ ls -la ../dist/
 
 **現在のテスト実装状況**
 
-- **総テスト数**: 480テスト（全19ファイル） ✅
+- **総テスト数**: 487テスト（全19ファイル） ✅
   - **コアモジュール**（8ファイル）:
     - core/morse-code: 49テスト
     - core/audio-system: 49テスト
@@ -936,7 +957,7 @@ ls -la ../dist/
     - core/timing-calculator: 14テスト
     - core/router.integration: 14テスト
   - **モードモジュール**（11ファイル）:
-    - modes/vertical: 23テスト
+    - modes/vertical: 30テスト（+7: 閾値境界値テスト） ✨
     - modes/horizontal: 18テスト
     - modes/flashcard: 17テスト
     - modes/koch/main: 19テスト
@@ -947,7 +968,7 @@ ls -la ../dist/
     - modes/listening/templates: 40テスト ✨✨
     - modes/menu: 17テスト
     - modes/base/trainer-base: 32テスト ✨✨
-- **成功率**: 100% (480/480 passing) ✅
+- **成功率**: 100% (487/487 passing) ✅
 - **主要カバレッジ**:
   - core/morse-code: 100%
   - core/settings: 100%
@@ -1003,6 +1024,16 @@ ls -la ../dist/
     - LocalStorageエラーハンドリング
 - **結果**: 全19ファイル実装完了、480テスト、100%成功率 🎉
 
+**第4弾: dot/dash判定閾値の変更とテスト追加** ✅
+- **コード変更**: v8とv9の縦振り電鍵の判定閾値を2dot相当に変更
+  - 変更前: `duration < timings.dash` (3dot相当)
+  - 変更後: `duration < timings.dot * 2` (2dot相当)
+- **追加テスト数**: 7テスト（modes/vertical/main.test.ts）
+  - WPM=20: 119ms→dot、120ms→dash、121ms→dash（3テスト）
+  - WPM=30: 79ms→dot、80ms→dash（2テスト）
+  - WPM=10: 239ms→dot、240ms→dash（2テスト）
+- **結果**: 全19ファイル、487テスト、100%成功率 🎉🎉
+
 ---
 
 **作成日**: 2025-10-10
@@ -1014,5 +1045,9 @@ ls -la ../dist/
 - Phase 1 完了: 2025-10-14（221テスト実装、100%成功率）
 - Phase 2 第1弾完了: 2025-10-14（358テスト、100%成功率、全14ファイル）
 - Phase 2 第2弾完了: 2025-10-14（408テスト、100%成功率、全17ファイル）
-- **Phase 2 第3弾完了: 2025-10-14（480テスト、100%成功率、全19ファイル）** ✅ 🎉
-- **全テスト実装完了！** すべてのソースファイルにテストが実装されました
+- Phase 2 第3弾完了: 2025-10-14（480テスト、100%成功率、全19ファイル） ✅ 🎉
+- **Phase 2 第4弾完了: 2025-10-14（487テスト、100%成功率）** ✅ 🎉
+- **v9正式版リリース: 2025-10-14** 🚀
+  - 全テスト実装完了
+  - dot/dash判定閾値を2dot相当に改善
+  - rootからv9へのリダイレクト設定完了
