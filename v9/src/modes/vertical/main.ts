@@ -1,78 +1,22 @@
 /**
- * 縦振り電鍵練習ページ
+ * 縦振り電鍵練習ページ（リファクタリング版）
  */
 
-import { AudioSystem } from '../../core/audio-system';
 import { MorseCode } from '../../core/morse-code';
 import { Settings } from '../../core/settings';
-import { ModeController } from '../../core/router';
+import { TimingCalculator } from '../../core/timing-calculator';
+import { TrainerBase } from '../base/trainer-base';
 import './style.css';
 
-export class VerticalKeyTrainer implements ModeController {
-  private audioSystem: AudioSystem;
+export class VerticalKeyTrainer extends TrainerBase {
   private keyDown: boolean = false;
   private keyDownTime: number = 0;
-  private buffer: string = '';
-  private sequence: string = '';
-  private charTimer: number | null = null;
-  private wordTimer: number | null = null;
 
   constructor() {
-    Settings.load();
-    const settings = Settings.getAll();
-    this.audioSystem = new AudioSystem({
-      frequency: settings.frequency,
-      volume: settings.volume,
-      wpm: settings.wpm
-    });
+    super();
     this.render();
     this.setupEventListeners();
     this.setupSettingsModal();
-  }
-
-  private getTimings() {
-    const unit = 1200 / Settings.get('wpm');
-    return {
-      dot: unit,
-      dash: unit * 3,
-      charGap: unit * 4 * 0.9,  // 10%短く（短い無入力期間も許容）
-      wordGap: unit * 7 * 0.9,  // 10%短く（短い無入力期間も許容）
-    };
-  }
-
-  private clearTimers(): void {
-    if (this.charTimer !== null) {
-      clearTimeout(this.charTimer);
-      this.charTimer = null;
-    }
-    if (this.wordTimer !== null) {
-      clearTimeout(this.wordTimer);
-      this.wordTimer = null;
-    }
-  }
-
-  private setTimers(): void {
-    this.clearTimers();
-    const timings = this.getTimings();
-
-    this.charTimer = window.setTimeout(() => {
-      if (this.sequence) {
-        this.buffer += this.sequence + ' ';
-        this.sequence = '';
-        this.updateDisplay();
-      }
-    }, timings.charGap);
-
-    this.wordTimer = window.setTimeout(() => {
-      if (this.sequence) {
-        this.buffer += this.sequence + ' ';
-        this.sequence = '';
-      }
-      if (!this.buffer.endsWith('/ ')) {
-        this.buffer += '/ ';
-      }
-      this.updateDisplay();
-    }, timings.wordGap);
   }
 
   private onKeyDown(): void {
@@ -80,11 +24,11 @@ export class VerticalKeyTrainer implements ModeController {
 
     this.keyDown = true;
     this.keyDownTime = Date.now();
-    this.clearTimers();
+    this.clearAllTimers();
 
     this.audioSystem.startContinuousTone();
 
-    const keyElement = document.getElementById('morseKey');
+    const keyElement = this.getElement('morseKey');
     if (keyElement) {
       keyElement.classList.add('pressed');
     }
@@ -98,29 +42,57 @@ export class VerticalKeyTrainer implements ModeController {
 
     this.audioSystem.stopContinuousTone();
 
-    const timings = this.getTimings();
-    const signal = duration < timings.dash ? '.' : '-';
-    this.sequence += signal;
+    // dot/dashの判定にTimingCalculatorを使用
+    const timings = this.getTimings(true);
+    const signal = TimingCalculator.classifyElement(duration, timings.dot);
+    this.bufferManager.addElement(signal);
     this.updateDisplay();
-    this.setTimers();
+    this.setupCharWordTimers();
 
-    const keyElement = document.getElementById('morseKey');
+    const keyElement = this.getElement('morseKey');
     if (keyElement) {
       keyElement.classList.remove('pressed');
     }
   }
 
-  private updateDisplay(): void {
+  /**
+   * 文字確定・語間スペースタイマーを設定する
+   */
+  private setupCharWordTimers(): void {
+    this.clearAllTimers();
+
+    // 文字確定タイマー
+    this.setCharTimer(() => {
+      if (this.bufferManager.getSequence()) {
+        this.bufferManager.commitSequence();
+        this.updateDisplay();
+      }
+    });
+
+    // 語間スペースタイマー
+    this.setWordTimer(() => {
+      if (this.bufferManager.getSequence()) {
+        this.bufferManager.commitSequence();
+      }
+      this.bufferManager.addWordSeparator();
+      this.updateDisplay();
+    });
+  }
+
+  protected updateDisplay(): void {
     let display = '';
-    if (this.buffer) {
-      display = this.buffer.trim();
+    const buffer = this.bufferManager.getBuffer();
+    const sequence = this.bufferManager.getSequence();
+
+    if (buffer) {
+      display = buffer.trim();
     }
-    if (this.sequence) {
+    if (sequence) {
       if (display) display += ' ';
-      display += `[${this.sequence}]`;
+      display += `[${sequence}]`;
     }
 
-    const morseDisplay = document.getElementById('morseDisplay');
+    const morseDisplay = this.getElement('morseDisplay');
     if (morseDisplay) {
       morseDisplay.textContent = display || '入力されたモールス信号';
     }
@@ -129,25 +101,25 @@ export class VerticalKeyTrainer implements ModeController {
   }
 
   private updateDecoded(): void {
-    const sequences = this.buffer.trim().split(/\s+/);
+    const buffer = this.bufferManager.getBuffer();
+    const sequences = buffer.trim().split(/\s+/);
     const decoded = MorseCode.morseSequencesToText(sequences);
 
-    const decodedOutput = document.getElementById('decodedOutput');
+    const decodedOutput = this.getElement('decodedOutput');
     if (decodedOutput) {
       decodedOutput.textContent = decoded || '解読された文字';
     }
   }
 
   private clear(): void {
-    this.buffer = '';
-    this.sequence = '';
-    this.clearTimers();
+    this.clearBuffer();
+    this.clearAllTimers();
     this.updateDisplay();
   }
 
   private setupEventListeners(): void {
     // マウス/タッチイベント
-    const morseKey = document.getElementById('morseKey');
+    const morseKey = this.getElement('morseKey');
     if (morseKey) {
       morseKey.addEventListener('mousedown', () => this.onKeyDown());
       morseKey.addEventListener('mouseup', () => this.onKeyUp());
@@ -168,13 +140,13 @@ export class VerticalKeyTrainer implements ModeController {
     }
 
     // クリアボタン
-    const clearBtn = document.getElementById('clearBtn');
+    const clearBtn = this.getElement('clearBtn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => this.clear());
     }
 
     // 戻るボタン
-    const backBtn = document.getElementById('backBtn');
+    const backBtn = this.getElement('backBtn');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
         window.location.hash = '#menu';
@@ -203,10 +175,10 @@ export class VerticalKeyTrainer implements ModeController {
   }
 
   private setupSettingsModal(): void {
-    const settingsIcon = document.getElementById('settingsIcon');
-    const settingsModal = document.getElementById('settingsModal');
-    const settingsCancel = document.getElementById('settingsCancel');
-    const settingsOK = document.getElementById('settingsOK');
+    const settingsIcon = this.getElement('settingsIcon');
+    const settingsModal = this.getElement('settingsModal');
+    const settingsCancel = this.getElement('settingsCancel');
+    const settingsOK = this.getElement('settingsOK');
 
     if (settingsIcon && settingsModal) {
       settingsIcon.addEventListener('click', () => {
@@ -240,17 +212,17 @@ export class VerticalKeyTrainer implements ModeController {
   private openSettingsModal(): void {
     const settings = Settings.getAll();
 
-    const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
-    const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
-    const frequencyInput = document.getElementById('frequencyInput') as HTMLInputElement;
-    const wpmInput = document.getElementById('wpmInput') as HTMLInputElement;
+    const volumeRange = this.getElement<HTMLInputElement>('volumeRange');
+    const volumeInput = this.getElement<HTMLInputElement>('volumeInput');
+    const frequencyInput = this.getElement<HTMLInputElement>('frequencyInput');
+    const wpmInput = this.getElement<HTMLInputElement>('wpmInput');
 
     if (volumeRange) volumeRange.value = String(settings.volume * 100);
     if (volumeInput) volumeInput.value = String(Math.round(settings.volume * 100));
     if (frequencyInput) frequencyInput.value = String(settings.frequency);
     if (wpmInput) wpmInput.value = String(settings.wpm);
 
-    const settingsModal = document.getElementById('settingsModal');
+    const settingsModal = this.getElement('settingsModal');
     if (settingsModal) {
       settingsModal.classList.add('active');
     }
@@ -269,19 +241,13 @@ export class VerticalKeyTrainer implements ModeController {
   }
 
   private applySettings(): void {
-    const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
-    const frequencyInput = document.getElementById('frequencyInput') as HTMLInputElement;
-    const wpmInput = document.getElementById('wpmInput') as HTMLInputElement;
+    const volume = this.getInputNumber('volumeInput', 70) / 100;
+    const frequency = this.getInputNumber('frequencyInput', 750);
+    const wpm = this.getInputNumber('wpmInput', 20);
 
-    if (volumeInput) {
-      Settings.set('volume', parseInt(volumeInput.value) / 100);
-    }
-    if (frequencyInput) {
-      Settings.set('frequency', parseInt(frequencyInput.value));
-    }
-    if (wpmInput) {
-      Settings.set('wpm', parseInt(wpmInput.value));
-    }
+    Settings.set('volume', volume);
+    Settings.set('frequency', frequency);
+    Settings.set('wpm', wpm);
 
     // AudioSystemの設定を更新
     const settings = Settings.getAll();
@@ -292,8 +258,8 @@ export class VerticalKeyTrainer implements ModeController {
     });
   }
 
-  private render(): void {
-    const app = document.getElementById('app');
+  render(): void {
+    const app = this.getElement('app');
     if (!app) return;
 
     const settings = Settings.getAll();
@@ -385,7 +351,7 @@ export class VerticalKeyTrainer implements ModeController {
    */
   destroy(): void {
     // タイマーをクリア
-    this.clearTimers();
+    this.clearAllTimers();
 
     // イベントリスナーは自動的に削除される(要素がDOMから削除されるため)
     // AudioSystemは次のモードで再利用される可能性があるため、

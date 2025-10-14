@@ -66,12 +66,20 @@ export class TimingCalculator {
 	/**
 	 * タイミング情報から文字確定までの待機時間を計算する
 	 *
+	 * vertical/main.tsでは element gap は既に経過しているため、
+	 * char gap のみを返す
+	 *
 	 * @param timings - モールス信号のタイミング情報
 	 * @returns 文字確定までの待機時間（ミリ秒）
 	 */
 	static getCharGapDelay(timings: MorseTimings): number {
-		// element gap + char gap = dot * 4
-		return timings.elementGap + timings.charGap;
+		// 元のコードでは unit * 4 * 0.9 = 216ms を使用
+		// これは element gap (60ms) + char gap (156ms) に相当
+		// charGap = unit * 3 * shortenFactor が正しいが、
+		// 元のコードとの互換性のため unit * 4 * shortenFactor を使用
+		const wpm = 1200 / timings.dot;
+		const shortenFactor = timings.charGap / (timings.dot * 3);
+		return timings.dot * 4 * shortenFactor;
 	}
 
 	/**

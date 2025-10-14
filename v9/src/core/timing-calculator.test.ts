@@ -68,7 +68,7 @@ describe('TimingCalculator', () => {
 			const timings = TimingCalculator.calculate(20);
 			const delay = TimingCalculator.getCharGapDelay(timings);
 
-			// element gap (60) + char gap (180) = 240
+			// unit * 4 = 60 * 4 = 240
 			expect(delay).toBe(240);
 		});
 
@@ -76,8 +76,8 @@ describe('TimingCalculator', () => {
 			const timings = TimingCalculator.calculate(20, { shortenGaps: true });
 			const delay = TimingCalculator.getCharGapDelay(timings);
 
-			// element gap (60) + char gap (162) = 222
-			expect(delay).toBe(222);
+			// unit * 4 * 0.9 = 60 * 4 * 0.9 = 216
+			expect(delay).toBe(216);
 		});
 	});
 
