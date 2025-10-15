@@ -1,0 +1,430 @@
+/**
+ * モールス練習アプリ v10 - グローバルスタイル
+ */
+
+/* リセット */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+:root {
+	--primary-color: #2c3e50;
+	--secondary-color: #3498db;
+	--accent-color: #e74c3c;
+	--success-color: #27ae60;
+	--bg-color: #ecf0f1;
+	--text-color: #2c3e50;
+	--border-color: #bdc3c7;
+	--shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	line-height: 1.6;
+}
+
+/* コンテナ */
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+/* メニュー画面 */
+.menu-header {
+	text-align: center;
+	margin-bottom: 40px;
+}
+
+.menu-header h1 {
+	font-size: 2.5rem;
+	color: var(--primary-color);
+	margin-bottom: 10px;
+}
+
+.menu-header .version {
+	color: #7f8c8d;
+	font-size: 0.9rem;
+}
+
+.menu-main {
+	margin-bottom: 40px;
+}
+
+.menu-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 20px;
+}
+
+.menu-item {
+	background: white;
+	border-radius: 8px;
+	padding: 30px;
+	box-shadow: var(--shadow);
+	cursor: pointer;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-item:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.menu-item-title {
+	font-size: 1.5rem;
+	color: var(--secondary-color);
+	margin-bottom: 10px;
+}
+
+.menu-item-description {
+	color: #7f8c8d;
+	font-size: 0.95rem;
+}
+
+.menu-footer {
+	text-align: center;
+	padding-top: 20px;
+	border-top: 1px solid var(--border-color);
+	color: #7f8c8d;
+	font-size: 0.9rem;
+}
+
+/* 共通ボタンスタイル */
+.btn {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 4px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.btn-primary {
+	background-color: var(--secondary-color);
+	color: white;
+}
+
+.btn-primary:hover {
+	background-color: #2980b9;
+}
+
+.btn-secondary {
+	background-color: #95a5a6;
+	color: white;
+}
+
+.btn-secondary:hover {
+	background-color: #7f8c8d;
+}
+
+/* ヘッダー */
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 2px solid var(--border-color);
+}
+
+.header h1 {
+	font-size: 2rem;
+	color: var(--primary-color);
+}
+
+.back-btn {
+	padding: 8px 16px;
+	background-color: var(--secondary-color);
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+	background-color: #2980b9;
+}
+
+/* 練習画面共通スタイル */
+.practice-container {
+	background: white;
+	border-radius: 8px;
+	padding: 30px;
+	box-shadow: var(--shadow);
+	margin-bottom: 20px;
+}
+
+/* 表示エリア */
+.display-area {
+	margin-bottom: 30px;
+}
+
+.display-section {
+	margin-bottom: 20px;
+}
+
+.display-section h3 {
+	font-size: 1.1rem;
+	color: var(--primary-color);
+	margin-bottom: 10px;
+}
+
+.display-output {
+	background-color: #f8f9fa;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	padding: 15px;
+	min-height: 60px;
+	font-family: 'Courier New', monospace;
+	font-size: 1.2rem;
+	color: var(--text-color);
+	word-wrap: break-word;
+}
+
+.display-output.morse-buffer {
+	letter-spacing: 2px;
+	font-size: 1.3rem;
+}
+
+/* ステータス表示 */
+.status-area {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px;
+	background-color: #f8f9fa;
+	border-radius: 4px;
+	margin-bottom: 20px;
+}
+
+.status-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.status-item .label {
+	font-size: 0.85rem;
+	color: #7f8c8d;
+	margin-bottom: 5px;
+}
+
+.status-item .value {
+	font-size: 1.3rem;
+	font-weight: bold;
+	color: var(--primary-color);
+}
+
+.status-item.active .value {
+	color: var(--success-color);
+}
+
+/* 設定パネル */
+.settings-panel {
+	background-color: #f8f9fa;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.settings-panel h3 {
+	font-size: 1.1rem;
+	color: var(--primary-color);
+	margin-bottom: 15px;
+}
+
+.setting-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.setting-row:last-child {
+	margin-bottom: 0;
+}
+
+.setting-row label {
+	font-size: 0.95rem;
+	color: var(--text-color);
+}
+
+.setting-row input[type="number"],
+.setting-row input[type="range"] {
+	width: 150px;
+}
+
+.setting-row input[type="range"] {
+	width: 200px;
+}
+
+.setting-row .value-display {
+	font-weight: bold;
+	min-width: 50px;
+	text-align: right;
+	color: var(--secondary-color);
+}
+
+/* アクションボタンエリア */
+.action-area {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+	margin-top: 20px;
+}
+
+.btn-large {
+	padding: 15px 30px;
+	font-size: 1.1rem;
+}
+
+.btn-success {
+	background-color: var(--success-color);
+	color: white;
+}
+
+.btn-success:hover {
+	background-color: #229954;
+}
+
+.btn-danger {
+	background-color: var(--accent-color);
+	color: white;
+}
+
+.btn-danger:hover {
+	background-color: #c0392b;
+}
+
+/* キー押下ボタン */
+.key-button-container {
+	display: flex;
+	justify-content: center;
+	margin: 30px 0;
+}
+
+.key-button {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	border: 4px solid var(--secondary-color);
+	background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+	color: white;
+	font-size: 1.5rem;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.1s ease;
+	box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: none;
+}
+
+.key-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.key-button:active,
+.key-button.pressed {
+	transform: translateY(2px);
+	background: linear-gradient(135deg, #2980b9 0%, #1f5f8b 100%);
+	box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+}
+
+.key-button .key-label {
+	display: block;
+	margin-top: 10px;
+	font-size: 0.9rem;
+	opacity: 0.9;
+}
+
+/* 使い方説明 */
+.instructions {
+	background-color: #e8f4f8;
+	border-left: 4px solid var(--secondary-color);
+	padding: 15px;
+	margin-bottom: 20px;
+	border-radius: 4px;
+}
+
+.instructions h3 {
+	font-size: 1.1rem;
+	color: var(--secondary-color);
+	margin-bottom: 10px;
+}
+
+.instructions ul {
+	margin-left: 20px;
+	color: var(--text-color);
+}
+
+.instructions li {
+	margin-bottom: 5px;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+	.menu-header h1 {
+		font-size: 2rem;
+	}
+
+	.menu-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.menu-item {
+		padding: 20px;
+	}
+
+	.menu-item-title {
+		font-size: 1.3rem;
+	}
+
+	.practice-container {
+		padding: 20px;
+	}
+
+	.status-area {
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.setting-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.setting-row input[type="number"],
+	.setting-row input[type="range"] {
+		width: 100%;
+	}
+
+	.action-area {
+		flex-direction: column;
+	}
+
+	.btn-large {
+		width: 100%;
+	}
+
+	.key-button {
+		width: 150px;
+		height: 150px;
+		font-size: 1.2rem;
+	}
+
+	.key-button .key-label {
+		font-size: 0.8rem;
+	}
+}

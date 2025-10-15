@@ -1,0 +1,19 @@
+{
+	"name": "morse-app",
+	"version": "1.0.0",
+	"description": "モールス練習アプリケーション - GUIフロントエンド",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"type-check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"morse-engine": "file:../lib"
+	},
+	"devDependencies": {
+		"typescript": "^5.3.3",
+		"vite": "^5.4.0"
+	}
+}
