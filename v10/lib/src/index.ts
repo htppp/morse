@@ -29,3 +29,5 @@ export type {
 } from './trainers/horizontal-key';
 export { KochTrainer, KOCH_SEQUENCE } from './trainers/koch-trainer';
 export type { PracticeSettings } from './trainers/koch-trainer';
+export { ListeningTrainer } from './trainers/listening-trainer';
+export type { ListeningTemplate, TemplateCategory } from './trainers/listening-trainer';
