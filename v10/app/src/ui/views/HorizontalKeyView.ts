@@ -58,13 +58,13 @@ export class HorizontalKeyView implements View {
 			this.timer,
 			timings,
 			{
-				onElementStart: () => {
-					//! 要素送信開始時に音を鳴らす。
-					this.audio.startContinuousTone();
-				},
-				onElementEnd: () => {
-					//! 要素送信終了時に音を止める。
-					this.audio.stopContinuousTone();
+				onElementStart: (element: '.' | '-', duration: number) => {
+					//! 要素送信開始時に指定時間だけ音を鳴らす。
+					// AudioContextの現在時刻を基準に音をスケジュール
+					const audioContext = this.audio.getAudioContext();
+					if (audioContext) {
+						this.audio.scheduleTone(audioContext.currentTime, duration);
+					}
 				}
 			},
 			{
@@ -479,9 +479,6 @@ export class HorizontalKeyView implements View {
 			clearInterval(this.updateIntervalId);
 			this.updateIntervalId = null;
 		}
-
-		//! 音声を停止。
-		this.audio.stopContinuousTone();
 
 		//! トレーナーをクリア。
 		this.trainer.clear();
