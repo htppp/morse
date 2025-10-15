@@ -704,12 +704,22 @@ parts.push(morseChars.join(' '));
 - [x] listening-trainer.ts: 聞き取り練習ロジック ✅ 完了（99.68%カバレッジ）
 - [x] flashcard-trainer.ts: フラッシュカード学習ロジック ✅ 完了（100%カバレッジ）
 
-### Phase 3: GUIアプリケーション実装（次の予定）
-- [ ] app/パッケージセットアップ
-- [ ] UIフレームワーク選定（Vue/React/Vanilla）
-- [ ] ルーティング実装
-- [ ] 状態管理実装
-- [ ] morse-engineとの統合
+### Phase 3: GUIアプリケーション実装 🚧 進行中（2025-10-15）
+- [x] app/パッケージセットアップ ✅ 完了
+- [x] UIフレームワーク選定（Vanilla TypeScript + Vite） ✅ 完了
+- [x] ルーティング実装（Hash-based SPA） ✅ 完了
+- [x] morse-engineとの統合 ✅ 完了
+- [x] MenuView実装 ✅ 完了
+- [x] VerticalKeyView実装（縦振り電鍵練習） ✅ 完了
+  - スペースキー/クリック/タップ対応
+  - AudioGenerator統合（音声出力）
+  - リアルタイムモールス信号表示
+  - WPM/周波数/音量調整
+- [ ] HorizontalKeyView実装（横振り電鍵練習）
+- [ ] FlashcardView実装（CW略語・Q符号学習）
+- [ ] KochView実装（コッホ法トレーニング）
+- [ ] ListeningView実装（モールス信号聞き取り練習）
+- [ ] 状態管理実装（LocalStorage連携）
 
 ### Phase 4: 品質保証・リリース（予定）
 - [ ] E2Eテスト実装
@@ -744,6 +754,33 @@ npm run type-check
 
 ---
 
-**プロジェクトステータス**: ✅ **Phase 1完了** → ✅ **Phase 2完了** → 📋 Phase 3計画中
+**プロジェクトステータス**: ✅ **Phase 1完了** → ✅ **Phase 2完了** → 🚧 **Phase 3進行中**
 
-**最終更新**: 2025-10-15
+**最終更新**: 2025-10-15（VerticalKeyView実装完了）
+
+---
+
+## 開発サーバー起動
+
+### GUIアプリケーション
+```bash
+cd v10/app
+
+# 依存関係インストール（初回のみ）
+npm install
+
+# 開発サーバー起動
+npm run dev
+
+# ブラウザで http://localhost:3000/ にアクセス
+```
+
+### 実装済み機能
+- ✅ メニュー画面（5つの練習モード選択）
+- ✅ 縦振り電鍵練習
+  - スペースキー/マウス/タッチ操作
+  - Web Audio APIによる音声出力
+  - リアルタイムモールス信号表示・デコード
+  - WPM（5-40）調整
+  - 周波数（400-1200Hz）調整
+  - 音量（0-100%）調整
