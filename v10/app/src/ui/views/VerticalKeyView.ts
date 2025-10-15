@@ -30,7 +30,7 @@ export class VerticalKeyView implements View {
 		this.buffer = new MorseBuffer();
 		this.timer = new TimerManager();
 		this.audio = new AudioGenerator({
-			frequency: 600,
+			frequency: 700,
 			volume: 0.5,
 			wpm: 20
 		});
@@ -124,8 +124,8 @@ export class VerticalKeyView implements View {
 						</div>
 						<div class="setting-row">
 							<label for="frequency-range">音声周波数 (Hz)</label>
-							<input type="range" id="frequency-range" min="400" max="1200" value="600" step="50">
-							<span class="value-display" id="frequency-display">600</span>
+							<input type="range" id="frequency-range" min="400" max="1200" value="700" step="50">
+							<span class="value-display" id="frequency-display">700</span>
 						</div>
 						<div class="setting-row">
 							<label for="volume-range">音量</label>

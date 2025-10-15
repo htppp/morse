@@ -38,7 +38,7 @@ export class HorizontalKeyView implements View {
 		this.buffer = new MorseBuffer();
 		this.timer = new TimerManager();
 		this.audio = new AudioGenerator({
-			frequency: 600,
+			frequency: 700,
 			volume: 0.5,
 			wpm: 20
 		});
@@ -60,11 +60,8 @@ export class HorizontalKeyView implements View {
 			{
 				onElementStart: (element: '.' | '-', duration: number) => {
 					//! 要素送信開始時に指定時間だけ音を鳴らす。
-					// AudioContextの現在時刻を基準に音をスケジュール
-					const audioContext = this.audio.getAudioContext();
-					if (audioContext) {
-						this.audio.scheduleTone(audioContext.currentTime, duration);
-					}
+					// scheduleToneに0を渡すと現在時刻から再生される
+					this.audio.scheduleTone(0, duration);
 				}
 			},
 			{
@@ -91,7 +88,7 @@ export class HorizontalKeyView implements View {
 				<div class="instructions">
 					<h3>使い方</h3>
 					<ul>
-						<li>左パドル（Z）: 短点（・）/ 右パドル（X）: 長点（ー）</li>
+						<li>左パドル（J）: 短点（・）/ 右パドル（K）: 長点（ー）</li>
 						<li>両方同時押しで自動交互送信（Iambic）</li>
 						<li>Iambic Bモード: スクイーズ後1要素追加送信</li>
 						<li>パドルレイアウトとモードは設定で変更可能</li>
@@ -102,12 +99,12 @@ export class HorizontalKeyView implements View {
 					<button class="paddle-button dit" id="left-paddle">
 						DIT
 						<span class="paddle-label">(短点)</span>
-						<span class="paddle-key">Z キー</span>
+						<span class="paddle-key">J キー</span>
 					</button>
 					<button class="paddle-button dah" id="right-paddle">
 						DAH
 						<span class="paddle-label">(長点)</span>
-						<span class="paddle-key">X キー</span>
+						<span class="paddle-key">K キー</span>
 					</button>
 				</div>
 
@@ -161,8 +158,8 @@ export class HorizontalKeyView implements View {
 						</div>
 						<div class="setting-row">
 							<label for="frequency-range">音声周波数 (Hz)</label>
-							<input type="range" id="frequency-range" min="400" max="1200" value="600" step="50">
-							<span class="value-display" id="frequency-display">600</span>
+							<input type="range" id="frequency-range" min="400" max="1200" value="700" step="50">
+							<span class="value-display" id="frequency-display">700</span>
 						</div>
 						<div class="setting-row">
 							<label for="volume-range">音量</label>
@@ -248,24 +245,24 @@ export class HorizontalKeyView implements View {
 			if (volumeDisplay) volumeDisplay.textContent = volume.toString();
 		});
 
-		//! キーボードイベント（Z/X キー）。
+		//! キーボードイベント（J/K キー）。
 		this.keyPressHandler = (e: KeyboardEvent) => {
 			if (e.repeat) return;
 
-			if (e.code === 'KeyZ') {
+			if (e.code === 'KeyJ') {
 				e.preventDefault();
 				this.handleLeftPaddlePress();
-			} else if (e.code === 'KeyX') {
+			} else if (e.code === 'KeyK') {
 				e.preventDefault();
 				this.handleRightPaddlePress();
 			}
 		};
 
 		this.keyReleaseHandler = (e: KeyboardEvent) => {
-			if (e.code === 'KeyZ') {
+			if (e.code === 'KeyJ') {
 				e.preventDefault();
 				this.handleLeftPaddleRelease();
-			} else if (e.code === 'KeyX') {
+			} else if (e.code === 'KeyK') {
 				e.preventDefault();
 				this.handleRightPaddleRelease();
 			}
@@ -390,7 +387,7 @@ export class HorizontalKeyView implements View {
 				leftPaddle.innerHTML = `
 					DIT
 					<span class="paddle-label">(短点)</span>
-					<span class="paddle-key">Z キー</span>
+					<span class="paddle-key">J キー</span>
 				`;
 			}
 			if (rightPaddle) {
@@ -398,7 +395,7 @@ export class HorizontalKeyView implements View {
 				rightPaddle.innerHTML = `
 					DAH
 					<span class="paddle-label">(長点)</span>
-					<span class="paddle-key">X キー</span>
+					<span class="paddle-key">K キー</span>
 				`;
 			}
 		} else {
@@ -407,7 +404,7 @@ export class HorizontalKeyView implements View {
 				leftPaddle.innerHTML = `
 					DAH
 					<span class="paddle-label">(長点)</span>
-					<span class="paddle-key">Z キー</span>
+					<span class="paddle-key">J キー</span>
 				`;
 			}
 			if (rightPaddle) {
@@ -415,7 +412,7 @@ export class HorizontalKeyView implements View {
 				rightPaddle.innerHTML = `
 					DIT
 					<span class="paddle-label">(短点)</span>
-					<span class="paddle-key">X キー</span>
+					<span class="paddle-key">K キー</span>
 				`;
 			}
 		}
