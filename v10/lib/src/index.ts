@@ -20,3 +20,10 @@ export type { AudioSettings } from './core/audio-generator';
 // トレーナーモジュール
 export { VerticalKeyTrainer } from './trainers/vertical-key';
 export type { VerticalKeyCallbacks } from './trainers/vertical-key';
+export { HorizontalKeyTrainer } from './trainers/horizontal-key';
+export type {
+	HorizontalKeyCallbacks,
+	HorizontalKeySettings,
+	IambicMode,
+	PaddleLayout,
+} from './trainers/horizontal-key';
