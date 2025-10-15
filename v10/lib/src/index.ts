@@ -31,3 +31,11 @@ export { KochTrainer, KOCH_SEQUENCE } from './trainers/koch-trainer';
 export type { PracticeSettings } from './trainers/koch-trainer';
 export { ListeningTrainer } from './trainers/listening-trainer';
 export type { ListeningTemplate, TemplateCategory } from './trainers/listening-trainer';
+export { FlashcardTrainer } from './trainers/flashcard-trainer';
+export type {
+	FlashcardEntry,
+	QuestionType,
+	ExamQuestion,
+	ExamResult,
+	ScoreInfo,
+} from './trainers/flashcard-trainer';
