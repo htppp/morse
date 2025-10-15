@@ -27,3 +27,5 @@ export type {
 	IambicMode,
 	PaddleLayout,
 } from './trainers/horizontal-key';
+export { KochTrainer, KOCH_SEQUENCE } from './trainers/koch-trainer';
+export type { PracticeSettings } from './trainers/koch-trainer';
