@@ -16,3 +16,7 @@ export { TimerManager } from './core/timer';
 export type { TimerCallback } from './core/timer';
 export { AudioGenerator } from './core/audio-generator';
 export type { AudioSettings } from './core/audio-generator';
+
+// トレーナーモジュール
+export { VerticalKeyTrainer } from './trainers/vertical-key';
+export type { VerticalKeyCallbacks } from './trainers/vertical-key';
