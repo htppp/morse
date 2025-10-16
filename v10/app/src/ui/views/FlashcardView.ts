@@ -1488,12 +1488,12 @@ export class FlashcardView implements View {
 						</div>
 						<div class="setting-item">
 							<span>テスト再生</span>
-							<button id="test-morse-btn" class="btn btn-secondary">再生</button>
+							<button id="test-morse-btn" class="test-button">再生</button>
 						</div>
 					</div>
 					<div class="settings-buttons">
-						<button id="cancel-btn" class="btn btn-secondary">キャンセル</button>
-						<button id="ok-btn" class="btn btn-primary">OK</button>
+						<button id="cancel-btn" class="secondary-button">キャンセル</button>
+						<button id="ok-btn" class="primary-button">OK</button>
 					</div>
 				</div>
 			</div>

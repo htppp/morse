@@ -300,80 +300,66 @@ export class ListeningView implements View {
 
 	private showSettings(): void {
 		const modalHTML = `
-			<div class="settings-modal active" id="settings-modal">
-				<div class="settings-content">
-					<h2>設定</h2>
-					<div class="setting-group">
-						<label>
-							<span>文字速度 (WPM):</span>
-							<div class="input-with-value">
-								<input type="range" id="characterSpeed" min="5" max="50" step="1" value="${this.settings.characterSpeed}">
-								<span id="characterSpeedValue">${this.settings.characterSpeed}</span>
+			<div class="modal" id="settings-modal">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h2>設定</h2>
+						<button id="closeSettings" class="close-btn">×</button>
+					</div>
+					<div class="modal-body">
+						<div class="setting-item">
+							<label>文字速度 (Character Speed) WPM:</label>
+							<input type="number" id="characterSpeed" min="5" max="40" step="1" value="${this.settings.characterSpeed}">
+						</div>
+
+						<div class="setting-item">
+							<label>実効速度 (Effective Speed) WPM:</label>
+							<input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${this.settings.effectiveSpeed}">
+						</div>
+
+						<div class="setting-item">
+							<label>周波数 (Hz):</label>
+							<input type="number" id="frequency" min="400" max="1000" step="10" value="${this.settings.frequency}">
+						</div>
+
+						<div class="setting-item">
+							<label>音量 (%):</label>
+							<div class="volume-control">
+								<input type="range" id="volumeRange" min="0" max="100" step="5" value="${this.settings.volume * 100}">
+								<input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(this.settings.volume * 100)}">
 							</div>
-						</label>
+						</div>
+
+						<div class="setting-item">
+							<label>テスト再生:</label>
+							<button id="test-morse-btn" class="btn">CQ 再生</button>
+						</div>
 					</div>
-					<div class="setting-group">
-						<label>
-							<span>実効速度 (WPM):</span>
-							<div class="input-with-value">
-								<input type="range" id="effectiveSpeed" min="5" max="50" step="1" value="${this.settings.effectiveSpeed}">
-								<span id="effectiveSpeedValue">${this.settings.effectiveSpeed}</span>
-							</div>
-						</label>
+					<div class="modal-footer">
+						<button id="cancel-btn" class="btn">キャンセル</button>
+						<button id="save-btn" class="btn primary">OK</button>
 					</div>
-					<div class="setting-group">
-						<label>
-							<span>周波数 (Hz):</span>
-							<div class="input-with-value">
-								<input type="range" id="frequency" min="400" max="1200" step="50" value="${this.settings.frequency}">
-								<span id="frequencyValue">${this.settings.frequency}</span>
-							</div>
-						</label>
-					</div>
-					<div class="setting-group">
-						<label>
-							<span>音量:</span>
-							<div class="input-with-value">
-								<input type="range" id="volume" min="0" max="1" step="0.1" value="${this.settings.volume}">
-								<span id="volumeValue">${Math.round(this.settings.volume * 100)}%</span>
-							</div>
-						</label>
-					</div>
-					<div class="setting-group">
-						<label>
-							<span>テスト再生:</span>
-							<button id="test-morse-btn" class="btn btn-secondary">CQ 再生</button>
-						</label>
-					</div>
-				</div>
-				<div class="modal-actions">
-					<button id="save-btn" class="btn btn-primary">保存</button>
-					<button id="cancel-btn" class="btn">キャンセル</button>
 				</div>
 			</div>
 		`;
 		document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-		//! スライダーの値変更を監視。
+		//! 現在の設定を保存（キャンセル時の復元用）。
+		const savedSettings = { ...this.settings };
+
 		const characterSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
 		const effectiveSpeed = document.getElementById('effectiveSpeed') as HTMLInputElement;
 		const frequency = document.getElementById('frequency') as HTMLInputElement;
-		const volume = document.getElementById('volume') as HTMLInputElement;
+		const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
+		const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
 
-		characterSpeed?.addEventListener('input', () => {
-			document.getElementById('characterSpeedValue')!.textContent = characterSpeed.value;
+		//! 音量スライダーと数値入力の同期。
+		volumeRange?.addEventListener('input', () => {
+			volumeInput.value = volumeRange.value;
 		});
 
-		effectiveSpeed?.addEventListener('input', () => {
-			document.getElementById('effectiveSpeedValue')!.textContent = effectiveSpeed.value;
-		});
-
-		frequency?.addEventListener('input', () => {
-			document.getElementById('frequencyValue')!.textContent = frequency.value;
-		});
-
-		volume?.addEventListener('input', () => {
-			document.getElementById('volumeValue')!.textContent = `${Math.round(parseFloat(volume.value) * 100)}%`;
+		volumeInput?.addEventListener('input', () => {
+			volumeRange.value = volumeInput.value;
 		});
 
 		//! テスト再生ボタン。
@@ -381,7 +367,7 @@ export class ListeningView implements View {
 			//! 現在の設定値で一時的にAudioGeneratorを更新。
 			this.audio.updateSettings({
 				frequency: parseInt(frequency.value),
-				volume: parseFloat(volume.value),
+				volume: parseInt(volumeInput.value) / 100,
 				wpm: parseInt(characterSpeed.value),
 				effectiveWpm: parseInt(effectiveSpeed.value)
 			});
@@ -391,17 +377,32 @@ export class ListeningView implements View {
 			await this.audio.playMorseString(morse);
 		});
 
-		//! 設定の一時保存（キャンセル用）。
+		//! 設定を復元する関数。
 		const restoreSettings = () => {
-			this.loadSettings();
+			this.settings = { ...savedSettings };
+			//! AudioSystemを元に戻す。
+			this.audio.updateSettings({
+				frequency: savedSettings.frequency,
+				volume: savedSettings.volume,
+				wpm: savedSettings.characterSpeed,
+				effectiveWpm: savedSettings.effectiveSpeed
+			});
 		};
 
-		//! 保存ボタン。
+		//! OK（保存）ボタン。
 		document.getElementById('save-btn')?.addEventListener('click', () => {
-			this.settings.characterSpeed = parseInt(characterSpeed.value);
-			this.settings.effectiveSpeed = parseInt(effectiveSpeed.value);
+			const charSpeedValue = parseInt(characterSpeed.value);
+			let effSpeedValue = parseInt(effectiveSpeed.value);
+
+			//! 実効速度は文字速度を上限とする。
+			if (effSpeedValue > charSpeedValue) {
+				effSpeedValue = charSpeedValue;
+			}
+
+			this.settings.characterSpeed = charSpeedValue;
+			this.settings.effectiveSpeed = effSpeedValue;
 			this.settings.frequency = parseInt(frequency.value);
-			this.settings.volume = parseFloat(volume.value);
+			this.settings.volume = parseInt(volumeInput.value) / 100;
 
 			this.saveSettings();
 
@@ -416,8 +417,14 @@ export class ListeningView implements View {
 			document.getElementById('settings-modal')?.remove();
 		});
 
-		//! キャンセル。
+		//! キャンセルボタン。
 		document.getElementById('cancel-btn')?.addEventListener('click', () => {
+			restoreSettings();
+			document.getElementById('settings-modal')?.remove();
+		});
+
+		//! 閉じるボタン (×)。
+		document.getElementById('closeSettings')?.addEventListener('click', () => {
 			restoreSettings();
 			document.getElementById('settings-modal')?.remove();
 		});
