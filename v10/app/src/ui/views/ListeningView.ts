@@ -10,6 +10,7 @@ import {
 	type ListeningTemplate,
 	type TemplateCategory
 } from 'morse-engine';
+import { downloadBlob, sanitizeFilename } from '../../utils/download-helper';
 
 interface ListeningSettings {
 	characterSpeed: number;
@@ -340,6 +341,12 @@ export class ListeningView implements View {
 							</div>
 						</label>
 					</div>
+					<div class="setting-group">
+						<label>
+							<span>テスト再生:</span>
+							<button id="test-morse-btn" class="btn btn-secondary">CQ 再生</button>
+						</label>
+					</div>
 				</div>
 				<div class="modal-actions">
 					<button id="save-btn" class="btn btn-primary">保存</button>
@@ -369,6 +376,21 @@ export class ListeningView implements View {
 
 		volume?.addEventListener('input', () => {
 			document.getElementById('volumeValue')!.textContent = `${Math.round(parseFloat(volume.value) * 100)}%`;
+		});
+
+		//! テスト再生ボタン。
+		document.getElementById('test-morse-btn')?.addEventListener('click', async () => {
+			//! 現在の設定値で一時的にAudioGeneratorを更新。
+			this.audio.updateSettings({
+				frequency: parseInt(frequency.value),
+				volume: parseFloat(volume.value),
+				wpm: parseInt(characterSpeed.value),
+				effectiveWpm: parseInt(effectiveSpeed.value)
+			});
+
+			//! CQを再生。
+			const morse = MorseCodec.textToMorse('CQ');
+			await this.audio.playMorseString(morse);
 		});
 
 		//! 設定の一時保存（キャンセル用）。
@@ -802,14 +824,8 @@ export class ListeningView implements View {
 			const wavBlob = await this.audio.generateWav(morse);
 
 			//! ダウンロード。
-			const url = URL.createObjectURL(wavBlob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `${this.state.selectedTemplate.title.replace(/[^a-zA-Z0-9]/g, '_')}.wav`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+			const filename = `${sanitizeFilename(this.state.selectedTemplate.title)}.wav`;
+			downloadBlob(wavBlob, filename);
 		} catch (error) {
 			console.error('WAVダウンロードエラー:', error);
 			alert('WAVファイルの生成に失敗しました。');
