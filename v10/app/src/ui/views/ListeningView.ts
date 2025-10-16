@@ -532,6 +532,11 @@ export class ListeningView implements View {
 							<rect x="6" y="6" width="12" height="12"/>
 						</svg>
 					</button>
+					<button id="downloadBtn" class="control-btn" title="WAVファイルとしてダウンロード">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+						</svg>
+					</button>
 				</div>
 
 				<div id="practiceInputArea"></div>
@@ -775,7 +780,39 @@ export class ListeningView implements View {
 				this.stopMorse();
 			});
 
+			document.getElementById('downloadBtn')?.addEventListener('click', () => {
+				this.downloadWav();
+			});
+
 			this.renderPracticeArea();
+		}
+	}
+
+	/**
+	 * モールス信号をWAVファイルとしてダウンロードする
+	 */
+	private async downloadWav(): Promise<void> {
+		if (!this.state.selectedTemplate) return;
+
+		try {
+			//! テキストをモールス符号に変換。
+			const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
+
+			//! WAVファイルを生成。
+			const wavBlob = await this.audio.generateWav(morse);
+
+			//! ダウンロード。
+			const url = URL.createObjectURL(wavBlob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${this.state.selectedTemplate.title.replace(/[^a-zA-Z0-9]/g, '_')}.wav`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error('WAVダウンロードエラー:', error);
+			alert('WAVファイルの生成に失敗しました。');
 		}
 	}
 

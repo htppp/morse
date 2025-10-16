@@ -293,4 +293,171 @@ export class AudioGenerator {
 	setWPM(wpm: number): void {
 		this.settings.wpm = Math.max(5, Math.min(40, wpm));
 	}
+
+	/**
+	 * モールス符号文字列からWAVファイルを生成する
+	 *
+	 * @param morse - モールス符号文字列（'.-', ' ', '/' を含む）
+	 * @returns WAVファイルのBlob
+	 *
+	 * @example
+	 * ```ts
+	 * const audio = new AudioGenerator({ frequency: 750, volume: 0.7, wpm: 20 });
+	 * const wavBlob = await audio.generateWav('.- -... -.-. / -.. . ..-.');
+	 * ```
+	 */
+	async generateWav(morse: string): Promise<Blob> {
+		if (!morse) {
+			throw new Error('モールス符号が空です');
+		}
+
+		// タイミング計算
+		const charWpm = this.settings.wpm || 20;
+		const effectiveWpm = Math.min(this.settings.effectiveWpm || charWpm, charWpm);
+
+		const unit = 1200 / charWpm;
+		const dot = unit;
+		const dash = 3 * unit;
+		const egap = unit;
+		const lgap = 3 * unit;
+
+		const wgapBase = 7 * (1200 / effectiveWpm);
+		const wgap = wgapBase;
+
+		// 総時間を計算
+		let totalDuration = 0;
+		for (let i = 0; i < morse.length; i++) {
+			const ch = morse[i];
+			if (ch === '.') {
+				totalDuration += dot + egap;
+			} else if (ch === '-') {
+				totalDuration += dash + egap;
+			} else if (ch === ' ') {
+				totalDuration += lgap - egap;
+			} else if (ch === '/') {
+				totalDuration += wgap - egap;
+			}
+		}
+
+		// OfflineAudioContextを作成
+		const sampleRate = 44100;
+		const durationSeconds = (totalDuration + 100) / 1000; // 余裕を持たせる
+		const offlineContext = new OfflineAudioContext(1, Math.ceil(durationSeconds * sampleRate), sampleRate);
+
+		// 音声を生成
+		let t = 0.02; // 開始時刻
+		for (let i = 0; i < morse.length; i++) {
+			const ch = morse[i];
+			if (ch === '.') {
+				this.scheduleOfflineTone(offlineContext, t, dot);
+				t += (dot + egap) / 1000;
+			} else if (ch === '-') {
+				this.scheduleOfflineTone(offlineContext, t, dash);
+				t += (dash + egap) / 1000;
+			} else if (ch === ' ') {
+				t += (lgap - egap) / 1000;
+			} else if (ch === '/') {
+				t += (wgap - egap) / 1000;
+			}
+		}
+
+		// レンダリング
+		const audioBuffer = await offlineContext.startRendering();
+
+		// WAVに変換
+		return this.audioBufferToWav(audioBuffer);
+	}
+
+	/**
+	 * OfflineAudioContextで音を生成する
+	 *
+	 * @param context - OfflineAudioContext
+	 * @param startTime - 開始時刻（秒）
+	 * @param durationMs - 音の長さ（ミリ秒）
+	 */
+	private scheduleOfflineTone(context: OfflineAudioContext, startTime: number, durationMs: number): void {
+		const oscillator = context.createOscillator();
+		const gainNode = context.createGain();
+
+		oscillator.connect(gainNode);
+		gainNode.connect(context.destination);
+
+		oscillator.frequency.value = this.settings.frequency;
+		oscillator.type = 'sine';
+
+		const t0 = startTime;
+		gainNode.gain.setValueAtTime(0, t0);
+		gainNode.gain.linearRampToValueAtTime(this.settings.volume, t0 + 0.001);
+		gainNode.gain.setValueAtTime(this.settings.volume, t0 + (durationMs - 1) / 1000);
+		gainNode.gain.linearRampToValueAtTime(0, t0 + durationMs / 1000);
+
+		oscillator.start(t0);
+		oscillator.stop(t0 + durationMs / 1000);
+	}
+
+	/**
+	 * AudioBufferをWAVファイルに変換する
+	 *
+	 * @param buffer - AudioBuffer
+	 * @returns WAVファイルのBlob
+	 */
+	private audioBufferToWav(buffer: AudioBuffer): Blob {
+		const numberOfChannels = buffer.numberOfChannels;
+		const sampleRate = buffer.sampleRate;
+		const format = 1; // PCM
+		const bitDepth = 16;
+
+		const bytesPerSample = bitDepth / 8;
+		const blockAlign = numberOfChannels * bytesPerSample;
+
+		const data = new Float32Array(buffer.length * numberOfChannels);
+		for (let i = 0; i < buffer.numberOfChannels; i++) {
+			const channel = buffer.getChannelData(i);
+			for (let j = 0; j < channel.length; j++) {
+				data[j * numberOfChannels + i] = channel[j];
+			}
+		}
+
+		const dataLength = data.length * bytesPerSample;
+		const bufferLength = 44 + dataLength;
+		const arrayBuffer = new ArrayBuffer(bufferLength);
+		const view = new DataView(arrayBuffer);
+
+		// WAVヘッダーを書き込む
+		const writeString = (offset: number, string: string) => {
+			for (let i = 0; i < string.length; i++) {
+				view.setUint8(offset + i, string.charCodeAt(i));
+			}
+		};
+
+		// RIFFチャンク
+		writeString(0, 'RIFF');
+		view.setUint32(4, bufferLength - 8, true);
+		writeString(8, 'WAVE');
+
+		// fmtチャンク
+		writeString(12, 'fmt ');
+		view.setUint32(16, 16, true); // fmtチャンクサイズ
+		view.setUint16(20, format, true); // フォーマット
+		view.setUint16(22, numberOfChannels, true); // チャンネル数
+		view.setUint32(24, sampleRate, true); // サンプルレート
+		view.setUint32(28, sampleRate * blockAlign, true); // バイトレート
+		view.setUint16(32, blockAlign, true); // ブロックアライン
+		view.setUint16(34, bitDepth, true); // ビット深度
+
+		// dataチャンク
+		writeString(36, 'data');
+		view.setUint32(40, dataLength, true);
+
+		// PCMデータを書き込む
+		let offset = 44;
+		for (let i = 0; i < data.length; i++) {
+			const sample = Math.max(-1, Math.min(1, data[i]));
+			const value = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+			view.setInt16(offset, value, true);
+			offset += 2;
+		}
+
+		return new Blob([arrayBuffer], { type: 'audio/wav' });
+	}
 }
