@@ -825,11 +825,9 @@ this.currentQuestionIndex++,this.currentQuestionIndex<this.questions.length?this
 					<div class="settings-grid">
 						<div class="setting-item">
 							<label for="volume-range">音量</label>
-							<div class="setting-row">
-								<input type="range" id="volume-range" min="0" max="100" value="${e}">
-								<input type="number" id="volume-input" min="0" max="100" value="${e}">
-								<span>%</span>
-							</div>
+							<input type="range" id="volume-range" min="0" max="100" value="${e}">
+							<input type="number" id="volume-input" min="0" max="100" value="${e}">
+							<span>%</span>
 						</div>
 						<div class="setting-item">
 							<label for="frequency-input">周波数 (Hz)</label>
@@ -1368,4 +1366,4 @@ window.location.hash="#menu"}}navigate(e){window.location.hash=`#${e}`}}//! ア�
 function K(){console.log("モールス練習アプリ v10 起動");//! ルーターを初期化。
 new ie().init()}//! DOMContentLoaded後に初期化。
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",K):K();
-//# sourceMappingURL=index-CCOlKfS4.js.map
+//# sourceMappingURL=index-C7AIYvEu.js.map

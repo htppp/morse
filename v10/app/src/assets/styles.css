@@ -1573,16 +1573,29 @@ body {
 	margin-bottom: 30px;
 }
 
-.setting-item {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
+/* Flashcard設定項目 (v9互換グリッドレイアウト) */
+.settings-modal .setting-item {
+	display: grid;
+	grid-template-columns: 150px 1fr auto auto;
+	gap: 15px;
+	align-items: center;
 }
 
-.setting-item label {
+.settings-modal .setting-item label {
 	font-weight: 600;
 	color: #555;
-	font-size: 0.9rem;
+}
+
+.settings-modal .setting-item input[type="range"] {
+	width: 100%;
+}
+
+.settings-modal .setting-item input[type="number"] {
+	width: 80px;
+	padding: 8px;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	text-align: center;
 }
 
 .setting-row {

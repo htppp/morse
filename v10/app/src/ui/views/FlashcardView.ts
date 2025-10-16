@@ -1472,11 +1472,9 @@ export class FlashcardView implements View {
 					<div class="settings-grid">
 						<div class="setting-item">
 							<label for="volume-range">音量</label>
-							<div class="setting-row">
-								<input type="range" id="volume-range" min="0" max="100" value="${volume}">
-								<input type="number" id="volume-input" min="0" max="100" value="${volume}">
-								<span>%</span>
-							</div>
+							<input type="range" id="volume-range" min="0" max="100" value="${volume}">
+							<input type="number" id="volume-input" min="0" max="100" value="${volume}">
+							<span>%</span>
 						</div>
 						<div class="setting-item">
 							<label for="frequency-input">周波数 (Hz)</label>
