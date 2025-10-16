@@ -24,18 +24,30 @@ export class VerticalKeyView implements View {
 	private keyReleaseHandler: ((e: KeyboardEvent) => void) | null = null;
 	private updateIntervalId: number | null = null;
 	private currentWPM = 20;
+	private keyCode = 'Space';
 
 	constructor() {
+		//! 設定を読み込む。
+		const savedWPM = localStorage.getItem('verticalKeyWPM');
+		if (savedWPM) {
+			this.currentWPM = parseInt(savedWPM, 10);
+		}
+
+		const savedKeyCode = localStorage.getItem('verticalKeyCode');
+		if (savedKeyCode) {
+			this.keyCode = savedKeyCode;
+		}
+
 		//! コアコンポーネントを初期化。
 		this.buffer = new MorseBuffer();
 		this.timer = new TimerManager();
 		this.audio = new AudioGenerator({
 			frequency: 700,
 			volume: 0.5,
-			wpm: 20
+			wpm: this.currentWPM
 		});
 
-		//! タイミング計算（初期WPM: 20）。
+		//! タイミング計算。
 		const timings = TimingCalculator.calculate(this.currentWPM);
 
 		//! トレーナーを初期化（コールバックで音声制御）。
@@ -57,6 +69,13 @@ export class VerticalKeyView implements View {
 	}
 
 	/**
+	 * キーコードを表示用にフォーマットする (KeyJ → J)
+	 */
+	private formatKeyCode(keyCode: string): string {
+		return keyCode.replace(/^Key/, '');
+	}
+
+	/**
 	 * ビューをレンダリングする
 	 */
 	render(): void {
@@ -64,22 +83,45 @@ export class VerticalKeyView implements View {
 		if (!app) return;
 
 		app.innerHTML = `
+			<div class="settings-modal" id="settings-modal">
+				<div class="settings-content">
+					<h2>設定</h2>
+					<div class="settings-grid">
+						<div class="setting-item">
+							<label for="volume-range">音量</label>
+							<div class="setting-row">
+								<input type="range" id="volume-range" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
+								<input type="number" id="volume-input" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
+								<span>%</span>
+							</div>
+						</div>
+						<div class="setting-item">
+							<label for="frequency-input">周波数 (Hz)</label>
+							<input type="number" id="frequency-input" min="400" max="1200" value="${this.audio.getFrequency()}" step="50">
+						</div>
+						<div class="setting-item">
+							<label for="wpm-input">WPM (速度: 5-40)</label>
+							<input type="number" id="wpm-input" min="5" max="40" value="${this.currentWPM}">
+						</div>
+						<div class="setting-item">
+							<label for="key-binding">キーバインド</label>
+							<input type="text" id="key-binding" value="${this.formatKeyCode(this.keyCode)}" readonly placeholder="キーを押してください">
+							<span class="key-hint">クリックしてキーを押す</span>
+						</div>
+					</div>
+					<div class="settings-buttons">
+						<button id="cancel-btn" class="btn btn-secondary">キャンセル</button>
+						<button id="ok-btn" class="btn btn-primary">OK</button>
+					</div>
+				</div>
+			</div>
+
 			<div class="container">
 				<header class="header">
-					<h1>縦振り電鍵練習</h1>
 					<button class="back-btn">メニューに戻る</button>
+					<h1>縦振り電鍵練習</h1>
+					<button class="settings-btn" id="settings-btn" title="設定">⚙</button>
 				</header>
-
-				<div class="instructions">
-					<h3>使い方</h3>
-					<ul>
-						<li>スペースキーまたは画面のボタンを押している間、モールス信号が送信されます</li>
-						<li>短く押すと「・」(dit)、長く押すと「ー」(dah)になります</li>
-						<li>文字間は自動的に判定されます</li>
-						<li>WPM（Words Per Minute）で速度を調整できます</li>
-						<li>音声が鳴らない場合は、一度ボタンをクリックしてください（ブラウザのオーディオポリシー）</li>
-					</ul>
-				</div>
 
 				<div class="key-button-container">
 					<button class="key-button" id="morse-key">
@@ -89,10 +131,25 @@ export class VerticalKeyView implements View {
 				</div>
 
 				<div class="practice-container">
+					<div class="display-area">
+						<div class="display-section">
+							<h3>モールス信号</h3>
+							<div class="display-output morse-buffer" id="morse-buffer">（ここにモールス符号が表示されます）</div>
+						</div>
+						<div class="display-section">
+							<h3>デコード結果</h3>
+							<div class="display-output" id="decoded-text">（ここにデコードされた文字が表示されます）</div>
+						</div>
+					</div>
+
+					<div class="action-area">
+						<button class="btn btn-large btn-danger" id="clear-btn">クリア</button>
+					</div>
+
 					<div class="status-area">
 						<div class="status-item">
 							<span class="label">現在の速度</span>
-							<span class="value" id="current-wpm">20</span>
+							<span class="value" id="current-wpm">${this.currentWPM}</span>
 						</div>
 						<div class="status-item" id="key-status">
 							<span class="label">キー状態</span>
@@ -104,38 +161,16 @@ export class VerticalKeyView implements View {
 						</div>
 					</div>
 
-					<div class="display-area">
-						<div class="display-section">
-							<h3>モールスバッファ</h3>
-							<div class="display-output morse-buffer" id="morse-buffer">（ここにモールス符号が表示されます）</div>
-						</div>
-						<div class="display-section">
-							<h3>デコード結果</h3>
-							<div class="display-output" id="decoded-text">（ここにデコードされた文字が表示されます）</div>
-						</div>
-					</div>
-
-					<div class="settings-panel">
-						<h3>設定</h3>
-						<div class="setting-row">
-							<label for="wpm-range">送信速度 (WPM)</label>
-							<input type="range" id="wpm-range" min="5" max="40" value="20" step="1">
-							<span class="value-display" id="wpm-display">20</span>
-						</div>
-						<div class="setting-row">
-							<label for="frequency-range">音声周波数 (Hz)</label>
-							<input type="range" id="frequency-range" min="400" max="1200" value="700" step="50">
-							<span class="value-display" id="frequency-display">700</span>
-						</div>
-						<div class="setting-row">
-							<label for="volume-range">音量</label>
-							<input type="range" id="volume-range" min="0" max="100" value="50" step="5">
-							<span class="value-display" id="volume-display">50</span>
-						</div>
-					</div>
-
-					<div class="action-area">
-						<button class="btn btn-large btn-danger" id="clear-btn">クリア</button>
+					<div class="instructions">
+						<h3>使い方</h3>
+						<ul>
+							<li>スペースキーまたは画面のボタンを押している間、モールス信号が送信されます</li>
+							<li>短く押すと「・」(dit)、長く押すと「ー」(dah)になります</li>
+							<li>文字間は自動的に判定されます</li>
+							<li>WPM（Words Per Minute）で速度を調整できます</li>
+							<li>画面右上の⚙アイコンから音量・周波数・速度を調整できます</li>
+							<li>音声が鳴らない場合は、一度ボタンをクリックしてください（ブラウザのオーディオポリシー）</li>
+						</ul>
 					</div>
 				</div>
 			</div>
@@ -157,6 +192,12 @@ export class VerticalKeyView implements View {
 			window.location.hash = '#menu';
 		});
 
+		//! 設定ボタン。
+		const settingsBtn = document.getElementById('settings-btn');
+		settingsBtn?.addEventListener('click', () => {
+			this.openSettingsModal();
+		});
+
 		//! クリアボタン。
 		const clearBtn = document.getElementById('clear-btn');
 		clearBtn?.addEventListener('click', () => {
@@ -164,55 +205,9 @@ export class VerticalKeyView implements View {
 			this.updateDisplay();
 		});
 
-		//! WPM調整。
-		const wpmRange = document.getElementById('wpm-range') as HTMLInputElement;
-		const wpmDisplay = document.getElementById('wpm-display');
-		const currentWpmDisplay = document.getElementById('current-wpm');
-		wpmRange?.addEventListener('input', () => {
-			const wpm = parseInt(wpmRange.value, 10);
-			this.currentWPM = wpm;
-
-			//! タイミングを再計算してトレーナーを再初期化。
-			const timings = TimingCalculator.calculate(wpm);
-			this.trainer = new VerticalKeyTrainer(
-				this.buffer,
-				this.timer,
-				timings,
-				{
-					onKeyPress: () => {
-						this.audio.startContinuousTone();
-					},
-					onKeyRelease: () => {
-						this.audio.stopContinuousTone();
-					}
-				}
-			);
-
-			if (wpmDisplay) wpmDisplay.textContent = wpm.toString();
-			if (currentWpmDisplay) currentWpmDisplay.textContent = wpm.toString();
-		});
-
-		//! 音声周波数調整。
-		const frequencyRange = document.getElementById('frequency-range') as HTMLInputElement;
-		const frequencyDisplay = document.getElementById('frequency-display');
-		frequencyRange?.addEventListener('input', () => {
-			const frequency = parseInt(frequencyRange.value, 10);
-			this.audio.setFrequency(frequency);
-			if (frequencyDisplay) frequencyDisplay.textContent = frequency.toString();
-		});
-
-		//! 音量調整。
-		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
-		const volumeDisplay = document.getElementById('volume-display');
-		volumeRange?.addEventListener('input', () => {
-			const volume = parseInt(volumeRange.value, 10);
-			this.audio.setVolume(volume / 100);
-			if (volumeDisplay) volumeDisplay.textContent = volume.toString();
-		});
-
-		//! キーボードイベント（スペースキー）。
+		//! キーボードイベント（設定されたキー）。
 		this.keyPressHandler = (e: KeyboardEvent) => {
-			if (e.code === 'Space' && !e.repeat) {
+			if (e.code === this.keyCode && !e.repeat) {
 				e.preventDefault();
 				if (!this.isKeyPressed) {
 					this.handleKeyDown();
@@ -221,7 +216,7 @@ export class VerticalKeyView implements View {
 		};
 
 		this.keyReleaseHandler = (e: KeyboardEvent) => {
-			if (e.code === 'Space') {
+			if (e.code === this.keyCode) {
 				e.preventDefault();
 				if (this.isKeyPressed) {
 					this.handleKeyUp();
@@ -277,6 +272,26 @@ export class VerticalKeyView implements View {
 				}
 			});
 		}
+
+		//! モーダルのキャンセルボタン。
+		const cancelBtn = document.getElementById('cancel-btn');
+		cancelBtn?.addEventListener('click', () => {
+			this.closeSettingsModal(false);
+		});
+
+		//! モーダルのOKボタン。
+		const okBtn = document.getElementById('ok-btn');
+		okBtn?.addEventListener('click', () => {
+			this.closeSettingsModal(true);
+		});
+
+		//! モーダル背景クリックで閉じる。
+		const modal = document.getElementById('settings-modal');
+		modal?.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				this.closeSettingsModal(false);
+			}
+		});
 	}
 
 	/**
@@ -361,6 +376,129 @@ export class VerticalKeyView implements View {
 				keyStatus.classList.remove('active');
 			}
 		}
+	}
+
+	/**
+	 * 設定モーダルを開く
+	 */
+	private openSettingsModal(): void {
+		const modal = document.getElementById('settings-modal');
+		if (!modal) return;
+
+		//! モーダルを表示。
+		modal.classList.add('active');
+
+		//! 現在の設定値をinput要素に反映。
+		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
+		const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
+		const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
+		const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
+
+		const volume = Math.round(this.audio.getVolume() * 100);
+		if (volumeRange) volumeRange.value = volume.toString();
+		if (volumeInput) volumeInput.value = volume.toString();
+		if (frequencyInput) frequencyInput.value = this.audio.getFrequency().toString();
+		if (wpmInput) wpmInput.value = this.currentWPM.toString();
+
+		//! 音量スライダーと数値入力の同期のみ（実際の音声設定は変更しない）。
+		const syncVolume = () => {
+			if (volumeRange && volumeInput) {
+				volumeInput.value = volumeRange.value;
+			}
+		};
+		const syncVolumeReverse = () => {
+			if (volumeRange && volumeInput) {
+				volumeRange.value = volumeInput.value;
+			}
+		};
+
+		volumeRange?.addEventListener('input', syncVolume);
+		volumeInput?.addEventListener('input', syncVolumeReverse);
+
+		//! キーバインド設定。
+		const keyBindingInput = document.getElementById('key-binding') as HTMLInputElement;
+		if (keyBindingInput) {
+			keyBindingInput.addEventListener('click', () => {
+				keyBindingInput.value = 'キーを押してください...';
+				keyBindingInput.classList.add('waiting-key');
+			});
+
+			keyBindingInput.addEventListener('keydown', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				keyBindingInput.value = e.code;
+				keyBindingInput.classList.remove('waiting-key');
+			});
+		}
+	}
+
+	/**
+	 * 設定モーダルを閉じる
+	 */
+	private closeSettingsModal(save: boolean): void {
+		const modal = document.getElementById('settings-modal');
+		if (!modal) return;
+
+		//! モーダルを非表示。
+		modal.classList.remove('active');
+
+		if (save) {
+			//! 設定を適用。
+			const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
+			const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
+			const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
+			const keyBindingInput = document.getElementById('key-binding') as HTMLInputElement;
+
+			if (volumeInput) {
+				const volume = parseInt(volumeInput.value, 10) / 100;
+				this.audio.setVolume(volume);
+			}
+
+			if (frequencyInput) {
+				const frequency = parseInt(frequencyInput.value, 10);
+				this.audio.setFrequency(frequency);
+			}
+
+			if (wpmInput) {
+				const newWpm = parseInt(wpmInput.value, 10);
+				this.currentWPM = newWpm;
+				this.audio.setWPM(newWpm);
+
+				//! WPMをlocalStorageに保存。
+				localStorage.setItem('verticalKeyWPM', newWpm.toString());
+
+				//! タイミングを再計算してトレーナーを再初期化。
+				const timings = TimingCalculator.calculate(newWpm);
+				this.trainer = new VerticalKeyTrainer(
+					this.buffer,
+					this.timer,
+					timings,
+					{
+						onKeyPress: () => {
+							this.audio.startContinuousTone();
+						},
+						onKeyRelease: () => {
+							this.audio.stopContinuousTone();
+						}
+					}
+				);
+
+				//! 現在のWPM表示を更新。
+				const currentWpmDisplay = document.getElementById('current-wpm');
+				if (currentWpmDisplay) currentWpmDisplay.textContent = newWpm.toString();
+			}
+
+			if (keyBindingInput && keyBindingInput.value) {
+				this.keyCode = keyBindingInput.value;
+
+				//! キーバインドをlocalStorageに保存。
+				localStorage.setItem('verticalKeyCode', this.keyCode);
+			}
+
+			//! 設定を保存。
+			this.audio.saveSettings();
+		}
+		//! キャンセル時は何もしない（設定を元に戻す必要もない）。
 	}
 
 	/**
