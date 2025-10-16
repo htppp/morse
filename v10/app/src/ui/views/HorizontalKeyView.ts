@@ -9,7 +9,6 @@ import {
 	TimerManager,
 	TimingCalculator,
 	AudioGenerator,
-	type HorizontalKeySettings,
 	type IambicMode,
 	type PaddleLayout
 } from 'morse-engine';
@@ -18,7 +17,7 @@ import {
  * 横振り電鍵練習ビュークラス
  */
 export class HorizontalKeyView implements View {
-	private trainer: HorizontalKeyTrainer;
+	private trainer!: HorizontalKeyTrainer;
 	private buffer: MorseBuffer;
 	private timer: TimerManager;
 	private audio: AudioGenerator;
@@ -86,7 +85,7 @@ export class HorizontalKeyView implements View {
 			this.timer,
 			timings,
 			{
-				onElementStart: (element: '.' | '-', duration: number) => {
+				onElementStart: (_element: '.' | '-', duration: number) => {
 					//! 要素送信開始時に指定時間だけ音を鳴らす。
 					// scheduleToneに0を渡すと現在時刻から再生される
 					this.audio.scheduleTone(0, duration);
@@ -644,9 +643,6 @@ export class HorizontalKeyView implements View {
 
 			//! トレーナーを再初期化。
 			this.initializeTrainer();
-
-			//! 設定を保存。
-			this.audio.saveSettings();
 		}
 		//! キャンセル時は何もしない（設定を元に戻す必要もない）。
 	}

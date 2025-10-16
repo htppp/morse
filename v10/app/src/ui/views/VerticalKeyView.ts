@@ -494,9 +494,6 @@ export class VerticalKeyView implements View {
 				//! キーバインドをlocalStorageに保存。
 				localStorage.setItem('verticalKeyCode', this.keyCode);
 			}
-
-			//! 設定を保存。
-			this.audio.saveSettings();
 		}
 		//! キャンセル時は何もしない（設定を元に戻す必要もない）。
 	}

@@ -1414,7 +1414,8 @@ export class FlashcardView implements View {
 			return;
 		}
 
-		const actualCount = Math.min(this.questionCount, this.filteredEntries.length);
+		const count = this.questionCount === 'all' ? this.filteredEntries.length : this.questionCount;
+		const actualCount = Math.min(count, this.filteredEntries.length);
 		if (actualCount === 0) {
 			alert('問題数を1以上に設定してください。');
 			return;
@@ -1576,12 +1577,9 @@ export class FlashcardView implements View {
 	 * 設定モーダルを閉じる
 	 */
 	private closeSettingsModal(save: boolean): void {
-		if (save) {
-			//! 設定を保存。
-			this.audio.saveSettings();
-		} else {
-			//! キャンセル時は設定を復元。
-			this.audio.loadSettings();
+		if (!save) {
+			//! キャンセル時は設定を元に戻す（現在の実装では何もしない）。
+			//! 必要に応じてlocalStorageから読み込む処理を追加。
 		}
 
 		const modal = document.getElementById('settings-modal');
