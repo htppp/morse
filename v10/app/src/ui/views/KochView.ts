@@ -7,7 +7,7 @@ import {
 	KochTrainer,
 	AudioGenerator,
 	MorseCodec,
-	type KochConfig
+	type PracticeSettings
 } from 'morse-engine';
 
 type ViewMode = 'learning' | 'custom';
@@ -64,7 +64,6 @@ const KOCH_SEQUENCE = [
  * コッホ法トレーニングビュークラス
  */
 export class KochView implements View {
-	private kochTrainer: KochTrainer;
 	private audio: AudioGenerator;
 	private viewMode: ViewMode = 'learning';
 	private settings: KochSettings = { ...DEFAULT_SETTINGS };
@@ -102,14 +101,6 @@ export class KochView implements View {
 			wpm: this.settings.characterSpeed,
 			effectiveWpm: this.settings.effectiveSpeed
 		});
-
-		//! KochTrainerを初期化。
-		const config: KochConfig = {
-			characterSpeed: this.settings.characterSpeed,
-			effectiveSpeed: this.settings.effectiveSpeed,
-			groupSize: this.settings.groupSize
-		};
-		this.kochTrainer = new KochTrainer(config);
 	}
 
 	//! ========== 設定管理 ==========
@@ -195,12 +186,13 @@ export class KochView implements View {
 	//! ========== レッスン管理 ==========
 
 	private async startLesson(): Promise<void> {
-		const chars = this.kochTrainer.getCharsForLesson(this.state.currentLesson);
-		this.state.groups = this.kochTrainer.generateRandomGroups(
-			chars,
-			this.settings.groupSize,
-			this.settings.practiceDuration
-		);
+		const chars = KochTrainer.getCharsForLesson(this.state.currentLesson);
+		const practiceSettings: PracticeSettings = {
+			groupSize: this.settings.groupSize,
+			duration: this.settings.practiceDuration,
+			wpm: this.settings.characterSpeed
+		};
+		this.state.groups = KochTrainer.generateRandomGroups(chars, practiceSettings);
 		this.state.currentGroupIndex = 0;
 		this.state.userInput = '';
 		this.state.correctAnswer = this.state.groups.join('');
@@ -337,11 +329,12 @@ export class KochView implements View {
 
 	private async startCustom(): Promise<void> {
 		const chars = Array.from(this.customState.selectedChars);
-		this.customState.customGroups = this.kochTrainer.generateRandomGroups(
-			chars,
-			this.settings.groupSize,
-			this.settings.practiceDuration
-		);
+		const practiceSettings: PracticeSettings = {
+			groupSize: this.settings.groupSize,
+			duration: this.settings.practiceDuration,
+			wpm: this.settings.characterSpeed
+		};
+		this.customState.customGroups = KochTrainer.generateRandomGroups(chars, practiceSettings);
 		this.customState.customCurrentGroupIndex = 0;
 		this.customState.customUserInput = '';
 		this.customState.customCorrectAnswer = this.customState.customGroups.join('');
@@ -580,13 +573,6 @@ export class KochView implements View {
 				effectiveWpm: this.settings.effectiveSpeed
 			});
 
-			//! KochTrainerを更新。
-			this.kochTrainer.updateSettings({
-				characterSpeed: this.settings.characterSpeed,
-				effectiveSpeed: this.settings.effectiveSpeed,
-				groupSize: this.settings.groupSize
-			});
-
 			modal.remove();
 
 			//! 練習中の場合、表示を更新。
@@ -650,10 +636,10 @@ export class KochView implements View {
 	}
 
 	private renderLearningMode(): string {
-		const chars = this.kochTrainer.getCharsForLesson(this.state.currentLesson);
+		const chars = KochTrainer.getCharsForLesson(this.state.currentLesson);
 		const lessonList = KOCH_SEQUENCE.slice(0, 40).map((_, index) => {
 			const lessonNum = index + 1;
-			const lessonChars = this.kochTrainer.getCharsForLesson(lessonNum);
+			const lessonChars = KochTrainer.getCharsForLesson(lessonNum);
 			const isCurrent = lessonNum === this.state.currentLesson;
 			const isPassed = lessonNum < this.state.currentLesson;
 			return `
@@ -739,7 +725,7 @@ export class KochView implements View {
 		const practiceContainer = document.getElementById('practiceContainer');
 		if (!practiceContainer) return;
 
-		const chars = this.kochTrainer.getCharsForLesson(this.state.currentLesson);
+		const chars = KochTrainer.getCharsForLesson(this.state.currentLesson);
 
 		practiceContainer.innerHTML = `
 			<div class="practice-area">
