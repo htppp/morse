@@ -7,6 +7,7 @@ import { MenuView } from '../ui/views/MenuView';
 import { VerticalKeyView } from '../ui/views/VerticalKeyView';
 import { HorizontalKeyView } from '../ui/views/HorizontalKeyView';
 import { FlashcardView } from '../ui/views/FlashcardView';
+import { KochView } from '../ui/views/KochView';
 
 /**
  * ビューインターフェース
@@ -46,6 +47,7 @@ export class Router {
 			{ path: 'vertical', view: VerticalKeyView },
 			{ path: 'horizontal', view: HorizontalKeyView },
 			{ path: 'flashcard', view: FlashcardView },
+			{ path: 'koch', view: KochView },
 			// 他のビューは後で追加
 		];
 	}
