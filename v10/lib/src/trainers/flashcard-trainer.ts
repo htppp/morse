@@ -313,7 +313,12 @@ export class FlashcardTrainer {
 	static getAllTags(entries: FlashcardEntry[]): string[] {
 		const tagsSet = new Set<string>();
 		entries.forEach(entry => {
-			entry.tags.split(',').forEach(tag => tagsSet.add(tag.trim()));
+			entry.tags.split(',').forEach(tag => {
+				const trimmedTag = tag.trim();
+				if (trimmedTag) {
+					tagsSet.add(trimmedTag);
+				}
+			});
 		});
 		return Array.from(tagsSet).sort();
 	}
