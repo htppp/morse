@@ -39,3 +39,14 @@ export type {
 	ExamResult,
 	ScoreInfo,
 } from './trainers/flashcard-trainer';
+export { FlashcardState } from './trainers/flashcard-state';
+export type {
+	ViewMode,
+	DisplayMode,
+	SortColumn,
+	SortDirection,
+	LearnQuestionType,
+	Progress,
+	FilterState,
+	ViewState,
+} from './trainers/flashcard-state';

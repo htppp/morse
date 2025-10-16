@@ -15,7 +15,7 @@ export interface View {
 	/**
 	 * ビューをレンダリングする
 	 */
-	render(): void;
+	render(): void | Promise<void>;
 
 	/**
 	 * ビューを破棄する

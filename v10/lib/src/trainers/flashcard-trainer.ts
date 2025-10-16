@@ -347,4 +347,49 @@ export class FlashcardTrainer {
 		});
 		return sorted;
 	}
+
+	/**
+	 * エントリーを英語でソートする
+	 * @param entries - ソート対象のエントリー配列
+	 * @param ascending - 昇順の場合true（デフォルト: true）
+	 * @returns ソートされたエントリー配列
+	 */
+	static sortByEnglish(entries: FlashcardEntry[], ascending: boolean = true): FlashcardEntry[] {
+		const sorted = [...entries];
+		sorted.sort((a, b) => {
+			const compareResult = a.english.localeCompare(b.english);
+			return ascending ? compareResult : -compareResult;
+		});
+		return sorted;
+	}
+
+	/**
+	 * エントリーを日本語でソートする
+	 * @param entries - ソート対象のエントリー配列
+	 * @param ascending - 昇順の場合true（デフォルト: true）
+	 * @returns ソートされたエントリー配列
+	 */
+	static sortByJapanese(entries: FlashcardEntry[], ascending: boolean = true): FlashcardEntry[] {
+		const sorted = [...entries];
+		sorted.sort((a, b) => {
+			const compareResult = a.japanese.localeCompare(b.japanese, 'ja');
+			return ascending ? compareResult : -compareResult;
+		});
+		return sorted;
+	}
+
+	/**
+	 * エントリーをタグでソートする
+	 * @param entries - ソート対象のエントリー配列
+	 * @param ascending - 昇順の場合true（デフォルト: true）
+	 * @returns ソートされたエントリー配列
+	 */
+	static sortByTags(entries: FlashcardEntry[], ascending: boolean = true): FlashcardEntry[] {
+		const sorted = [...entries];
+		sorted.sort((a, b) => {
+			const compareResult = a.tags.localeCompare(b.tags);
+			return ascending ? compareResult : -compareResult;
+		});
+		return sorted;
+	}
 }
