@@ -424,7 +424,7 @@ export class ListeningView implements View {
 				</svg>
 			</div>
 
-			<div class="flashcard-container">
+			<div class="container">
 				<header class="header">
 					<button id="backBtn" class="back-btn">← 戻る</button>
 					<h1>モールス信号聞き取り練習</h1>
