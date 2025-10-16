@@ -1185,8 +1185,8 @@ n.addEventListener("click",l=>{l.target===n&&n.remove()})}deleteCustomTemplate(e
 						</div>
 
 						<div class="setting-item">
-							<label>テスト再生:</label>
-							<button id="test-morse-btn" class="btn">CQ 再生</button>
+							<span>テスト再生</span>
+							<button id="test-morse-btn" class="test-button">再生</button>
 						</div>
 					</div>
 					<div class="modal-footer">
@@ -1366,4 +1366,4 @@ window.location.hash="#menu"}}navigate(e){window.location.hash=`#${e}`}}//! ア�
 function K(){console.log("モールス練習アプリ v10 起動");//! ルーターを初期化。
 new ie().init()}//! DOMContentLoaded後に初期化。
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",K):K();
-//# sourceMappingURL=index-C7AIYvEu.js.map
+//# sourceMappingURL=index-BmE8NQdj.js.map

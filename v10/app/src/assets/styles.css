@@ -2576,18 +2576,18 @@ body {
 }
 
 /* 設定項目 (Listening用) */
-.setting-item {
+.modal .setting-item {
 	margin-bottom: 20px;
 }
 
-.setting-item label {
+.modal .setting-item label {
 	display: block;
 	margin-bottom: 8px;
 	color: #333;
 	font-weight: bold;
 }
 
-.setting-item input[type="number"] {
+.modal .setting-item input[type="number"] {
 	width: 100%;
 	padding: 10px;
 	border: 2px solid #e0e0e0;
@@ -2596,9 +2596,17 @@ body {
 	transition: border-color 0.3s;
 }
 
-.setting-item input[type="number"]:focus {
+.modal .setting-item input[type="number"]:focus {
 	outline: none;
 	border-color: #667eea;
+}
+
+/* テスト再生ボタン用の特別なレイアウト */
+.modal .setting-item span {
+	display: inline-block;
+	margin-right: 10px;
+	color: #555;
+	font-weight: 600;
 }
 
 .volume-control {

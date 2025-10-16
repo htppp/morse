@@ -331,8 +331,8 @@ export class ListeningView implements View {
 						</div>
 
 						<div class="setting-item">
-							<label>テスト再生:</label>
-							<button id="test-morse-btn" class="btn">CQ 再生</button>
+							<span>テスト再生</span>
+							<button id="test-morse-btn" class="test-button">再生</button>
 						</div>
 					</div>
 					<div class="modal-footer">
