@@ -1162,26 +1162,25 @@ n.addEventListener("click",l=>{l.target===n&&n.remove()})}deleteCustomTemplate(e
 					</div>
 					<div class="modal-body">
 						<div class="setting-item">
-							<label>文字速度 (Character Speed) WPM:</label>
+							<label>文字速度 (WPM)</label>
 							<input type="number" id="characterSpeed" min="5" max="40" step="1" value="${this.settings.characterSpeed}">
 						</div>
 
 						<div class="setting-item">
-							<label>実効速度 (Effective Speed) WPM:</label>
+							<label>実効速度 (WPM)</label>
 							<input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${this.settings.effectiveSpeed}">
 						</div>
 
 						<div class="setting-item">
-							<label>周波数 (Hz):</label>
+							<label>周波数 (Hz)</label>
 							<input type="number" id="frequency" min="400" max="1000" step="10" value="${this.settings.frequency}">
 						</div>
 
 						<div class="setting-item">
-							<label>音量 (%):</label>
-							<div class="volume-control">
-								<input type="range" id="volumeRange" min="0" max="100" step="5" value="${this.settings.volume*100}">
-								<input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(this.settings.volume*100)}">
-							</div>
+							<label>音量</label>
+							<input type="range" id="volumeRange" min="0" max="100" step="5" value="${this.settings.volume*100}">
+							<input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(this.settings.volume*100)}">
+							<span>%</span>
 						</div>
 
 						<div class="setting-item">
@@ -1366,4 +1365,4 @@ window.location.hash="#menu"}}navigate(e){window.location.hash=`#${e}`}}//! ア�
 function K(){console.log("モールス練習アプリ v10 起動");//! ルーターを初期化。
 new ie().init()}//! DOMContentLoaded後に初期化。
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",K):K();
-//# sourceMappingURL=index-BmE8NQdj.js.map
+//# sourceMappingURL=index-TMKGx_V9.js.map

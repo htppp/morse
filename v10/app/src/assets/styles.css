@@ -2575,24 +2575,27 @@ body {
 	border-top: 1px solid #e0e0e0;
 }
 
-/* 設定項目 (Listening用) */
+/* 設定項目 (Listening用 - グリッドレイアウト) */
 .modal .setting-item {
-	margin-bottom: 20px;
+	display: grid;
+	grid-template-columns: 150px 1fr auto auto;
+	gap: 15px;
+	align-items: center;
+	margin-bottom: 15px;
 }
 
-.modal .setting-item label {
-	display: block;
-	margin-bottom: 8px;
-	color: #333;
-	font-weight: bold;
+.modal .setting-item label,
+.modal .setting-item span {
+	font-weight: 600;
+	color: #555;
 }
 
 .modal .setting-item input[type="number"] {
-	width: 100%;
-	padding: 10px;
+	width: 80px;
+	padding: 8px;
 	border: 2px solid #e0e0e0;
 	border-radius: 8px;
-	font-size: 1rem;
+	text-align: center;
 	transition: border-color 0.3s;
 }
 
@@ -2601,12 +2604,14 @@ body {
 	border-color: #667eea;
 }
 
-/* テスト再生ボタン用の特別なレイアウト */
-.modal .setting-item span {
-	display: inline-block;
-	margin-right: 10px;
-	color: #555;
-	font-weight: 600;
+.modal .setting-item input[type="range"] {
+	width: 100%;
+}
+
+/* 文字速度、実効速度、周波数は2列目にinputを配置 */
+.modal .setting-item input[type="number"]:only-of-type {
+	grid-column: 2;
+	width: 100%;
 }
 
 .volume-control {
