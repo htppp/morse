@@ -8,6 +8,7 @@ import { VerticalKeyView } from '../ui/views/VerticalKeyView';
 import { HorizontalKeyView } from '../ui/views/HorizontalKeyView';
 import { FlashcardView } from '../ui/views/FlashcardView';
 import { KochView } from '../ui/views/KochView';
+import { ListeningView } from '../ui/views/ListeningView';
 
 /**
  * ビューインターフェース
@@ -48,7 +49,7 @@ export class Router {
 			{ path: 'horizontal', view: HorizontalKeyView },
 			{ path: 'flashcard', view: FlashcardView },
 			{ path: 'koch', view: KochView },
-			// 他のビューは後で追加
+			{ path: 'listening', view: ListeningView },
 		];
 	}
 
