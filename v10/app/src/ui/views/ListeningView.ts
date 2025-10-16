@@ -299,12 +299,10 @@ export class ListeningView implements View {
 	//! ========== 設定モーダル ==========
 
 	private showSettings(): void {
-		const modal = document.createElement('div');
-		modal.className = 'modal-overlay';
-		modal.innerHTML = `
-			<div class="modal settings-modal">
-				<h2>設定</h2>
+		const modalHTML = `
+			<div class="settings-modal active" id="settings-modal">
 				<div class="settings-content">
+					<h2>設定</h2>
 					<div class="setting-group">
 						<label>
 							<span>文字速度 (WPM):</span>
@@ -354,7 +352,7 @@ export class ListeningView implements View {
 				</div>
 			</div>
 		`;
-		document.body.appendChild(modal);
+		document.body.insertAdjacentHTML('beforeend', modalHTML);
 
 		//! スライダーの値変更を監視。
 		const characterSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
@@ -415,17 +413,18 @@ export class ListeningView implements View {
 				effectiveWpm: this.settings.effectiveSpeed
 			});
 
-			modal.remove();
+			document.getElementById('settings-modal')?.remove();
 		});
 
 		//! キャンセル。
 		document.getElementById('cancel-btn')?.addEventListener('click', () => {
 			restoreSettings();
-			modal.remove();
+			document.getElementById('settings-modal')?.remove();
 		});
 
 		//! モーダル外クリックで閉じる（キャンセル扱い）。
-		modal.addEventListener('click', (e) => {
+		const modal = document.getElementById('settings-modal');
+		modal?.addEventListener('click', (e) => {
 			if (e.target === modal) {
 				restoreSettings();
 				modal.remove();
