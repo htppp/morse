@@ -50,3 +50,13 @@ export type {
 	FilterState,
 	ViewState,
 } from './trainers/flashcard-state';
+
+// UIモジュール
+export { SettingsModal, ALL_SETTING_ITEMS } from './ui/settings-modal';
+export type {
+	ScreenType,
+	SettingInputType,
+	SettingItemDef,
+	SettingValues,
+	SettingsModalCallbacks,
+} from './ui/settings-modal';

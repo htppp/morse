@@ -9,7 +9,7 @@ import {
 	MorseCodec,
 	type PracticeSettings
 } from 'morse-engine';
-import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
 type ViewMode = 'learning' | 'custom';
 

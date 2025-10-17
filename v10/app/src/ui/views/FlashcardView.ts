@@ -20,7 +20,7 @@ import {
 	type DisplayMode
 } from 'morse-engine';
 import { loadFlashcardData } from '../../utils/flashcard-loader';
-import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
 /**
  * 画面状態（ローディングと結果表示用）

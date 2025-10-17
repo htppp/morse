@@ -10,7 +10,7 @@ import {
 	TimingCalculator,
 	AudioGenerator
 } from 'morse-engine';
-import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
 /**
  * 縦振り電鍵練習ビュークラス

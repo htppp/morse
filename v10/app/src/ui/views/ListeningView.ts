@@ -11,7 +11,7 @@ import {
 	type TemplateCategory
 } from 'morse-engine';
 import { downloadBlob, sanitizeFilename } from '../../utils/download-helper';
-import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
 interface ListeningSettings {
 	characterSpeed: number;
