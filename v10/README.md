@@ -788,14 +788,14 @@ parts.push(morseChars.join(' '));
   - OK/キャンセル/枠外クリック処理
 - [x] 状態管理実装（LocalStorage連携） ✅ 完了
 
-### Phase 4: 品質保証・ドキュメント ✅ 一部完了（2025-10-17）
-- [x] ライブラリユニットテストの確認とカバレッジ測定 ✅ 完了（92.7%）
+### Phase 4: 品質保証・ドキュメント ✅ 完了（2025-10-17）
+- [x] ライブラリユニットテストの確認とカバレッジ測定 ✅ 完了（98.94%）
 - [x] ライブラリAPI仕様書の作成 ✅ 完了（API.md）
 - [x] v9との動作比較テスト ✅ 完了（COMPARISON.md）
 - [x] B側周波数設定機能の追加 ✅ 完了（聞き取り練習）
-- [ ] E2Eテスト実装（Playwright）
-- [ ] パフォーマンス最適化
-- [ ] デプロイ設定
+- [x] E2Eテスト実装（Playwright） ✅ 完了（6テストスイート、マルチブラウザ対応）
+- [x] パフォーマンス最適化 ✅ 完了（34%バンドルサイズ削減、コード分割）
+- [x] デプロイ設定 ✅ 完了（GitHub Actions CI/CD、GitHub Pages）
 
 ---
 
@@ -822,11 +822,43 @@ npm run build
 npm run type-check
 ```
 
+### アプリケーション（E2Eテスト）
+
+```bash
+cd v10/app
+
+# 依存関係インストール
+npm install
+
+# E2Eテスト実行（全ブラウザ）
+npm run test:e2e
+
+# E2EテストUI（対話モード）
+npm run test:e2e:ui
+
+# E2Eテスト（ブラウザ表示あり）
+npm run test:e2e:headed
+
+# テストレポート表示
+npm run test:e2e:report
+```
+
+#### E2Eテスト構成
+- **テストフレームワーク**: Playwright 1.56.1
+- **対応ブラウザ**: Chromium、Firefox、WebKit、Mobile Chrome、Mobile Safari
+- **テストスイート数**: 6スイート
+  - menu.spec.ts - メニュー画面ナビゲーション
+  - vertical-key.spec.ts - 縦振り電鍵練習
+  - horizontal-key.spec.ts - 横振り電鍵練習
+  - flashcard.spec.ts - CW略語・Q符号学習
+  - koch.spec.ts - コッホ法トレーニング
+  - listening.spec.ts - モールス信号聞き取り練習
+
 ---
 
-**プロジェクトステータス**: ✅ **Phase 1完了** → ✅ **Phase 2完了** → ✅ **Phase 3完了** → ✅ **Phase 4一部完了**
+**プロジェクトステータス**: ✅ **Phase 1完了** → ✅ **Phase 2完了** → ✅ **Phase 3完了** → ✅ **Phase 4完了**
 
-**最終更新**: 2025-10-17（Phase 4完了: API仕様書、v9互換性確認、B側周波数機能追加）
+**最終更新**: 2025-10-17（Phase 4完了: E2Eテスト、パフォーマンス最適化、デプロイ設定）
 
 ---
 

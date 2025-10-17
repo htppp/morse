@@ -7,12 +7,18 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"type-check": "tsc --noEmit"
+		"type-check": "tsc --noEmit",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:headed": "playwright test --headed",
+		"test:e2e:report": "playwright show-report playwright-report"
 	},
 	"dependencies": {
 		"morse-engine": "file:../lib"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.56.1",
+		"terser": "^5.44.0",
 		"typescript": "^5.3.3",
 		"vite": "^5.4.0"
 	}
