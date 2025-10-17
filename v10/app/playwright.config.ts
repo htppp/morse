@@ -80,11 +80,11 @@ export default defineConfig({
 		// },
 	],
 
-	//! 開発サーバー設定（既に起動している場合はコメントアウト）。
-	// webServer: {
-	// 	command: 'npm run dev',
-	// 	url: 'http://localhost:3000',
-	// 	reuseExistingServer: !process.env.CI,
-	// 	timeout: 120 * 1000,
-	// },
+	//! 開発サーバー設定。
+	webServer: {
+		command: 'npm run dev',
+		url: 'http://localhost:3000',
+		reuseExistingServer: true,
+		timeout: 120 * 1000,
+	},
 });
