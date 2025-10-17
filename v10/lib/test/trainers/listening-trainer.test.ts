@@ -40,24 +40,28 @@ describe('ListeningTrainer', () => {
 			const qso = ListeningTrainer.generateRandomQSO();
 			expect(qso.category).toBe('qso');
 			expect(qso.title).toBe('ランダムQSO');
-			expect(qso.content).toBeTruthy();
+			expect(qso.dialog).toBeDefined();
+			expect(qso.dialog!.length).toBeGreaterThan(0);
 			expect(qso.id).toMatch(/^qso-random-\d+$/);
 		});
 
 		it('QSOテキストに必要な要素が含まれている', () => {
 			const qso = ListeningTrainer.generateRandomQSO();
+			//! dialog配列を文字列に結合。
+			const fullText = qso.dialog!.map(seg => seg.text).join(' ');
 			//! CQ、コールサイン、BT（区切り）、挨拶、RSTレポートなどが含まれる。
-			expect(qso.content).toContain('CQ');
-			expect(qso.content).toContain('DE');
-			expect(qso.content).toContain('BT');
-			expect(qso.content).toMatch(/[56][0-9]{2}/); // RSTレポート
+			expect(fullText).toContain('CQ');
+			expect(fullText).toContain('DE');
+			expect(fullText).toContain('BT');
+			expect(fullText).toMatch(/[56][0-9]{2}/); // RSTレポート
 		});
 
 		it('複数回生成しても正常に動作する', () => {
 			for (let i = 0; i < 5; i++) {
 				const qso = ListeningTrainer.generateRandomQSO();
 				expect(qso.category).toBe('qso');
-				expect(qso.content).toBeTruthy();
+				expect(qso.dialog).toBeDefined();
+				expect(qso.dialog!.length).toBeGreaterThan(0);
 			}
 		});
 
@@ -65,7 +69,7 @@ describe('ListeningTrainer', () => {
 			//! ランダム生成なので、複数回生成すると異なる内容になる可能性が高い。
 			const qsos = Array.from({ length: 10 }, () => ListeningTrainer.generateRandomQSO());
 			//! 少なくとも1つは異なる内容があるはず（ランダム要素が多いため）。
-			const uniqueContents = new Set(qsos.map(q => q.content));
+			const uniqueContents = new Set(qsos.map(q => q.dialog!.map(seg => seg.text).join(' ')));
 			expect(uniqueContents.size).toBeGreaterThan(1);
 		});
 	});
@@ -114,10 +118,16 @@ describe('ListeningTrainer', () => {
 				expect(t).toHaveProperty('id');
 				expect(t).toHaveProperty('category');
 				expect(t).toHaveProperty('title');
-				expect(t).toHaveProperty('content');
 				expect(typeof t.id).toBe('string');
 				expect(typeof t.title).toBe('string');
-				expect(typeof t.content).toBe('string');
+				//! QSOカテゴリはdialog、テキストカテゴリはcontentを持つ。
+				if (t.category === 'qso') {
+					expect(t.dialog).toBeDefined();
+					expect(Array.isArray(t.dialog)).toBe(true);
+				} else {
+					expect(t.content).toBeDefined();
+					expect(typeof t.content).toBe('string');
+				}
 			});
 		});
 
@@ -131,9 +141,9 @@ describe('ListeningTrainer', () => {
 
 	describe('getTemplateById()', () => {
 		it('存在するIDでテンプレートを取得できる', () => {
-			const template = ListeningTrainer.getTemplateById('qso-1');
+			const template = ListeningTrainer.getTemplateById('qso-rubberstamp-1');
 			expect(template).toBeDefined();
-			expect(template?.id).toBe('qso-1');
+			expect(template?.id).toBe('qso-rubberstamp-1');
 			expect(template?.category).toBe('qso');
 		});
 
@@ -143,7 +153,7 @@ describe('ListeningTrainer', () => {
 		});
 
 		it('各カテゴリーのテンプレートを取得できる', () => {
-			const qso = ListeningTrainer.getTemplateById('qso-1');
+			const qso = ListeningTrainer.getTemplateById('qso-rubberstamp-1');
 			const text100 = ListeningTrainer.getTemplateById('text100-1');
 			const text200 = ListeningTrainer.getTemplateById('text200-1');
 			const text300 = ListeningTrainer.getTemplateById('text300-1');
@@ -294,14 +304,15 @@ describe('ListeningTrainer', () => {
 			//! ランダムQSO生成。
 			const randomQSO = ListeningTrainer.generateRandomQSO();
 			expect(randomQSO).toBeDefined();
-			expect(randomQSO.content).toBeTruthy();
+			expect(randomQSO.dialog).toBeTruthy();
+		expect(randomQSO.dialog!.length).toBeGreaterThan(0);
 
 			//! ビルトインテンプレート取得。
 			const qsoTemplates = ListeningTrainer.getBuiltinTemplates('qso');
 			expect(qsoTemplates.length).toBeGreaterThan(0);
 
 			//! 特定のテンプレート取得。
-			const template = ListeningTrainer.getTemplateById('qso-1');
+			const template = ListeningTrainer.getTemplateById('qso-rubberstamp-1');
 			expect(template).toBeDefined();
 		});
 
@@ -313,7 +324,7 @@ describe('ListeningTrainer', () => {
 			if (!template) return;
 
 			//! 2. ユーザー入力をシミュレート（部分的に間違った入力）。
-			const correctAnswer = template.content;
+			const correctAnswer = template.content!;
 			const userInput = correctAnswer.substring(0, Math.floor(correctAnswer.length * 0.9));
 
 			//! 3. 正答率を計算。
@@ -328,72 +339,48 @@ describe('ListeningTrainer', () => {
 		});
 
 		it('完全一致の場合は100%で合格となる', () => {
-			const template = ListeningTrainer.getTemplateById('qso-1');
+			const template = ListeningTrainer.getTemplateById('text100-1');
 			expect(template).toBeDefined();
 
 			if (!template) return;
 
-			const accuracy = ListeningTrainer.calculateAccuracy(template.content, template.content);
+			const correctAnswer = template.content!;
+			const accuracy = ListeningTrainer.calculateAccuracy(correctAnswer, correctAnswer);
 			expect(accuracy).toBe(100);
 			expect(ListeningTrainer.isPassed(accuracy)).toBe(true);
 		});
 	});
 
-	describe('parseDialogSegments()', () => {
-		it('DE区切りでセグメントに分割し、A側/B側を交互に割り当てる', () => {
-			const content = 'CQ CQ CQ DE JF2SDR JF2SDR PSE K';
-			const segments = ListeningTrainer.parseDialogSegments(content);
+	describe('QSOテンプレートのdialog構造', () => {
+		it('QSOテンプレートはdialog配列を持つ', () => {
+			const templates = ListeningTrainer.getBuiltinTemplates('qso');
 
-			expect(segments).toHaveLength(2);
-			expect(segments[0]).toEqual({ text: 'CQ CQ CQ', side: 'A' });
-			expect(segments[1]).toEqual({ text: 'DE JF2SDR JF2SDR PSE K', side: 'B' });
+			expect(templates.length).toBeGreaterThan(0);
+
+			for (const template of templates) {
+				expect(template.dialog).toBeDefined();
+				expect(Array.isArray(template.dialog)).toBe(true);
+				if (template.dialog && template.dialog.length > 0) {
+					expect(template.dialog[0]).toHaveProperty('side');
+					expect(template.dialog[0]).toHaveProperty('text');
+					expect(['A', 'B']).toContain(template.dialog[0].side);
+				}
+			}
 		});
 
-		it('複数のDE区切りを正しく処理する', () => {
-			const content = 'CQ CQ DE JF2SDR DE JR2ZWA PSE K';
-			const segments = ListeningTrainer.parseDialogSegments(content);
+		it('generateRandomQSO()はdialog構造を持つQSOを生成する', () => {
+			const qso = ListeningTrainer.generateRandomQSO();
 
-			expect(segments).toHaveLength(3);
-			expect(segments[0]).toEqual({ text: 'CQ CQ', side: 'A' });
-			expect(segments[1]).toEqual({ text: 'DE JF2SDR', side: 'B' });
-			expect(segments[2]).toEqual({ text: 'DE JR2ZWA PSE K', side: 'A' });
-		});
+			expect(qso.category).toBe('qso');
+			expect(qso.dialog).toBeDefined();
+			expect(Array.isArray(qso.dialog)).toBe(true);
+			expect(qso.dialog!.length).toBeGreaterThan(0);
 
-		it('DE区切りがない場合は1セグメントのA側として扱う', () => {
-			const content = 'CQ CQ CQ';
-			const segments = ListeningTrainer.parseDialogSegments(content);
-
-			expect(segments).toHaveLength(1);
-			expect(segments[0]).toEqual({ text: 'CQ CQ CQ', side: 'A' });
-		});
-
-		it('空白を含むDE区切りを正しく処理する', () => {
-			const content = 'HELLO   DE   WORLD';
-			const segments = ListeningTrainer.parseDialogSegments(content);
-
-			expect(segments).toHaveLength(2);
-			expect(segments[0]).toEqual({ text: 'HELLO', side: 'A' });
-			expect(segments[1]).toEqual({ text: 'DE WORLD', side: 'B' });
-		});
-
-		it('DEが大文字小文字混在でも正しく処理する', () => {
-			const content = 'CQ DE JF2SDR de JR2ZWA De TEST';
-			const segments = ListeningTrainer.parseDialogSegments(content);
-
-			expect(segments).toHaveLength(4);
-			expect(segments[0].side).toBe('A');
-			expect(segments[1].side).toBe('B');
-			expect(segments[2].side).toBe('A');
-			expect(segments[3].side).toBe('B');
-		});
-
-		it('空のセグメントは除外される', () => {
-			const content = ' DE TEST';
-			const segments = ListeningTrainer.parseDialogSegments(content);
-
-			//! 空のセグメントが先頭から除外され、TESTがindex 0（A側）になる。
-			expect(segments).toHaveLength(1);
-			expect(segments[0]).toEqual({ text: 'TEST', side: 'A' });
+			//! 各セグメントにside情報が含まれる。
+			for (const segment of qso.dialog!) {
+				expect(['A', 'B']).toContain(segment.side);
+				expect(segment.text).toBeTruthy();
+			}
 		});
 	});
 });

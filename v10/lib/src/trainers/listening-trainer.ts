@@ -10,6 +10,21 @@
 export type TemplateCategory = 'qso' | 'text100' | 'text200' | 'text300';
 
 /**
+ * QSO対話のセグメント
+ */
+export interface DialogSegment {
+	/**
+	 * 発言側（A: 送信局、B: 応答局）
+	 */
+	side: 'A' | 'B';
+
+	/**
+	 * 発言内容
+	 */
+	text: string;
+}
+
+/**
  * 聞き取り練習用テンプレート
  */
 export interface ListeningTemplate {
@@ -29,9 +44,14 @@ export interface ListeningTemplate {
 	title: string;
 
 	/**
-	 * 本文（モールス信号に変換されるテキスト）
+	 * 対話セグメント（QSOカテゴリの場合）
 	 */
-	content: string;
+	dialog?: DialogSegment[];
+
+	/**
+	 * 本文（テキストカテゴリの場合）
+	 */
+	content?: string;
 }
 
 //! 日本の都市名（ローマ字）。
@@ -77,46 +97,41 @@ const RST_REPORTS = [
 //! QSOのサンプルテンプレート。
 const QSO_TEMPLATES: ListeningTemplate[] = [
 	{
-		id: 'qso-1',
+		id: 'qso-rubberstamp-1',
 		category: 'qso',
-		title: 'QSO例1: CQ呼び出しから終了まで',
-		content: 'CQ CQ CQ DE JF2SDR JF2SDR PSE K'
+		title: 'ラバースタンプQSO例: 完全な交信',
+		dialog: [
+			{ side: 'A', text: 'CQ CQ CQ DE JF2SDR JF2SDR PSE K' },
+			{ side: 'B', text: 'JF2SDR DE JR2ZWA JR2ZWA K' },
+			{ side: 'A', text: 'R JR2ZWA DE JF2SDR GM OM TNX FER UR CALL BT UR RST IS 599 599 BT MI QTH IS NAGOYA NAGOYA CITY ES MI NAME IS SHIN SHIN HW ? AR JF2SDR DE JF2SDR KN' },
+			{ side: 'B', text: 'R JF2SDR DE JR2ZWA GM DR SHIN OM TKS FER FB RPT 599 FM NAGOYA BT UR RST ALSO 599 599 VY FB MI QTH IS GIFU GIFU CITY BT NAME IS HIRO HIRO HW? JF2SDR DE JR2ZWA KN' },
+			{ side: 'A', text: 'R FB DE JF2SDR DR HIRO OM BT MI RIG IS TS-850S PWR 100W ES ANT IS 3ELE YAGI 12MH BT PSE UR QSL CRD VIA JARL ? MI CRD SURE HW? AR JR2ZWA DE JF2SDR KN' },
+			{ side: 'B', text: 'R JF2SDR DE JR2ZWA OK SHIN OM BT UR RIG ES ANT VY FB BT MI RIG IS FT-101ES VY OLD RIG ES ANT IS DP 8MH BT QSL VIA JARL OK SURE BT TNX FB 1ST QSO ES 73 AR JF2SDR DE JR2ZWA VA' },
+			{ side: 'A', text: 'OK HIRO SOLID CPI BT TKS FB QSO ES BEST 73 AR JR2ZWA DE JF2SDR VA TU E E' }
+		]
 	},
 	{
-		id: 'qso-2',
+		id: 'qso-short-1',
 		category: 'qso',
-		title: 'QSO例2: 応答',
-		content: 'JF2SDR DE JR2ZWA JR2ZWA K'
+		title: 'QSO例: 短い交信（CQ呼び出しと応答）',
+		dialog: [
+			{ side: 'A', text: 'CQ CQ CQ DE JA1ABC JA1ABC PSE K' },
+			{ side: 'B', text: 'JA1ABC DE JE1XYZ JE1XYZ K' },
+			{ side: 'A', text: 'R JE1XYZ DE JA1ABC TKS UR RST 599 QTH TOKYO TKS QSO 73 AR JA1ABC DE JA1ABC VA' },
+			{ side: 'B', text: 'R JA1ABC DE JE1XYZ TKS 599 QTH OSAKA 73 AR JE1XYZ VA' }
+		]
 	},
 	{
-		id: 'qso-3',
+		id: 'qso-short-2',
 		category: 'qso',
-		title: 'QSO例3: 挨拶と信号報告',
-		content: 'R JR2ZWA DE JF2SDR GM OM TNX FER UR CALL BT UR RST IS 599 599 BT MI QTH IS NAGOYA NAGOYA CITY ES MI NAME IS SHIN SHIN HW ? AR JF2SDR DE JF2SDR KN'
-	},
-	{
-		id: 'qso-4',
-		category: 'qso',
-		title: 'QSO例4: 返信と自己紹介',
-		content: 'R JF2SDR DE JR2ZWA GM DR SHIN OM TKS FER FB RPT 599 FM NAGOYA BT UR RST ALSO 599 599 VY FB MI QTH IS GIFU GIFU CITY BT NAME IS HIRO HIRO HW? JF2SDR DE JR2ZWA KN'
-	},
-	{
-		id: 'qso-5',
-		category: 'qso',
-		title: 'QSO例5: リグとアンテナ情報',
-		content: 'R FB DE JF2SDR DR HIRO OM BT MI RIG IS TS-850S PWR 100W ES ANT IS 3ELE YAGI 12MH BT PSE UR QSL CRD VIA JARL ? MI CRD SURE HW? AR JR2ZWA DE JF2SDR KN'
-	},
-	{
-		id: 'qso-6',
-		category: 'qso',
-		title: 'QSO例6: QSL確認と終了',
-		content: 'R JF2SDR DE JR2ZWA OK SHIN OM BT UR RIG ES ANT VY FB BT MI RIG IS FT-101ES VY OLD RIG ES ANT IS DP 8MH BT QSL VIA JARL OK SURE BT TNX FB 1ST QSO ES 73 AR JF2SDR DE JR2ZWA VA'
-	},
-	{
-		id: 'qso-7',
-		category: 'qso',
-		title: 'QSO例7: 最終挨拶',
-		content: 'OK HIRO SOLID CPI BT TKS FB QSO ES BEST 73 AR JR2ZWA DE JF2SDR VA TU E E'
+		title: 'QSO例: 挨拶と信号報告のみ',
+		dialog: [
+			{ side: 'A', text: 'CQ DX CQ DX DE JH8ZZZ JH8ZZZ K' },
+			{ side: 'B', text: 'JH8ZZZ DE VK2AAA VK2AAA K' },
+			{ side: 'A', text: 'R VK2AAA DE JH8ZZZ GM UR RST 579 NAME TARO QTH SAPPORO HW? AR JH8ZZZ KN' },
+			{ side: 'B', text: 'R JH8ZZZ DE VK2AAA TKS TARO UR RST 589 NAME JOHN QTH SYDNEY 73 AR VK2AAA VA' },
+			{ side: 'A', text: 'R VK2AAA TNX QSO 73 AR JH8ZZZ VA TU' }
+		]
 	}
 ];
 
@@ -218,13 +233,19 @@ export class ListeningTrainer {
 		const urRig = this.randomChoice(CW_RIGS);
 		const greeting = this.randomChoice(['GM', 'GA', 'GE', 'GN']);
 
-		const qsoText = `CQ CQ CQ DE ${myCall} ${myCall} PSE K BT ${myCall} DE ${urCall} ${urCall} K BT R ${urCall} DE ${myCall} ${greeting} OM TNX FER UR CALL BT UR RST IS ${urRST} ${urRST} BT MI QTH IS ${myCity} ${myCity} ES MI NAME IS ${myName} ${myName} HW ? AR ${myCall} DE ${myCall} KN BT R ${myCall} DE ${urCall} ${greeting} DR ${myName} OM TKS FER FB RPT ${urRST} FM ${myCity} BT UR RST ALSO ${myRST} ${myRST} VY FB MI QTH IS ${urCity} ${urCity} BT NAME IS ${urName} ${urName} HW? ${myCall} DE ${urCall} KN BT R FB DE ${myCall} DR ${urName} OM BT MI RIG IS ${myRig} PWR 100W BT PSE UR QSL CRD VIA JARL ? MI CRD SURE HW? AR ${urCall} DE ${myCall} KN BT R ${myCall} DE ${urCall} OK ${myName} OM BT UR RIG ${myRig} VY FB BT MI RIG IS ${urRig} BT QSL VIA JARL OK SURE BT TNX FB QSO ES 73 AR ${myCall} DE ${urCall} VA BT OK ${urName} SOLID CPI BT TKS FB QSO ES BEST 73 AR ${urCall} DE ${myCall} VA TU E E`;
-
 		return {
 			id: `qso-random-${Date.now()}`,
 			category: 'qso',
 			title: 'ランダムQSO',
-			content: qsoText
+			dialog: [
+				{ side: 'A', text: `CQ CQ CQ DE ${myCall} ${myCall} PSE K` },
+				{ side: 'B', text: `${myCall} DE ${urCall} ${urCall} K` },
+				{ side: 'A', text: `R ${urCall} DE ${myCall} ${greeting} OM TNX FER UR CALL BT UR RST IS ${urRST} ${urRST} BT MI QTH IS ${myCity} ${myCity} ES MI NAME IS ${myName} ${myName} HW ? AR ${myCall} DE ${myCall} KN` },
+				{ side: 'B', text: `R ${myCall} DE ${urCall} ${greeting} DR ${myName} OM TKS FER FB RPT ${urRST} FM ${myCity} BT UR RST ALSO ${myRST} ${myRST} VY FB MI QTH IS ${urCity} ${urCity} BT NAME IS ${urName} ${urName} HW? ${myCall} DE ${urCall} KN` },
+				{ side: 'A', text: `R FB DE ${myCall} DR ${urName} OM BT MI RIG IS ${myRig} PWR 100W BT PSE UR QSL CRD VIA JARL ? MI CRD SURE HW? AR ${urCall} DE ${myCall} KN` },
+				{ side: 'B', text: `R ${myCall} DE ${urCall} OK ${myName} OM BT UR RIG ${myRig} VY FB BT MI RIG IS ${urRig} BT QSL VIA JARL OK SURE BT TNX FB QSO ES 73 AR ${myCall} DE ${urCall} VA` },
+				{ side: 'A', text: `OK ${urName} SOLID CPI BT TKS FB QSO ES BEST 73 AR ${urCall} DE ${myCall} VA TU E E` }
+			]
 		};
 	}
 
@@ -320,22 +341,4 @@ export class ListeningTrainer {
 			TEXT200_TEMPLATES.length + TEXT300_TEMPLATES.length;
 	}
 
-	/**
-	 * ダイアログQSOテキストをセグメントに分割する
-	 * DE区切りで分割し、A側/B側を交互に再生するための情報を返す
-	 * @param content - QSOテキスト（DEで区切られたもの）
-	 * @returns セグメント配列（各セグメントにside情報を含む）
-	 */
-	static parseDialogSegments(content: string): Array<{text: string, side: 'A' | 'B'}> {
-		//! DEコマンドで分割してセグメントに分ける。
-		//! 例: "CQ CQ CQ DE JF2SDR JF2SDR PSE K" -> ["CQ CQ CQ", "JF2SDR JF2SDR PSE K"]
-		const segments = content.split(/\s+DE\s+/i);
-
-		return segments
-			.filter(seg => seg.trim())
-			.map((seg, index) => ({
-				text: index === 0 ? seg : `DE ${seg}`,
-				side: (index % 2 === 0 ? 'A' : 'B') as 'A' | 'B'
-			}));
-	}
 }

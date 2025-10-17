@@ -177,11 +177,11 @@ export class ListeningView implements View {
 		this.state.isPlaying = true;
 		this.updatePlaybackButtons();
 
-		//! 対話形式モードかどうかをチェック。
-		if (this.state.showDialogFormat) {
+		//! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
+		if (this.state.showDialogFormat && this.state.selectedTemplate.dialog) {
 			//! 対話形式で再生（A側とB側を交互に再生）。
-			await this.playDialogQSO(this.state.selectedTemplate.content);
-		} else {
+			await this.playDialogQSO(this.state.selectedTemplate);
+		} else if (this.state.selectedTemplate.content) {
 			//! 通常モードで再生（全体をA側で再生）。
 			const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
 			await this.audio.playMorseString(morse);
@@ -192,16 +192,35 @@ export class ListeningView implements View {
 	}
 
 	/**
+	 * テンプレートからテキストを取得する
+	 * @param template - テンプレート
+	 * @returns 表示用テキスト
+	 */
+	private getTemplateText(template: ListeningTemplate): string {
+		if (template.dialog && template.dialog.length > 0) {
+			return template.dialog.map(seg => seg.text).join(' BT ');
+		}
+		return template.content || '';
+	}
+
+	/**
 	 * 対話形式のQSOを再生する
 	 * A側とB側を交互に異なる周波数で再生
+	 * @param template - 再生するテンプレート
 	 */
-	private async playDialogQSO(content: string): Promise<void> {
-		//! ライブラリ側でセグメントに分割。
-		const segments = ListeningTrainer.parseDialogSegments(content);
+	private async playDialogQSO(template: ListeningTemplate): Promise<void> {
+		//! dialogがない場合（テキストカテゴリ）はcontentを再生。
+		if (!template.dialog || template.dialog.length === 0) {
+			if (template.content) {
+				const morse = MorseCodec.textToMorse(template.content);
+				await this.audio.playMorseString(morse);
+			}
+			return;
+		}
 
 		//! 各セグメントを交互にA側とB側で再生。
-		for (let i = 0; i < segments.length; i++) {
-			const segment = segments[i];
+		for (let i = 0; i < template.dialog.length; i++) {
+			const segment = template.dialog[i];
 			const morse = MorseCodec.textToMorse(segment.text);
 
 			//! A側またはB側のAudioGeneratorを選択。
@@ -209,7 +228,7 @@ export class ListeningView implements View {
 			await generator.playMorseString(morse);
 
 			//! セグメント間に短い間隔を入れる。
-			if (i < segments.length - 1) {
+			if (i < template.dialog.length - 1) {
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 		}
@@ -491,9 +510,10 @@ export class ListeningView implements View {
 				${this.state.currentCategory === 'custom' ? '<button id="addCustomBtn" class="btn btn-primary">新規作成</button>' : ''}
 				${templates
 					.map(template => {
+						const text = this.getTemplateText(template);
 						const preview = template.id === 'qso-random-generate'
 							? 'コールサイン、地名、名前、RSレポート、リグなどがランダムに生成された完全なQSOが作成されます。毎回異なる内容で練習できます。'
-							: `${template.content.substring(0, 100)}${template.content.length > 100 ? '...' : ''}`;
+							: `${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
 						return `
 					<div class="template-card" data-template-id="${template.id}">
 						<h3>${template.title}</h3>
@@ -604,7 +624,7 @@ export class ListeningView implements View {
 		if (!answerArea || !this.state.selectedTemplate) return;
 
 		const isQSO = this.state.selectedTemplate.category === 'qso';
-		const content = this.state.selectedTemplate.content;
+		const content = this.getTemplateText(this.state.selectedTemplate);
 
 		//! 対話形式ボタン（QSOの場合のみ表示）。
 		const dialogButton = isQSO
@@ -653,8 +673,9 @@ export class ListeningView implements View {
 		const resultArea = document.getElementById('resultArea');
 		if (!resultArea || !this.state.selectedTemplate) return;
 
+		const correctText = this.getTemplateText(this.state.selectedTemplate);
 		const accuracy = ListeningTrainer.calculateAccuracy(
-			this.state.selectedTemplate.content,
+			correctText,
 			this.state.userInput
 		);
 
@@ -665,7 +686,7 @@ export class ListeningView implements View {
 				<div class="comparison">
 					<div class="comparison-row">
 						<strong>正解:</strong>
-						<div class="comparison-text">${this.state.selectedTemplate.content}</div>
+						<div class="comparison-text">${correctText}</div>
 					</div>
 					<div class="comparison-row">
 						<strong>入力:</strong>
@@ -807,7 +828,8 @@ export class ListeningView implements View {
 
 		try {
 			//! テキストをモールス符号に変換。
-			const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
+			const text = this.getTemplateText(this.state.selectedTemplate);
+			const morse = MorseCodec.textToMorse(text);
 
 			//! WAVファイルを生成。
 			const wavBlob = await this.audio.generateWav(morse);
