@@ -56,7 +56,18 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
+			use: {
+				...devices['Desktop Chrome'],
+				//! WSL環境対応: GPUレンダリングを無効化してページ作成を高速化。
+				launchOptions: {
+					args: [
+						'--use-gl=swiftshader',
+						'--disable-gpu',
+						'--disable-dev-shm-usage',
+						'--no-sandbox',
+					],
+				},
+			},
 		},
 
 		// Firefox and WebKit require additional installation

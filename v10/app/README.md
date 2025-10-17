@@ -70,11 +70,18 @@ sudo npx playwright install-deps chromium
 - コンテキスト作成: ✓ 正常
 - ページ作成: ✗ `browserContext.newPage()`が3秒以上かかる
 
-WSL環境では`browserContext.newPage()`の処理が異常に遅く、実用的なテスト実行ができません。この問題を解決するには、以下の環境での実行を推奨します:
+**試行した対策** (効果なし):
+- `--use-gl=swiftshader`, `--disable-gpu`, `--disable-dev-shm-usage`, `--no-sandbox`の追加
+- ブラウザのインストール場所確認 (既にext4上に配置済み)
 
-- ネイティブLinux環境
+WSL環境では`browserContext.newPage()`の処理が異常に遅く、実用的なテスト実行ができません。これはGPUレンダリングの問題ではなく、WSLのプロセス間通信やカーネル機能の制約によるものと考えられます。
+
+**推奨される実行環境**:
+- ネイティブLinux環境 (Ubuntu等)
 - Windowsネイティブ環境 (Node.jsとPlaywrightをWindows上に直接インストール)
 - CI/CD環境 (GitHub Actions等)
+
+**参考**: playwright.config.ts (playwright.config.ts:62-69)にはWSL環境用の最適化設定が含まれていますが、根本的な問題の解決には至りませんでした。
 
 #### テスト実行
 
