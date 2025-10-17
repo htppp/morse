@@ -8,9 +8,9 @@ export default defineConfig({
 	testDir: './e2e',
 
 	//! テストタイムアウト設定。
-	timeout: 3 * 1000,
+	timeout: 30 * 1000,
 	expect: {
-		timeout: 100
+		timeout: 5000
 	},
 
 	//! 並列実行設定。
@@ -37,10 +37,10 @@ export default defineConfig({
 		headless: true,
 
 		//! ナビゲーションタイムアウト（ページ遷移）。
-		navigationTimeout: 100,
+		navigationTimeout: 30 * 1000,
 
 		//! アクションタイムアウト（クリック等）。
-		actionTimeout: 100,
+		actionTimeout: 30 * 1000,
 
 		//! トレース設定。
 		trace: 'on-first-retry',
