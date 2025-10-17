@@ -856,6 +856,37 @@ npm run test:e2e:report
 
 ---
 
+## デプロイ
+
+### URL構造
+
+v10は他のバージョンと統一されたURL構造を持っています:
+
+- `https://morse.hato.life/` → 最新バージョン（v10）にリダイレクト
+- `https://morse.hato.life/v10/` → v10アプリケーション
+- `https://morse.hato.life/v1/`、`/v2/`、`/v3/` など → 過去バージョン
+
+### ビルドとデプロイ
+
+```bash
+cd v10/app
+npm run build
+```
+
+ビルドコマンドは以下を実行します:
+1. TypeScriptコンパイル（`tsc`）
+2. Viteビルド（`vite build` → `app/dist/` に出力）
+3. **自動コピー**: `dist/` の内容を `v10/` ルートにコピー（`copy-to-root` スクリプト）
+
+コピーされるファイル:
+- `index.html` - アプリケーションのエントリポイント
+- `flashcard.tsv` - CW略語・Q符号データベース
+- `assets/` - JavaScript、CSS、その他のアセット
+
+これにより、`https://morse.hato.life/v10/` で直接アプリケーションにアクセスできます。
+
+---
+
 **プロジェクトステータス**: ✅ **Phase 1完了** → ✅ **Phase 2完了** → ✅ **Phase 3完了** → ✅ **Phase 4完了**
 
 **最終更新**: 2025-10-17（Phase 4完了: E2Eテスト、パフォーマンス最適化、デプロイ設定）
