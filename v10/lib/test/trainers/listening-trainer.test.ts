@@ -338,4 +338,62 @@ describe('ListeningTrainer', () => {
 			expect(ListeningTrainer.isPassed(accuracy)).toBe(true);
 		});
 	});
+
+	describe('parseDialogSegments()', () => {
+		it('DE区切りでセグメントに分割し、A側/B側を交互に割り当てる', () => {
+			const content = 'CQ CQ CQ DE JF2SDR JF2SDR PSE K';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			expect(segments).toHaveLength(2);
+			expect(segments[0]).toEqual({ text: 'CQ CQ CQ', side: 'A' });
+			expect(segments[1]).toEqual({ text: 'DE JF2SDR JF2SDR PSE K', side: 'B' });
+		});
+
+		it('複数のDE区切りを正しく処理する', () => {
+			const content = 'CQ CQ DE JF2SDR DE JR2ZWA PSE K';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			expect(segments).toHaveLength(3);
+			expect(segments[0]).toEqual({ text: 'CQ CQ', side: 'A' });
+			expect(segments[1]).toEqual({ text: 'DE JF2SDR', side: 'B' });
+			expect(segments[2]).toEqual({ text: 'DE JR2ZWA PSE K', side: 'A' });
+		});
+
+		it('DE区切りがない場合は1セグメントのA側として扱う', () => {
+			const content = 'CQ CQ CQ';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			expect(segments).toHaveLength(1);
+			expect(segments[0]).toEqual({ text: 'CQ CQ CQ', side: 'A' });
+		});
+
+		it('空白を含むDE区切りを正しく処理する', () => {
+			const content = 'HELLO   DE   WORLD';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			expect(segments).toHaveLength(2);
+			expect(segments[0]).toEqual({ text: 'HELLO', side: 'A' });
+			expect(segments[1]).toEqual({ text: 'DE WORLD', side: 'B' });
+		});
+
+		it('DEが大文字小文字混在でも正しく処理する', () => {
+			const content = 'CQ DE JF2SDR de JR2ZWA De TEST';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			expect(segments).toHaveLength(4);
+			expect(segments[0].side).toBe('A');
+			expect(segments[1].side).toBe('B');
+			expect(segments[2].side).toBe('A');
+			expect(segments[3].side).toBe('B');
+		});
+
+		it('空のセグメントは除外される', () => {
+			const content = ' DE TEST';
+			const segments = ListeningTrainer.parseDialogSegments(content);
+
+			//! 空のセグメントが先頭から除外され、TESTがindex 0（A側）になる。
+			expect(segments).toHaveLength(1);
+			expect(segments[0]).toEqual({ text: 'TEST', side: 'A' });
+		});
+	});
 });

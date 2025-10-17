@@ -196,19 +196,16 @@ export class ListeningView implements View {
 	 * A側とB側を交互に異なる周波数で再生
 	 */
 	private async playDialogQSO(content: string): Promise<void> {
-		//! DEコマンドで分割してセグメントに分ける。
-		//! 例: "CQ CQ CQ DE JF2SDR JF2SDR PSE K" -> ["CQ CQ CQ", "JF2SDR JF2SDR PSE K"]
-		const segments = content.split(/\s+DE\s+/i);
+		//! ライブラリ側でセグメントに分割。
+		const segments = ListeningTrainer.parseDialogSegments(content);
 
 		//! 各セグメントを交互にA側とB側で再生。
 		for (let i = 0; i < segments.length; i++) {
-			if (!segments[i].trim()) continue;
+			const segment = segments[i];
+			const morse = MorseCodec.textToMorse(segment.text);
 
-			const text = i === 0 ? segments[i] : `DE ${segments[i]}`;
-			const morse = MorseCodec.textToMorse(text);
-
-			//! 偶数番目(0, 2, 4...)はA側、奇数番目(1, 3, 5...)はB側。
-			const generator = i % 2 === 0 ? this.audio : this.audioB;
+			//! A側またはB側のAudioGeneratorを選択。
+			const generator = segment.side === 'A' ? this.audio : this.audioB;
 			await generator.playMorseString(morse);
 
 			//! セグメント間に短い間隔を入れる。

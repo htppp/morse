@@ -319,4 +319,23 @@ export class ListeningTrainer {
 		return QSO_TEMPLATES.length + TEXT100_TEMPLATES.length +
 			TEXT200_TEMPLATES.length + TEXT300_TEMPLATES.length;
 	}
+
+	/**
+	 * ダイアログQSOテキストをセグメントに分割する
+	 * DE区切りで分割し、A側/B側を交互に再生するための情報を返す
+	 * @param content - QSOテキスト（DEで区切られたもの）
+	 * @returns セグメント配列（各セグメントにside情報を含む）
+	 */
+	static parseDialogSegments(content: string): Array<{text: string, side: 'A' | 'B'}> {
+		//! DEコマンドで分割してセグメントに分ける。
+		//! 例: "CQ CQ CQ DE JF2SDR JF2SDR PSE K" -> ["CQ CQ CQ", "JF2SDR JF2SDR PSE K"]
+		const segments = content.split(/\s+DE\s+/i);
+
+		return segments
+			.filter(seg => seg.trim())
+			.map((seg, index) => ({
+				text: index === 0 ? seg : `DE ${seg}`,
+				side: (index % 2 === 0 ? 'A' : 'B') as 'A' | 'B'
+			}));
+	}
 }

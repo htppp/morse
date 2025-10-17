@@ -5,6 +5,7 @@
 import type { View } from '../../router';
 import {
 	KochTrainer,
+	KOCH_SEQUENCE,
 	AudioGenerator,
 	MorseCodec,
 	type PracticeSettings
@@ -51,15 +52,6 @@ const DEFAULT_SETTINGS: KochSettings = {
 	groupSize: 5,
 	showInput: true
 };
-
-//! コッホシーケンス（41文字）。
-const KOCH_SEQUENCE = [
-	'K', 'M', 'U', 'R', 'E', 'S', 'N', 'A', 'P', 'T',
-	'L', 'W', 'I', '.', 'J', 'Z', '=', 'F', 'O', 'Y',
-	'V', ',', 'G', '5', '/', 'Q', '9', '2', 'H', '3',
-	'8', 'B', '?', '4', '7', 'C', '1', 'D', '6', '0',
-	'X'
-];
 
 /**
  * コッホ法トレーニングビュークラス
@@ -248,7 +240,7 @@ export class KochView implements View {
 	}
 
 	private showResult(): void {
-		const accuracy = this.calculateAccuracy();
+		const accuracy = KochTrainer.calculateAccuracy(this.state.correctAnswer, this.state.userInput);
 		const passed = accuracy >= 90;
 
 		const resultContainer = document.getElementById('resultContainer');
@@ -281,21 +273,6 @@ export class KochView implements View {
 		document.getElementById('retryBtn')?.addEventListener('click', () => {
 			this.render();
 		});
-	}
-
-	private calculateAccuracy(): number {
-		if (!this.state.userInput) return 0;
-
-		const correct = this.state.correctAnswer.replace(/\s/g, '');
-		const input = this.state.userInput.replace(/\s/g, '');
-		const maxLen = Math.max(correct.length, input.length);
-
-		let matches = 0;
-		for (let i = 0; i < maxLen; i++) {
-			if (correct[i] === input[i]) matches++;
-		}
-
-		return (matches / maxLen) * 100;
 	}
 
 	private updateProgress(): void {
