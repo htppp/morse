@@ -63,13 +63,18 @@ sudo npx playwright install-deps chromium
 
 #### WSL環境での制限事項
 
-現在、WSL (Windows Subsystem for Linux) 環境では、Playwrightのブラウザ起動に制約があり、E2Eテストが正常に動作しない場合があります。
+現在、WSL (Windows Subsystem for Linux) 環境では、Playwrightのページ作成処理に制約があり、E2Eテストが正常に動作しません。
 
-症状:
-- `browserContext.newPage`がタイムアウト
-- テストが3秒でタイムアウト
+**確認された問題**:
+- ブラウザ起動: ✓ 正常
+- コンテキスト作成: ✓ 正常
+- ページ作成: ✗ `browserContext.newPage()`が3秒以上かかる
 
-この場合は、ネイティブLinux環境またはWindowsネイティブ環境での実行をお試しください。
+WSL環境では`browserContext.newPage()`の処理が異常に遅く、実用的なテスト実行ができません。この問題を解決するには、以下の環境での実行を推奨します:
+
+- ネイティブLinux環境
+- Windowsネイティブ環境 (Node.jsとPlaywrightをWindows上に直接インストール)
+- CI/CD環境 (GitHub Actions等)
 
 #### テスト実行
 
