@@ -37,7 +37,7 @@ export default defineConfig({
 		headless: true,
 
 		//! ナビゲーションタイムアウト（ページ遷移）。
-		navigationTimeout: 3000,
+		navigationTimeout: 100,
 
 		//! アクションタイムアウト（クリック等）。
 		actionTimeout: 100,
