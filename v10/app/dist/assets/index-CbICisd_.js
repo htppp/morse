@@ -1091,8 +1091,8 @@ let i=n.effectiveSpeed;const a=n.characterSpeed;i>a&&(i=a);//! 設定を保存�
 this.settings.characterSpeed=a,this.settings.effectiveSpeed=i,this.settings.frequency=n.frequency,this.settings.bFrequency=n.bFrequency,this.settings.volume=n.volume/100,this.saveSettings();//! A側のAudioGeneratorを更新。
 this.audio.updateSettings({frequency:this.settings.frequency,volume:this.settings.volume,wpm:this.settings.characterSpeed,effectiveWpm:this.settings.effectiveSpeed});//! B側のAudioGeneratorを更新。
 this.audioB.updateSettings({frequency:this.settings.bFrequency,volume:this.settings.volume,wpm:this.settings.characterSpeed,effectiveWpm:this.settings.effectiveSpeed})},onCancel:()=>{//! 設定を元に戻す。
-this.settings={...e},this.audio.updateSettings({frequency:e.frequency,volume:e.volume,wpm:e.characterSpeed,effectiveWpm:e.effectiveSpeed}),this.audioB.updateSettings({frequency:e.bFrequency,volume:e.volume,wpm:e.characterSpeed,effectiveWpm:e.effectiveSpeed})},onTestPlay:async()=>{//! テスト再生。
-const n=b.textToMorse("CQ");await this.audio.playMorseString(n)}});//! モーダルを表示。
+this.settings={...e},this.audio.updateSettings({frequency:e.frequency,volume:e.volume,wpm:e.characterSpeed,effectiveWpm:e.effectiveSpeed}),this.audioB.updateSettings({frequency:e.bFrequency,volume:e.volume,wpm:e.characterSpeed,effectiveWpm:e.effectiveSpeed})},onTestPlay:async()=>{//! テスト再生: A側とB側の周波数で順番に再生。
+const n=b.textToMorse("CQ");await this.audio.playMorseString(n),await new Promise(i=>setTimeout(i,500)),await this.audioB.playMorseString(n)}});//! モーダルを表示。
 s.show("listening")}render(){const t=document.getElementById("app");t&&(t.innerHTML=`
 			<div class="settings-icon" id="settingsIcon">
 				<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -1251,4 +1251,4 @@ window.location.hash="#menu"}}navigate(t){window.location.hash=`#${t}`}}//! ア�
 function W(){console.log("モールス練習アプリ v10 起動");//! ルーターを初期化。
 new rt().init()}//! DOMContentLoaded後に初期化。
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",W):W();
-//# sourceMappingURL=index-Dy4OCRcR.js.map
+//# sourceMappingURL=index-CbICisd_.js.map

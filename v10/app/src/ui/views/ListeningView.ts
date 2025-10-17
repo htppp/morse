@@ -412,9 +412,11 @@ export class ListeningView implements View {
 					});
 				},
 				onTestPlay: async () => {
-					//! テスト再生。
+					//! テスト再生: A側とB側の周波数で順番に再生。
 					const morse = MorseCodec.textToMorse('CQ');
 					await this.audio.playMorseString(morse);
+					await new Promise(resolve => setTimeout(resolve, 500));
+					await this.audioB.playMorseString(morse);
 				}
 			}
 		);
