@@ -1,7 +1,7 @@
 # morse-engine API仕様書
 
 **バージョン**: 1.0.0
-**最終更新**: 2025-10-15
+**最終更新**: 2025-10-17
 
 ---
 
@@ -16,8 +16,15 @@
   - [MorseBuffer](#morsebuffer)
   - [TimerManager](#timermanager)
   - [AudioGenerator](#audiogenerator)
+- [トレーナーモジュール](#トレーナーモジュール)
+  - [VerticalKeyTrainer](#verticalkeytrainer)
+  - [HorizontalKeyTrainer](#horizontalkeytrainer)
+  - [KochTrainer](#kochtrainer)
+  - [ListeningTrainer](#listeningtrainer)
+  - [FlashcardTrainer](#flashcardtrainer)
 - [型定義](#型定義)
 - [エラーハンドリング](#エラーハンドリング)
+- [テストカバレッジ](#テストカバレッジ)
 
 ---
 
@@ -783,6 +790,306 @@ playText('SOS');
 
 ---
 
+## トレーナーモジュール
+
+### VerticalKeyTrainer
+
+縦振り電鍵のトレーナーロジックを提供します。
+
+#### コンストラクタ
+
+```typescript
+import { VerticalKeyTrainer } from 'morse-engine';
+
+const trainer = new VerticalKeyTrainer({
+  wpm: 20,
+  onElementDetected: (element) => {
+    console.log('検出:', element); // '.' または '-'
+  },
+  onCharacterComplete: (morseCode, character) => {
+    console.log(`文字: ${character} (${morseCode})`);
+  },
+  onWordComplete: () => {
+    console.log('語完了');
+  }
+});
+```
+
+#### メソッド
+
+##### `onKeyDown(): void`
+
+キー押下開始を通知します。
+
+##### `onKeyUp(): void`
+
+キー押下終了を通知します。
+
+##### `getBuffer(): string`
+
+現在のモールス符号バッファを取得します。
+
+##### `getDecodedText(): string`
+
+デコード済みテキストを取得します。
+
+##### `clear(): void`
+
+バッファをクリアします。
+
+##### `dispose(): void`
+
+リソースをクリーンアップします。使用後は必ず呼び出してください。
+
+---
+
+### HorizontalKeyTrainer
+
+横振り電鍵（Iambic A/B）のトレーナーロジックを提供します。
+
+#### コンストラクタ
+
+```typescript
+import { HorizontalKeyTrainer } from 'morse-engine';
+
+const trainer = new HorizontalKeyTrainer({
+  wpm: 20,
+  iambicMode: 'B',                // 'A' または 'B'
+  paddleLayout: 'normal',         // 'normal' または 'reversed'
+  onElementGenerated: (element) => {
+    console.log('生成:', element);
+  },
+  onCharacterComplete: (morseCode, character) => {
+    console.log(`文字: ${character}`);
+  }
+});
+```
+
+#### メソッド
+
+##### `onLeftPaddleDown(): void` / `onLeftPaddleUp(): void`
+
+左パドルの押下/解放を通知します。
+
+##### `onRightPaddleDown(): void` / `onRightPaddleUp(): void`
+
+右パドルの押下/解放を通知します。
+
+##### `getBuffer(): string`
+
+現在のモールス符号バッファを取得します。
+
+##### `getDecodedText(): string`
+
+デコード済みテキストを取得します。
+
+##### `clear(): void`
+
+バッファをクリアします。
+
+##### `dispose(): void`
+
+リソースをクリーンアップします。
+
+---
+
+### KochTrainer
+
+コッホ法によるモールス学習トレーナーです。
+
+#### コンストラクタ
+
+```typescript
+import { KochTrainer } from 'morse-engine';
+
+const koch = new KochTrainer({
+  characterSpeed: 20,  // 文字速度 (WPM)
+  effectiveSpeed: 15,  // 実効速度 (WPM)
+  groupSize: 5         // グループサイズ
+});
+```
+
+#### メソッド
+
+##### `getCharsForLesson(lesson: number): string[]`
+
+レッスン番号（1-40）に対応する文字リストを取得します。
+
+**例**:
+```typescript
+koch.getCharsForLesson(1);  // ["K", "M"]
+koch.getCharsForLesson(5);  // ["K", "M", "U", "R", "E"]
+```
+
+##### `generateRandomGroups(chars: string[], groupSize: number, duration: number): string[]`
+
+ランダムなグループを生成します。
+
+**パラメータ**:
+- `chars`: 使用する文字の配列
+- `groupSize`: グループサイズ
+- `duration`: 練習時間（秒）
+
+**例**:
+```typescript
+const groups = koch.generateRandomGroups(['K', 'M', 'R'], 5, 60);
+// ["KMRMK", "RKMKR", "MRKRM", ...]
+```
+
+##### `generatePracticeText(lesson: number, duration: number): string`
+
+練習テキストを生成します。
+
+**例**:
+```typescript
+const text = koch.generatePracticeText(5, 60);
+// "KMURE EKMRU URMEK REUKMR ..."
+```
+
+---
+
+### ListeningTrainer
+
+モールス信号聞き取り練習用のトレーナーです。
+
+#### コンストラクタ
+
+```typescript
+import { ListeningTrainer } from 'morse-engine';
+
+const trainer = new ListeningTrainer({
+  characterSpeed: 20,
+  effectiveSpeed: 15
+});
+```
+
+#### メソッド
+
+##### `generateRandomQSO(): { title: string; content: string }`
+
+ランダムなQSOを生成します。
+
+**例**:
+```typescript
+const qso = trainer.generateRandomQSO();
+console.log(qso.title);   // "ランダムQSO: JA1ABC <-> JH1XYZ"
+console.log(qso.content); // "CQ CQ CQ DE JA1ABC..."
+```
+
+##### `getTemplatesByCategory(category: TemplateCategory): ListeningTemplate[]`
+
+カテゴリ別のテンプレートを取得します。
+
+**パラメータ**:
+- `category`: 'qso' | 'text100' | 'text200' | 'text300'
+
+**例**:
+```typescript
+const qsoTemplates = trainer.getTemplatesByCategory('qso');
+console.log(qsoTemplates.length); // 7
+```
+
+---
+
+### FlashcardTrainer
+
+CW略語・Q符号のフラッシュカード学習トレーナーです。
+
+#### コンストラクタ
+
+```typescript
+import { FlashcardTrainer } from 'morse-engine';
+
+const trainer = new FlashcardTrainer();
+```
+
+#### メソッド
+
+##### `getAllEntries(): FlashcardEntry[]`
+
+全エントリー（500語以上）を取得します。
+
+**戻り値**:
+```typescript
+interface FlashcardEntry {
+  abbreviation: string;  // 略語（例: "CQ"）
+  english: string;       // 英語の意味
+  japanese: string;      // 日本語の意味
+  description?: string;  // 詳細説明
+  example?: string;      // 使用例
+  frequency: number;     // 頻度（1:低, 2:中, 3:高）
+  tags: string[];        // タグ（例: ["Q符号", "呼び出し"]）
+}
+```
+
+##### `filterByTags(entries: FlashcardEntry[], tags: string[]): FlashcardEntry[]`
+
+タグでフィルタリングします。
+
+**例**:
+```typescript
+const qCodeEntries = trainer.filterByTags(entries, ['Q符号']);
+```
+
+##### `filterByFrequency(entries: FlashcardEntry[], frequencies: number[]): FlashcardEntry[]`
+
+頻度でフィルタリングします。
+
+**例**:
+```typescript
+const highFreq = trainer.filterByFrequency(entries, [3]);
+```
+
+##### `searchEntries(entries: FlashcardEntry[], query: string): FlashcardEntry[]`
+
+テキスト検索します。
+
+**例**:
+```typescript
+const results = trainer.searchEntries(entries, 'frequency');
+```
+
+##### `sortEntries(entries: FlashcardEntry[], column: SortColumn, direction: SortDirection): FlashcardEntry[]`
+
+エントリーをソートします。
+
+**パラメータ**:
+- `column`: 'abbreviation' | 'english' | 'japanese' | 'frequency' | 'tags'
+- `direction`: 'asc' | 'desc'
+
+**例**:
+```typescript
+const sorted = trainer.sortEntries(entries, 'frequency', 'desc');
+```
+
+##### `exportToCSV(entries: FlashcardEntry[]): string`
+
+CSV形式でエクスポートします。
+
+**例**:
+```typescript
+const csv = trainer.exportToCSV(entries);
+// "abbreviation,english,japanese,frequency,tags
+//  CQ,Calling any station,全局呼び出し,3,..."
+```
+
+##### `exportToTSV(entries: FlashcardEntry[]): string`
+
+TSV形式でエクスポートします。
+
+---
+
+## テストカバレッジ
+
+morse-engineは高いテストカバレッジを維持しています:
+
+- **全体**: 92.7%
+- **core/**: 84.04%
+- **trainers/**: 97.55%
+- **テスト数**: 344テスト（100%成功）
+
+---
+
 ## ライセンス
 
 MIT
@@ -790,4 +1097,5 @@ MIT
 ---
 
 **更新履歴**:
+- 2025-10-17: トレーナーモジュール追加（Phase 2完了）、テストカバレッジ情報更新
 - 2025-10-15: 初版作成（Phase 1完了時点）
