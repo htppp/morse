@@ -79,7 +79,7 @@ WSL環境では`browserContext.newPage()`の処理が異常に遅く、実用的
 **推奨される実行環境**:
 - ネイティブLinux環境 (Ubuntu等)
 - Windowsネイティブ環境 (Node.jsとPlaywrightをWindows上に直接インストール)
-- CI/CD環境 (GitHub Actions等) - `.github/workflows/e2e-test.yml`で自動実行
+- CI/CD環境 (GitHub Actions等) - リポジトリルートの`.github/workflows/e2e-test.yml`で自動実行
 
 **参考**: playwright.config.ts (playwright.config.ts:62-69)にはWSL環境用の最適化設定が含まれていますが、根本的な問題の解決には至りませんでした。
 
@@ -103,7 +103,7 @@ GitHub Actionsで自動的にE2Eテストを実行できます。ワークフロ
 - Pull Request作成時
 - 手動実行 (Actions タブから)
 
-**ワークフロー設定**: `.github/workflows/e2e-test.yml`
+**ワークフロー設定**: リポジトリルートの`.github/workflows/e2e-test.yml`
 
 ワークフローは以下を実行します:
 1. Node.js 20のセットアップ
