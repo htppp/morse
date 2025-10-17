@@ -179,9 +179,10 @@ jobs:
             npm ci
             npm run build
             cd -
-            # Copy all built files to v10/app root for GitHub Pages
+            # Copy all built files to v10 root for GitHub Pages (package.json has copy-to-root script)
+            # The build script already copies to v10 root, but ensure it's there
             if [ -d "v10/app/dist" ]; then
-              cp -r v10/app/dist/* v10/app/
+              cp -r v10/app/dist/index.html v10/app/dist/flashcard.tsv v10/app/dist/assets v10/
             fi
           else
             echo "Skipping v10 build: v10/lib or v10/app package-lock.json not found."
