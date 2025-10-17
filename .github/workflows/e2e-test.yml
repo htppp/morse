@@ -11,6 +11,9 @@ jobs:
   e2e-test:
     name: E2E Tests on Ubuntu
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v10/app
 
     steps:
       - name: Checkout repository
@@ -21,6 +24,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'v10/app/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -40,5 +44,5 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: v10/app/playwright-report/
           retention-days: 30
