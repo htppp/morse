@@ -17,6 +17,7 @@ interface ListeningSettings {
 	characterSpeed: number;
 	effectiveSpeed: number;
 	frequency: number;
+	bFrequency: number;  // B側（相手方）の周波数
 	volume: number;
 }
 
@@ -24,6 +25,7 @@ const DEFAULT_SETTINGS: ListeningSettings = {
 	characterSpeed: 20,
 	effectiveSpeed: 15,
 	frequency: 700,
+	bFrequency: 600,  // B側のデフォルト周波数
 	volume: 0.7
 };
 
@@ -41,7 +43,8 @@ interface State {
  * 聞き取り練習ビュークラス
  */
 export class ListeningView implements View {
-	private audio: AudioGenerator;
+	private audio: AudioGenerator;  // A側（自局）のAudioGenerator
+	private audioB: AudioGenerator;  // B側（相手方）のAudioGenerator
 	private settings: ListeningSettings = { ...DEFAULT_SETTINGS };
 
 	private state: State = {
@@ -62,9 +65,17 @@ export class ListeningView implements View {
 		this.loadCategory();
 		this.loadCustomTemplates();
 
-		//! AudioGeneratorを初期化。
+		//! A側のAudioGeneratorを初期化。
 		this.audio = new AudioGenerator({
 			frequency: this.settings.frequency,
+			volume: this.settings.volume,
+			wpm: this.settings.characterSpeed,
+			effectiveWpm: this.settings.effectiveSpeed
+		});
+
+		//! B側のAudioGeneratorを初期化。
+		this.audioB = new AudioGenerator({
+			frequency: this.settings.bFrequency,
 			volume: this.settings.volume,
 			wpm: this.settings.characterSpeed,
 			effectiveWpm: this.settings.effectiveSpeed
@@ -166,12 +177,45 @@ export class ListeningView implements View {
 		this.state.isPlaying = true;
 		this.updatePlaybackButtons();
 
-		//! モールス信号を再生。
-		const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
-		await this.audio.playMorseString(morse);
+		//! 対話形式モードかどうかをチェック。
+		if (this.state.showDialogFormat) {
+			//! 対話形式で再生（A側とB側を交互に再生）。
+			await this.playDialogQSO(this.state.selectedTemplate.content);
+		} else {
+			//! 通常モードで再生（全体をA側で再生）。
+			const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
+			await this.audio.playMorseString(morse);
+		}
 
 		this.state.isPlaying = false;
 		this.updatePlaybackButtons();
+	}
+
+	/**
+	 * 対話形式のQSOを再生する
+	 * A側とB側を交互に異なる周波数で再生
+	 */
+	private async playDialogQSO(content: string): Promise<void> {
+		//! DEコマンドで分割してセグメントに分ける。
+		//! 例: "CQ CQ CQ DE JF2SDR JF2SDR PSE K" -> ["CQ CQ CQ", "JF2SDR JF2SDR PSE K"]
+		const segments = content.split(/\s+DE\s+/i);
+
+		//! 各セグメントを交互にA側とB側で再生。
+		for (let i = 0; i < segments.length; i++) {
+			if (!segments[i].trim()) continue;
+
+			const text = i === 0 ? segments[i] : `DE ${segments[i]}`;
+			const morse = MorseCodec.textToMorse(text);
+
+			//! 偶数番目(0, 2, 4...)はA側、奇数番目(1, 3, 5...)はB側。
+			const generator = i % 2 === 0 ? this.audio : this.audioB;
+			await generator.playMorseString(morse);
+
+			//! セグメント間に短い間隔を入れる。
+			if (i < segments.length - 1) {
+				await new Promise(resolve => setTimeout(resolve, 500));
+			}
+		}
 	}
 
 	private pauseMorse(): void {
@@ -305,6 +349,7 @@ export class ListeningView implements View {
 			characterSpeed: this.settings.characterSpeed,
 			effectiveSpeed: this.settings.effectiveSpeed,
 			frequency: this.settings.frequency,
+			bFrequency: this.settings.bFrequency,
 			volume: Math.round(this.settings.volume * 100)
 		};
 
@@ -329,13 +374,22 @@ export class ListeningView implements View {
 					this.settings.characterSpeed = charSpeed;
 					this.settings.effectiveSpeed = effSpeed;
 					this.settings.frequency = values.frequency as number;
+					this.settings.bFrequency = values.bFrequency as number;
 					this.settings.volume = (values.volume as number) / 100;
 
 					this.saveSettings();
 
-					//! AudioGeneratorを更新。
+					//! A側のAudioGeneratorを更新。
 					this.audio.updateSettings({
 						frequency: this.settings.frequency,
+						volume: this.settings.volume,
+						wpm: this.settings.characterSpeed,
+						effectiveWpm: this.settings.effectiveSpeed
+					});
+
+					//! B側のAudioGeneratorを更新。
+					this.audioB.updateSettings({
+						frequency: this.settings.bFrequency,
 						volume: this.settings.volume,
 						wpm: this.settings.characterSpeed,
 						effectiveWpm: this.settings.effectiveSpeed
@@ -346,6 +400,12 @@ export class ListeningView implements View {
 					this.settings = { ...savedSettings };
 					this.audio.updateSettings({
 						frequency: savedSettings.frequency,
+						volume: savedSettings.volume,
+						wpm: savedSettings.characterSpeed,
+						effectiveWpm: savedSettings.effectiveSpeed
+					});
+					this.audioB.updateSettings({
+						frequency: savedSettings.bFrequency,
 						volume: savedSettings.volume,
 						wpm: savedSettings.characterSpeed,
 						effectiveWpm: savedSettings.effectiveSpeed

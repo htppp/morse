@@ -15,6 +15,8 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/index.ts',
+        'src/ui/**',           // UIコンポーネント（settings-modal.ts）
+        'src/trainers/flashcard-state.ts',  // UI状態管理
       ],
     },
   },

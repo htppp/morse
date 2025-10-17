@@ -402,7 +402,17 @@ export const ALL_SETTING_ITEMS: SettingItemDef[] = [
 		screens: ['listening'],
 		priority: 20,
 		key: 'frequency',
-		label: '周波数 (Hz)',
+		label: '周波数 A側 (Hz)',
+		inputType: 'number',
+		min: 400,
+		max: 1000,
+		step: 10
+	},
+	{
+		screens: ['listening'],
+		priority: 21,
+		key: 'bFrequency',
+		label: '周波数 B側 (Hz)',
 		inputType: 'number',
 		min: 400,
 		max: 1000,
