@@ -398,15 +398,14 @@ export class KochView implements View {
 		const resultContainer = document.getElementById('customResultContainer');
 		if (!resultContainer) return;
 
+		//! lib側の関数を使用して正答率を計算。
+		const accuracy = KochTrainer.calculateAccuracy(
+			this.customState.customCorrectAnswer,
+			this.customState.customUserInput
+		);
+
 		const userAnswer = this.customState.customUserInput.replace(/\s+/g, '');
 		const correctAnswer = this.customState.customCorrectAnswer.replace(/\s+/g, '');
-
-		let correct = 0;
-		const maxLen = Math.max(userAnswer.length, correctAnswer.length);
-		for (let i = 0; i < maxLen; i++) {
-			if (userAnswer[i] === correctAnswer[i]) correct++;
-		}
-		const accuracy = maxLen > 0 ? Math.round((correct / maxLen) * 100) : 0;
 
 		resultContainer.innerHTML = `
 			<div class="result">
