@@ -20,6 +20,7 @@ import {
 	type DisplayMode
 } from 'morse-engine';
 import { loadFlashcardData } from '../../utils/flashcard-loader';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
 
 /**
  * 画面状態（ローディングと結果表示用）
@@ -1461,129 +1462,47 @@ export class FlashcardView implements View {
 	 * 設定モーダルを開く
 	 */
 	private openSettingsModal(): void {
-		const volume = Math.round(this.audio.getVolume() * 100);
-		const frequency = this.audio.getFrequency();
-		const wpm = this.audio.getWPM();
+		//! 現在の設定値を取得（0-100の範囲に変換）。
+		const currentValues: SettingValues = {
+			volume: Math.round(this.audio.getVolume() * 100),
+			frequency: this.audio.getFrequency(),
+			wpm: this.audio.getWPM()
+		};
 
-		const modalHTML = `
-			<div class="settings-modal active" id="settings-modal">
-				<div class="settings-content">
-					<h2>設定</h2>
-					<div class="settings-grid">
-						<div class="setting-item">
-							<label for="volume-range">音量</label>
-							<input type="range" id="volume-range" min="0" max="100" value="${volume}">
-							<input type="number" id="volume-input" min="0" max="100" value="${volume}">
-							<span>%</span>
-						</div>
-						<div class="setting-item">
-							<label for="frequency-input">周波数 (Hz)</label>
-							<input type="number" id="frequency-input" min="400" max="1200" value="${frequency}" step="50">
-						</div>
-						<div class="setting-item">
-							<label for="wpm-input">WPM (速度: 5-40)</label>
-							<input type="number" id="wpm-input" min="5" max="40" value="${wpm}">
-						</div>
-						<div class="setting-item">
-							<span>テスト再生</span>
-							<button id="test-morse-btn" class="test-button">再生</button>
-						</div>
-					</div>
-					<div class="settings-buttons">
-						<button id="cancel-btn" class="secondary-button">キャンセル</button>
-						<button id="ok-btn" class="primary-button">OK</button>
-					</div>
-				</div>
-			</div>
-		`;
+		//! 設定変更前の値を保存（キャンセル時の復元用）。
+		const savedSettings = {
+			volume: this.audio.getVolume(),
+			frequency: this.audio.getFrequency(),
+			wpm: this.audio.getWPM()
+		};
 
-		document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-		//! イベントリスナー。
-		const modal = document.getElementById('settings-modal');
-		if (!modal) return;
-
-		//! 背景クリックで閉じる。
-		modal.addEventListener('click', (e) => {
-			if (e.target === modal) {
-				this.closeSettingsModal(false);
+		//! SettingsModalを作成。
+		const modal = new SettingsModal(
+			'flashcard-settings-modal',
+			ALL_SETTING_ITEMS,
+			currentValues,
+			{
+				onSave: (values: SettingValues) => {
+					//! 設定を保存。
+					this.audio.setVolume((values.volume as number) / 100);
+					this.audio.setFrequency(values.frequency as number);
+					this.audio.setWPM(values.wpm as number);
+				},
+				onCancel: () => {
+					//! 設定を元に戻す。
+					this.audio.setVolume(savedSettings.volume);
+					this.audio.setFrequency(savedSettings.frequency);
+					this.audio.setWPM(savedSettings.wpm);
+				},
+				onTestPlay: async () => {
+					//! テスト再生。
+					await this.playMorse('CQ');
+				}
 			}
-		});
+		);
 
-		//! 音量スライダー。
-		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
-		const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-		if (volumeRange && volumeInput) {
-			volumeRange.addEventListener('input', () => {
-				const val = parseInt(volumeRange.value) / 100;
-				this.audio.setVolume(val);
-				volumeInput.value = volumeRange.value;
-			});
-			volumeInput.addEventListener('input', () => {
-				const val = parseInt(volumeInput.value) / 100;
-				this.audio.setVolume(val);
-				volumeRange.value = volumeInput.value;
-			});
-		}
-
-		//! 周波数。
-		const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
-		if (frequencyInput) {
-			frequencyInput.addEventListener('input', () => {
-				const val = parseInt(frequencyInput.value);
-				this.audio.setFrequency(val);
-			});
-		}
-
-		//! WPM。
-		const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
-		if (wpmInput) {
-			wpmInput.addEventListener('input', () => {
-				const val = parseInt(wpmInput.value);
-				this.audio.setWPM(val);
-			});
-		}
-
-		//! テスト再生。
-		const testBtn = document.getElementById('test-morse-btn');
-		if (testBtn) {
-			testBtn.addEventListener('click', async () => {
-				await this.playMorse('CQ');
-			});
-		}
-
-		//! キャンセルボタン。
-		const cancelBtn = document.getElementById('cancel-btn');
-		if (cancelBtn) {
-			cancelBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-				this.closeSettingsModal(false);
-			});
-		}
-
-		//! OKボタン。
-		const okBtn = document.getElementById('ok-btn');
-		if (okBtn) {
-			okBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-				this.closeSettingsModal(true);
-			});
-		}
-	}
-
-	/**
-	 * 設定モーダルを閉じる
-	 */
-	private closeSettingsModal(save: boolean): void {
-		if (!save) {
-			//! キャンセル時は設定を元に戻す（現在の実装では何もしない）。
-			//! 必要に応じてlocalStorageから読み込む処理を追加。
-		}
-
-		const modal = document.getElementById('settings-modal');
-		if (modal) {
-			modal.remove();
-		}
+		//! モーダルを表示。
+		modal.show('flashcard');
 	}
 
 	/**

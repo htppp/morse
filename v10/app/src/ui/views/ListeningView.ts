@@ -11,6 +11,7 @@ import {
 	type TemplateCategory
 } from 'morse-engine';
 import { downloadBlob, sanitizeFilename } from '../../utils/download-helper';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
 
 interface ListeningSettings {
 	characterSpeed: number;
@@ -299,143 +300,67 @@ export class ListeningView implements View {
 	//! ========== 設定モーダル ==========
 
 	private showSettings(): void {
-		const modalHTML = `
-			<div class="modal" id="settings-modal">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h2>設定</h2>
-						<button id="closeSettings" class="close-btn">×</button>
-					</div>
-					<div class="modal-body">
-						<div class="setting-item">
-							<label>文字速度 (WPM)</label>
-							<input type="number" id="characterSpeed" min="5" max="40" step="1" value="${this.settings.characterSpeed}">
-						</div>
-
-						<div class="setting-item">
-							<label>実効速度 (WPM)</label>
-							<input type="number" id="effectiveSpeed" min="5" max="40" step="1" value="${this.settings.effectiveSpeed}">
-						</div>
-
-						<div class="setting-item">
-							<label>周波数 (Hz)</label>
-							<input type="number" id="frequency" min="400" max="1000" step="10" value="${this.settings.frequency}">
-						</div>
-
-						<div class="setting-item">
-							<label>音量</label>
-							<input type="range" id="volumeRange" min="0" max="100" step="5" value="${this.settings.volume * 100}">
-							<input type="number" id="volumeInput" min="0" max="100" step="5" value="${Math.round(this.settings.volume * 100)}">
-							<span>%</span>
-						</div>
-
-						<div class="setting-item">
-							<span>テスト再生</span>
-							<button id="test-morse-btn" class="test-button">再生</button>
-						</div>
-					</div>
-					<div class="modal-footer">
-						<button id="cancel-btn" class="btn">キャンセル</button>
-						<button id="save-btn" class="btn primary">OK</button>
-					</div>
-				</div>
-			</div>
-		`;
-		document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-		//! 現在の設定を保存（キャンセル時の復元用）。
-		const savedSettings = { ...this.settings };
-
-		const characterSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
-		const effectiveSpeed = document.getElementById('effectiveSpeed') as HTMLInputElement;
-		const frequency = document.getElementById('frequency') as HTMLInputElement;
-		const volumeRange = document.getElementById('volumeRange') as HTMLInputElement;
-		const volumeInput = document.getElementById('volumeInput') as HTMLInputElement;
-
-		//! 音量スライダーと数値入力の同期。
-		volumeRange?.addEventListener('input', () => {
-			volumeInput.value = volumeRange.value;
-		});
-
-		volumeInput?.addEventListener('input', () => {
-			volumeRange.value = volumeInput.value;
-		});
-
-		//! テスト再生ボタン。
-		document.getElementById('test-morse-btn')?.addEventListener('click', async () => {
-			//! 現在の設定値で一時的にAudioGeneratorを更新。
-			this.audio.updateSettings({
-				frequency: parseInt(frequency.value),
-				volume: parseInt(volumeInput.value) / 100,
-				wpm: parseInt(characterSpeed.value),
-				effectiveWpm: parseInt(effectiveSpeed.value)
-			});
-
-			//! CQを再生。
-			const morse = MorseCodec.textToMorse('CQ');
-			await this.audio.playMorseString(morse);
-		});
-
-		//! 設定を復元する関数。
-		const restoreSettings = () => {
-			this.settings = { ...savedSettings };
-			//! AudioSystemを元に戻す。
-			this.audio.updateSettings({
-				frequency: savedSettings.frequency,
-				volume: savedSettings.volume,
-				wpm: savedSettings.characterSpeed,
-				effectiveWpm: savedSettings.effectiveSpeed
-			});
+		//! 現在の設定値を取得（volumeを0-100の範囲に変換）。
+		const currentValues: SettingValues = {
+			characterSpeed: this.settings.characterSpeed,
+			effectiveSpeed: this.settings.effectiveSpeed,
+			frequency: this.settings.frequency,
+			volume: Math.round(this.settings.volume * 100)
 		};
 
-		//! OK（保存）ボタン。
-		document.getElementById('save-btn')?.addEventListener('click', () => {
-			const charSpeedValue = parseInt(characterSpeed.value);
-			let effSpeedValue = parseInt(effectiveSpeed.value);
+		//! 設定変更前の値を保存（キャンセル時の復元用）。
+		const savedSettings = { ...this.settings };
 
-			//! 実効速度は文字速度を上限とする。
-			if (effSpeedValue > charSpeedValue) {
-				effSpeedValue = charSpeedValue;
+		//! SettingsModalを作成。
+		const modal = new SettingsModal(
+			'listening-settings-modal',
+			ALL_SETTING_ITEMS,
+			currentValues,
+			{
+				onSave: (values: SettingValues) => {
+					//! 実効速度は文字速度を上限とする。
+					let effSpeed = values.effectiveSpeed as number;
+					const charSpeed = values.characterSpeed as number;
+					if (effSpeed > charSpeed) {
+						effSpeed = charSpeed;
+					}
+
+					//! 設定を保存。
+					this.settings.characterSpeed = charSpeed;
+					this.settings.effectiveSpeed = effSpeed;
+					this.settings.frequency = values.frequency as number;
+					this.settings.volume = (values.volume as number) / 100;
+
+					this.saveSettings();
+
+					//! AudioGeneratorを更新。
+					this.audio.updateSettings({
+						frequency: this.settings.frequency,
+						volume: this.settings.volume,
+						wpm: this.settings.characterSpeed,
+						effectiveWpm: this.settings.effectiveSpeed
+					});
+				},
+				onCancel: () => {
+					//! 設定を元に戻す。
+					this.settings = { ...savedSettings };
+					this.audio.updateSettings({
+						frequency: savedSettings.frequency,
+						volume: savedSettings.volume,
+						wpm: savedSettings.characterSpeed,
+						effectiveWpm: savedSettings.effectiveSpeed
+					});
+				},
+				onTestPlay: async () => {
+					//! テスト再生。
+					const morse = MorseCodec.textToMorse('CQ');
+					await this.audio.playMorseString(morse);
+				}
 			}
+		);
 
-			this.settings.characterSpeed = charSpeedValue;
-			this.settings.effectiveSpeed = effSpeedValue;
-			this.settings.frequency = parseInt(frequency.value);
-			this.settings.volume = parseInt(volumeInput.value) / 100;
-
-			this.saveSettings();
-
-			//! AudioGeneratorを更新。
-			this.audio.updateSettings({
-				frequency: this.settings.frequency,
-				volume: this.settings.volume,
-				wpm: this.settings.characterSpeed,
-				effectiveWpm: this.settings.effectiveSpeed
-			});
-
-			document.getElementById('settings-modal')?.remove();
-		});
-
-		//! キャンセルボタン。
-		document.getElementById('cancel-btn')?.addEventListener('click', () => {
-			restoreSettings();
-			document.getElementById('settings-modal')?.remove();
-		});
-
-		//! 閉じるボタン (×)。
-		document.getElementById('closeSettings')?.addEventListener('click', () => {
-			restoreSettings();
-			document.getElementById('settings-modal')?.remove();
-		});
-
-		//! モーダル外クリックで閉じる（キャンセル扱い）。
-		const modal = document.getElementById('settings-modal');
-		modal?.addEventListener('click', (e) => {
-			if (e.target === modal) {
-				restoreSettings();
-				modal.remove();
-			}
-		});
+		//! モーダルを表示。
+		modal.show('listening');
 	}
 
 	//! ========== レンダリング ==========
