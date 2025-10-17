@@ -33,6 +33,9 @@ export default defineConfig({
 		//! ベースURL（開発サーバー）。
 		baseURL: 'http://localhost:3000',
 
+		//! ヘッドレスモード（WSL環境でXServerなしで動作）。
+		headless: true,
+
 		//! トレース設定。
 		trace: 'on-first-retry',
 
@@ -43,32 +46,32 @@ export default defineConfig({
 		video: 'retain-on-failure',
 	},
 
-	//! テスト対象ブラウザ設定。
+	//! テスト対象ブラウザ設定（WSL環境ではchromiumのみ）。
 	projects: [
 		{
 			name: 'chromium',
 			use: { ...devices['Desktop Chrome'] },
 		},
 
-		{
-			name: 'firefox',
-			use: { ...devices['Desktop Firefox'] },
-		},
-
-		{
-			name: 'webkit',
-			use: { ...devices['Desktop Safari'] },
-		},
-
-		//! モバイルブラウザ。
-		{
-			name: 'Mobile Chrome',
-			use: { ...devices['Pixel 5'] },
-		},
-		{
-			name: 'Mobile Safari',
-			use: { ...devices['iPhone 12'] },
-		},
+		// Firefox and WebKit require additional installation
+		// Run: npx playwright install firefox webkit
+		// Uncomment below when browsers are installed:
+		// {
+		// 	name: 'firefox',
+		// 	use: { ...devices['Desktop Firefox'] },
+		// },
+		// {
+		// 	name: 'webkit',
+		// 	use: { ...devices['Desktop Safari'] },
+		// },
+		// {
+		// 	name: 'Mobile Chrome',
+		// 	use: { ...devices['Pixel 5'] },
+		// },
+		// {
+		// 	name: 'Mobile Safari',
+		// 	use: { ...devices['iPhone 12'] },
+		// },
 	],
 
 	//! 開発サーバー設定。

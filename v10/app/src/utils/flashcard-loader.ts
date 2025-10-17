@@ -39,7 +39,10 @@ function parseTSV(text: string): FlashcardEntry[] {
 
 		//! 最低限6列（タグ、頻度、略語、英文、和訳、説明）必要。
 		if (columns.length < 6) {
-			console.warn(`Line ${index + 2} has insufficient columns, skipping`);
+			//! 開発環境でのみ警告を出力。
+			if (import.meta.env.DEV) {
+				console.warn(`Line ${index + 2} has insufficient columns, skipping`);
+			}
 			return null;
 		}
 
