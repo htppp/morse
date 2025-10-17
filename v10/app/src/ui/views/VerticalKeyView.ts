@@ -10,6 +10,7 @@ import {
 	TimingCalculator,
 	AudioGenerator
 } from 'morse-engine';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
 
 /**
  * 縦振り電鍵練習ビュークラス
@@ -69,13 +70,6 @@ export class VerticalKeyView implements View {
 	}
 
 	/**
-	 * キーコードを表示用にフォーマットする (KeyJ → J)
-	 */
-	private formatKeyCode(keyCode: string): string {
-		return keyCode.replace(/^Key/, '');
-	}
-
-	/**
 	 * ビューをレンダリングする
 	 */
 	render(): void {
@@ -83,39 +77,6 @@ export class VerticalKeyView implements View {
 		if (!app) return;
 
 		app.innerHTML = `
-			<div class="settings-modal" id="settings-modal">
-				<div class="settings-content">
-					<h2>設定</h2>
-					<div class="settings-grid">
-						<div class="setting-item">
-							<label for="volume-range">音量</label>
-							<div class="setting-row">
-								<input type="range" id="volume-range" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
-								<input type="number" id="volume-input" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
-								<span>%</span>
-							</div>
-						</div>
-						<div class="setting-item">
-							<label for="frequency-input">周波数 (Hz)</label>
-							<input type="number" id="frequency-input" min="400" max="1200" value="${this.audio.getFrequency()}" step="50">
-						</div>
-						<div class="setting-item">
-							<label for="wpm-input">WPM (速度: 5-40)</label>
-							<input type="number" id="wpm-input" min="5" max="40" value="${this.currentWPM}">
-						</div>
-						<div class="setting-item">
-							<label for="key-binding">キーバインド</label>
-							<input type="text" id="key-binding" value="${this.formatKeyCode(this.keyCode)}" readonly placeholder="キーを押してください">
-							<span class="key-hint">クリックしてキーを押す</span>
-						</div>
-					</div>
-					<div class="settings-buttons">
-						<button id="cancel-btn" class="btn btn-secondary">キャンセル</button>
-						<button id="ok-btn" class="btn btn-primary">OK</button>
-					</div>
-				</div>
-			</div>
-
 			<div class="container">
 				<header class="header">
 					<button class="back-btn">メニューに戻る</button>
@@ -272,26 +233,6 @@ export class VerticalKeyView implements View {
 				}
 			});
 		}
-
-		//! モーダルのキャンセルボタン。
-		const cancelBtn = document.getElementById('cancel-btn');
-		cancelBtn?.addEventListener('click', () => {
-			this.closeSettingsModal(false);
-		});
-
-		//! モーダルのOKボタン。
-		const okBtn = document.getElementById('ok-btn');
-		okBtn?.addEventListener('click', () => {
-			this.closeSettingsModal(true);
-		});
-
-		//! モーダル背景クリックで閉じる。
-		const modal = document.getElementById('settings-modal');
-		modal?.addEventListener('click', (e) => {
-			if (e.target === modal) {
-				this.closeSettingsModal(false);
-			}
-		});
 	}
 
 	/**
@@ -382,120 +323,73 @@ export class VerticalKeyView implements View {
 	 * 設定モーダルを開く
 	 */
 	private openSettingsModal(): void {
-		const modal = document.getElementById('settings-modal');
-		if (!modal) return;
+		//! 現在の設定値を取得。
+		const currentValues: SettingValues = {
+			volume: Math.round(this.audio.getVolume() * 100),
+			frequency: this.audio.getFrequency(),
+			wpm: this.currentWPM,
+			keyCode: this.keyCode
+		};
+
+		//! 設定変更前の値を保存（キャンセル時の復元用）。
+		const savedSettings = {
+			volume: this.audio.getVolume(),
+			frequency: this.audio.getFrequency(),
+			wpm: this.currentWPM,
+			keyCode: this.keyCode
+		};
+
+		//! SettingsModalを作成。
+		const modal = new SettingsModal(
+			'vertical-key-settings-modal',
+			ALL_SETTING_ITEMS,
+			currentValues,
+			{
+				onSave: (values: SettingValues) => {
+					//! 設定を保存。
+					this.audio.setVolume((values.volume as number) / 100);
+					this.audio.setFrequency(values.frequency as number);
+					this.audio.setWPM(values.wpm as number);
+					this.currentWPM = values.wpm as number;
+					this.keyCode = values.keyCode as string;
+
+					//! localStorageに保存。
+					localStorage.setItem('verticalKeyWPM', this.currentWPM.toString());
+					localStorage.setItem('verticalKeyCode', this.keyCode);
+
+					//! タイミングを再計算してトレーナーを再初期化。
+					const timings = TimingCalculator.calculate(this.currentWPM);
+					this.trainer = new VerticalKeyTrainer(
+						this.buffer,
+						this.timer,
+						timings,
+						{
+							onKeyPress: () => {
+								this.audio.startContinuousTone();
+							},
+							onKeyRelease: () => {
+								this.audio.stopContinuousTone();
+							}
+						}
+					);
+
+					//! 現在のWPM表示を更新。
+					const currentWpmDisplay = document.getElementById('current-wpm');
+					if (currentWpmDisplay) currentWpmDisplay.textContent = this.currentWPM.toString();
+				},
+				onCancel: () => {
+					//! 設定を元に戻す。
+					this.audio.setVolume(savedSettings.volume);
+					this.audio.setFrequency(savedSettings.frequency);
+					this.audio.setWPM(savedSettings.wpm);
+					this.currentWPM = savedSettings.wpm;
+					this.keyCode = savedSettings.keyCode;
+				}
+			}
+		);
 
 		//! モーダルを表示。
-		modal.classList.add('active');
-
-		//! 現在の設定値をinput要素に反映。
-		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
-		const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-		const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
-		const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
-
-		const volume = Math.round(this.audio.getVolume() * 100);
-		if (volumeRange) volumeRange.value = volume.toString();
-		if (volumeInput) volumeInput.value = volume.toString();
-		if (frequencyInput) frequencyInput.value = this.audio.getFrequency().toString();
-		if (wpmInput) wpmInput.value = this.currentWPM.toString();
-
-		//! 音量スライダーと数値入力の同期のみ（実際の音声設定は変更しない）。
-		const syncVolume = () => {
-			if (volumeRange && volumeInput) {
-				volumeInput.value = volumeRange.value;
-			}
-		};
-		const syncVolumeReverse = () => {
-			if (volumeRange && volumeInput) {
-				volumeRange.value = volumeInput.value;
-			}
-		};
-
-		volumeRange?.addEventListener('input', syncVolume);
-		volumeInput?.addEventListener('input', syncVolumeReverse);
-
-		//! キーバインド設定。
-		const keyBindingInput = document.getElementById('key-binding') as HTMLInputElement;
-		if (keyBindingInput) {
-			keyBindingInput.addEventListener('click', () => {
-				keyBindingInput.value = 'キーを押してください...';
-				keyBindingInput.classList.add('waiting-key');
-			});
-
-			keyBindingInput.addEventListener('keydown', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				keyBindingInput.value = e.code;
-				keyBindingInput.classList.remove('waiting-key');
-			});
-		}
-	}
-
-	/**
-	 * 設定モーダルを閉じる
-	 */
-	private closeSettingsModal(save: boolean): void {
-		const modal = document.getElementById('settings-modal');
-		if (!modal) return;
-
-		//! モーダルを非表示。
-		modal.classList.remove('active');
-
-		if (save) {
-			//! 設定を適用。
-			const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-			const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
-			const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
-			const keyBindingInput = document.getElementById('key-binding') as HTMLInputElement;
-
-			if (volumeInput) {
-				const volume = parseInt(volumeInput.value, 10) / 100;
-				this.audio.setVolume(volume);
-			}
-
-			if (frequencyInput) {
-				const frequency = parseInt(frequencyInput.value, 10);
-				this.audio.setFrequency(frequency);
-			}
-
-			if (wpmInput) {
-				const newWpm = parseInt(wpmInput.value, 10);
-				this.currentWPM = newWpm;
-				this.audio.setWPM(newWpm);
-
-				//! WPMをlocalStorageに保存。
-				localStorage.setItem('verticalKeyWPM', newWpm.toString());
-
-				//! タイミングを再計算してトレーナーを再初期化。
-				const timings = TimingCalculator.calculate(newWpm);
-				this.trainer = new VerticalKeyTrainer(
-					this.buffer,
-					this.timer,
-					timings,
-					{
-						onKeyPress: () => {
-							this.audio.startContinuousTone();
-						},
-						onKeyRelease: () => {
-							this.audio.stopContinuousTone();
-						}
-					}
-				);
-
-				//! 現在のWPM表示を更新。
-				const currentWpmDisplay = document.getElementById('current-wpm');
-				if (currentWpmDisplay) currentWpmDisplay.textContent = newWpm.toString();
-			}
-
-			if (keyBindingInput && keyBindingInput.value) {
-				this.keyCode = keyBindingInput.value;
-
-				//! キーバインドをlocalStorageに保存。
-				localStorage.setItem('verticalKeyCode', this.keyCode);
-			}
-		}
-		//! キャンセル時は何もしない（設定を元に戻す必要もない）。
+		modal.show('vertical-key');
 	}
 
 	/**

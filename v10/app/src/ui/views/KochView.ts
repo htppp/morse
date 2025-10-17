@@ -9,6 +9,7 @@ import {
 	MorseCodec,
 	type PracticeSettings
 } from 'morse-engine';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
 
 type ViewMode = 'learning' | 'custom';
 
@@ -460,140 +461,74 @@ export class KochView implements View {
 	//! ========== 設定モーダル ==========
 
 	private showSettings(): void {
-		//! 現在の設定を保存（キャンセル時の復元用）。
-		const savedSettings = { ...this.settings };
-
-		const modal = document.createElement('div');
-		modal.className = 'settings-modal active';
-		modal.innerHTML = `
-			<div class="settings-content">
-				<h2>設定</h2>
-				<div class="settings-grid">
-					<div class="setting-item">
-						<label for="characterSpeed">文字速度 (WPM: 5-40)</label>
-						<input type="number" id="characterSpeed" min="5" max="40" value="${this.settings.characterSpeed}">
-					</div>
-					<div class="setting-item">
-						<label for="effectiveSpeed">実効速度 (WPM: 5-40)</label>
-						<input type="number" id="effectiveSpeed" min="5" max="40" value="${this.settings.effectiveSpeed}">
-					</div>
-					<div class="setting-item">
-						<label for="frequency-input">周波数 (Hz)</label>
-						<input type="number" id="frequency-input" min="400" max="1200" value="${this.settings.frequency}" step="50">
-					</div>
-					<div class="setting-item">
-						<label for="volume-range">音量</label>
-						<div class="setting-row">
-							<input type="range" id="volume-range" min="0" max="100" value="${Math.round(this.settings.volume * 100)}">
-							<input type="number" id="volume-input" min="0" max="100" value="${Math.round(this.settings.volume * 100)}">
-							<span>%</span>
-						</div>
-					</div>
-					<div class="setting-item">
-						<label for="practiceDuration">練習時間 (秒: 30-300)</label>
-						<input type="number" id="practiceDuration" min="30" max="300" step="30" value="${this.settings.practiceDuration}">
-					</div>
-					<div class="setting-item">
-						<label for="groupSize">グループサイズ (文字: 3-10)</label>
-						<input type="number" id="groupSize" min="3" max="10" value="${this.settings.groupSize}">
-					</div>
-					<div class="setting-item">
-						<label>
-							<input type="checkbox" id="showInput" ${this.settings.showInput ? 'checked' : ''}>
-							入力を表示
-						</label>
-					</div>
-				</div>
-				<div class="settings-buttons">
-					<button id="cancel-btn" class="btn btn-secondary">キャンセル</button>
-					<button id="ok-btn" class="btn btn-primary">OK</button>
-				</div>
-			</div>
-		`;
-
-		document.body.appendChild(modal);
-
-		//! 音量のレンジと入力欄を連携。
-		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
-		const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-
-		if (volumeRange && volumeInput) {
-			volumeRange.oninput = () => {
-				volumeInput.value = volumeRange.value;
-			};
-			volumeInput.oninput = () => {
-				volumeRange.value = volumeInput.value;
-			};
-		}
-
-		//! 設定を復元する関数。
-		const restoreSettings = () => {
-			this.settings = { ...savedSettings };
-			this.audio.updateSettings({
-				frequency: savedSettings.frequency,
-				volume: savedSettings.volume,
-				wpm: savedSettings.characterSpeed,
-				effectiveWpm: savedSettings.effectiveSpeed
-			});
+		//! 現在の設定値を取得（volumeを0-100の範囲に変換）。
+		const currentValues: SettingValues = {
+			volume: Math.round(this.settings.volume * 100),
+			frequency: this.settings.frequency,
+			wpm: this.settings.characterSpeed,
+			characterSpeed: this.settings.characterSpeed,
+			effectiveSpeed: this.settings.effectiveSpeed,
+			practiceDuration: this.settings.practiceDuration,
+			groupSize: this.settings.groupSize,
+			showInput: this.settings.showInput
 		};
 
-		//! OK（保存）。
-		document.getElementById('ok-btn')?.addEventListener('click', () => {
-			const charSpeed = document.getElementById('characterSpeed') as HTMLInputElement;
-			const effSpeed = document.getElementById('effectiveSpeed') as HTMLInputElement;
-			const frequency = document.getElementById('frequency-input') as HTMLInputElement;
-			const duration = document.getElementById('practiceDuration') as HTMLInputElement;
-			const groupSize = document.getElementById('groupSize') as HTMLInputElement;
-			const showInput = document.getElementById('showInput') as HTMLInputElement;
+		//! 設定変更前の値を保存（キャンセル時の復元用）。
+		const savedSettings = { ...this.settings };
 
-			const charSpeedValue = parseInt(charSpeed.value, 10);
-			let effSpeedValue = parseInt(effSpeed.value, 10);
+		//! SettingsModalを作成。
+		const modal = new SettingsModal(
+			'koch-settings-modal',
+			ALL_SETTING_ITEMS,
+			currentValues,
+			{
+				onSave: (values: SettingValues) => {
+					//! 実効速度は文字速度を上限とする。
+					let effSpeed = values.effectiveSpeed as number;
+					const charSpeed = values.characterSpeed as number;
+					if (effSpeed > charSpeed) {
+						effSpeed = charSpeed;
+					}
 
-			//! 実効速度は文字速度を上限とする。
-			if (effSpeedValue > charSpeedValue) {
-				effSpeedValue = charSpeedValue;
-				effSpeed.value = charSpeedValue.toString();
+					//! 設定を保存。
+					this.settings.characterSpeed = charSpeed;
+					this.settings.effectiveSpeed = effSpeed;
+					this.settings.frequency = values.frequency as number;
+					this.settings.volume = (values.volume as number) / 100;
+					this.settings.practiceDuration = values.practiceDuration as number;
+					this.settings.groupSize = values.groupSize as number;
+					this.settings.showInput = values.showInput as boolean;
+
+					this.saveSettings();
+
+					//! AudioGeneratorを更新。
+					this.audio.updateSettings({
+						frequency: this.settings.frequency,
+						volume: this.settings.volume,
+						wpm: this.settings.characterSpeed,
+						effectiveWpm: this.settings.effectiveSpeed
+					});
+
+					//! 練習中の場合、表示を更新。
+					if (this.state.groups.length > 0) {
+						this.renderPractice();
+					}
+				},
+				onCancel: () => {
+					//! 設定を元に戻す。
+					this.settings = { ...savedSettings };
+					this.audio.updateSettings({
+						frequency: savedSettings.frequency,
+						volume: savedSettings.volume,
+						wpm: savedSettings.characterSpeed,
+						effectiveWpm: savedSettings.effectiveSpeed
+					});
+				}
 			}
+		);
 
-			this.settings.characterSpeed = charSpeedValue;
-			this.settings.effectiveSpeed = effSpeedValue;
-			this.settings.frequency = parseInt(frequency.value, 10);
-			this.settings.volume = parseInt(volumeInput.value, 10) / 100;
-			this.settings.practiceDuration = parseInt(duration.value, 10);
-			this.settings.groupSize = parseInt(groupSize.value, 10);
-			this.settings.showInput = showInput.checked;
-
-			this.saveSettings();
-
-			//! AudioGeneratorを更新。
-			this.audio.updateSettings({
-				frequency: this.settings.frequency,
-				volume: this.settings.volume,
-				wpm: this.settings.characterSpeed,
-				effectiveWpm: this.settings.effectiveSpeed
-			});
-
-			modal.remove();
-
-			//! 練習中の場合、表示を更新。
-			if (this.state.groups.length > 0) {
-				this.renderPractice();
-			}
-		});
-
-		//! キャンセル。
-		document.getElementById('cancel-btn')?.addEventListener('click', () => {
-			restoreSettings();
-			modal.remove();
-		});
-
-		//! モーダル外クリックで閉じる（キャンセル扱い）。
-		modal.addEventListener('click', (e) => {
-			if (e.target === modal) {
-				restoreSettings();
-				modal.remove();
-			}
-		});
+		//! モーダルを表示。
+		modal.show('koch');
 	}
 
 	//! ========== レンダリング ==========

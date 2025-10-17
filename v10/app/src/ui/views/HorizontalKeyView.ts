@@ -12,6 +12,7 @@ import {
 	type IambicMode,
 	type PaddleLayout
 } from 'morse-engine';
+import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from '../components/SettingsModal';
 
 /**
  * 横振り電鍵練習ビュークラス
@@ -99,13 +100,6 @@ export class HorizontalKeyView implements View {
 	}
 
 	/**
-	 * キーコードを表示用にフォーマットする (KeyJ → J)
-	 */
-	private formatKeyCode(keyCode: string): string {
-		return keyCode.replace(/^Key/, '');
-	}
-
-	/**
 	 * ビューをレンダリングする
 	 */
 	render(): void {
@@ -113,58 +107,6 @@ export class HorizontalKeyView implements View {
 		if (!app) return;
 
 		app.innerHTML = `
-			<div class="settings-modal" id="settings-modal">
-				<div class="settings-content">
-					<h2>設定</h2>
-					<div class="settings-grid">
-						<div class="setting-item">
-							<label for="volume-range">音量</label>
-							<div class="setting-row">
-								<input type="range" id="volume-range" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
-								<input type="number" id="volume-input" min="0" max="100" value="${Math.round(this.audio.getVolume() * 100)}">
-								<span>%</span>
-							</div>
-						</div>
-						<div class="setting-item">
-							<label for="frequency-input">周波数 (Hz)</label>
-							<input type="number" id="frequency-input" min="400" max="1200" value="${this.audio.getFrequency()}" step="50">
-						</div>
-						<div class="setting-item">
-							<label for="wpm-input">WPM (速度: 5-40)</label>
-							<input type="number" id="wpm-input" min="5" max="40" value="${this.currentWPM}">
-						</div>
-						<div class="setting-item">
-							<label for="iambic-mode-select">Iambicモード</label>
-							<select id="iambic-mode-select">
-								<option value="A" ${this.iambicMode === 'A' ? 'selected' : ''}>Iambic A</option>
-								<option value="B" ${this.iambicMode === 'B' ? 'selected' : ''}>Iambic B</option>
-							</select>
-						</div>
-						<div class="setting-item">
-							<label for="paddle-layout-select">パドルレイアウト</label>
-							<select id="paddle-layout-select">
-								<option value="normal" ${this.paddleLayout === 'normal' ? 'selected' : ''}>標準（左=dit / 右=dah）</option>
-								<option value="reversed" ${this.paddleLayout === 'reversed' ? 'selected' : ''}>反転（左=dah / 右=dit）</option>
-							</select>
-						</div>
-						<div class="setting-item">
-							<label for="left-key-binding">左パドルキー</label>
-							<input type="text" id="left-key-binding" value="${this.formatKeyCode(this.leftKeyCode)}" readonly placeholder="キーを押してください">
-							<span class="key-hint">クリックしてキーを押す</span>
-						</div>
-						<div class="setting-item">
-							<label for="right-key-binding">右パドルキー</label>
-							<input type="text" id="right-key-binding" value="${this.formatKeyCode(this.rightKeyCode)}" readonly placeholder="キーを押してください">
-							<span class="key-hint">クリックしてキーを押す</span>
-						</div>
-					</div>
-					<div class="settings-buttons">
-						<button id="cancel-btn" class="btn btn-secondary">キャンセル</button>
-						<button id="ok-btn" class="btn btn-primary">OK</button>
-					</div>
-				</div>
-			</div>
-
 			<div class="container">
 				<header class="header">
 					<button class="back-btn">メニューに戻る</button>
@@ -337,26 +279,6 @@ export class HorizontalKeyView implements View {
 				if (this.rightPressed) this.handleRightPaddleRelease();
 			});
 		}
-
-		//! モーダルのキャンセルボタン。
-		const cancelBtn = document.getElementById('cancel-btn');
-		cancelBtn?.addEventListener('click', () => {
-			this.closeSettingsModal(false);
-		});
-
-		//! モーダルのOKボタン。
-		const okBtn = document.getElementById('ok-btn');
-		okBtn?.addEventListener('click', () => {
-			this.closeSettingsModal(true);
-		});
-
-		//! モーダル背景クリックで閉じる。
-		const modal = document.getElementById('settings-modal');
-		modal?.addEventListener('click', (e) => {
-			if (e.target === modal) {
-				this.closeSettingsModal(false);
-			}
-		});
 	}
 
 	/**
@@ -494,157 +416,82 @@ export class HorizontalKeyView implements View {
 	 * 設定モーダルを開く
 	 */
 	private openSettingsModal(): void {
-		const modal = document.getElementById('settings-modal');
-		if (!modal) return;
+		//! 現在の設定値を取得。
+		const currentValues: SettingValues = {
+			volume: Math.round(this.audio.getVolume() * 100),
+			frequency: this.audio.getFrequency(),
+			wpm: this.currentWPM,
+			iambicMode: this.iambicMode,
+			paddleLayout: this.paddleLayout,
+			leftKeyCode: this.leftKeyCode,
+			rightKeyCode: this.rightKeyCode
+		};
+
+		//! 設定変更前の値を保存（キャンセル時の復元用）。
+		const savedSettings = {
+			volume: this.audio.getVolume(),
+			frequency: this.audio.getFrequency(),
+			wpm: this.currentWPM,
+			iambicMode: this.iambicMode,
+			paddleLayout: this.paddleLayout,
+			leftKeyCode: this.leftKeyCode,
+			rightKeyCode: this.rightKeyCode
+		};
+
+		//! SettingsModalを作成。
+		const modal = new SettingsModal(
+			'horizontal-key-settings-modal',
+			ALL_SETTING_ITEMS,
+			currentValues,
+			{
+				onSave: (values: SettingValues) => {
+					//! 設定を保存。
+					this.audio.setVolume((values.volume as number) / 100);
+					this.audio.setFrequency(values.frequency as number);
+					this.audio.setWPM(values.wpm as number);
+					this.currentWPM = values.wpm as number;
+					this.iambicMode = values.iambicMode as IambicMode;
+					this.paddleLayout = values.paddleLayout as PaddleLayout;
+					this.leftKeyCode = values.leftKeyCode as string;
+					this.rightKeyCode = values.rightKeyCode as string;
+
+					//! localStorageに保存。
+					localStorage.setItem('horizontalKeyWPM', this.currentWPM.toString());
+					localStorage.setItem('horizontalKeyIambicMode', this.iambicMode);
+					localStorage.setItem('horizontalKeyPaddleLayout', this.paddleLayout);
+					localStorage.setItem('horizontalKeyLeftCode', this.leftKeyCode);
+					localStorage.setItem('horizontalKeyRightCode', this.rightKeyCode);
+
+					//! 現在のWPM表示を更新。
+					const currentWpmDisplay = document.getElementById('current-wpm');
+					if (currentWpmDisplay) currentWpmDisplay.textContent = this.currentWPM.toString();
+
+					//! 現在のIambicモード表示を更新。
+					const currentIambicModeDisplay = document.getElementById('current-iambic-mode');
+					if (currentIambicModeDisplay) currentIambicModeDisplay.textContent = this.iambicMode;
+
+					//! パドルレイアウトに応じてラベルを更新。
+					this.updatePaddleLabels();
+
+					//! トレーナーを再初期化。
+					this.initializeTrainer();
+				},
+				onCancel: () => {
+					//! 設定を元に戻す。
+					this.audio.setVolume(savedSettings.volume);
+					this.audio.setFrequency(savedSettings.frequency);
+					this.audio.setWPM(savedSettings.wpm);
+					this.currentWPM = savedSettings.wpm;
+					this.iambicMode = savedSettings.iambicMode;
+					this.paddleLayout = savedSettings.paddleLayout;
+					this.leftKeyCode = savedSettings.leftKeyCode;
+					this.rightKeyCode = savedSettings.rightKeyCode;
+				}
+			}
+		);
 
 		//! モーダルを表示。
-		modal.classList.add('active');
-
-		//! 現在の設定値をinput要素に反映。
-		const volumeRange = document.getElementById('volume-range') as HTMLInputElement;
-		const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-		const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
-		const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
-		const iambicModeSelect = document.getElementById('iambic-mode-select') as HTMLSelectElement;
-		const paddleLayoutSelect = document.getElementById('paddle-layout-select') as HTMLSelectElement;
-
-		const volume = Math.round(this.audio.getVolume() * 100);
-		if (volumeRange) volumeRange.value = volume.toString();
-		if (volumeInput) volumeInput.value = volume.toString();
-		if (frequencyInput) frequencyInput.value = this.audio.getFrequency().toString();
-		if (wpmInput) wpmInput.value = this.currentWPM.toString();
-		if (iambicModeSelect) iambicModeSelect.value = this.iambicMode;
-		if (paddleLayoutSelect) paddleLayoutSelect.value = this.paddleLayout;
-
-		//! 音量スライダーと数値入力の同期のみ（実際の音声設定は変更しない）。
-		const syncVolume = () => {
-			if (volumeRange && volumeInput) {
-				volumeInput.value = volumeRange.value;
-			}
-		};
-		const syncVolumeReverse = () => {
-			if (volumeRange && volumeInput) {
-				volumeRange.value = volumeInput.value;
-			}
-		};
-
-		volumeRange?.addEventListener('input', syncVolume);
-		volumeInput?.addEventListener('input', syncVolumeReverse);
-
-		//! 左パドルキーバインド設定。
-		const leftKeyBindingInput = document.getElementById('left-key-binding') as HTMLInputElement;
-		if (leftKeyBindingInput) {
-			leftKeyBindingInput.addEventListener('click', () => {
-				leftKeyBindingInput.value = 'キーを押してください...';
-				leftKeyBindingInput.classList.add('waiting-key');
-			});
-
-			leftKeyBindingInput.addEventListener('keydown', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				leftKeyBindingInput.value = e.code;
-				leftKeyBindingInput.classList.remove('waiting-key');
-			});
-		}
-
-		//! 右パドルキーバインド設定。
-		const rightKeyBindingInput = document.getElementById('right-key-binding') as HTMLInputElement;
-		if (rightKeyBindingInput) {
-			rightKeyBindingInput.addEventListener('click', () => {
-				rightKeyBindingInput.value = 'キーを押してください...';
-				rightKeyBindingInput.classList.add('waiting-key');
-			});
-
-			rightKeyBindingInput.addEventListener('keydown', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				rightKeyBindingInput.value = e.code;
-				rightKeyBindingInput.classList.remove('waiting-key');
-			});
-		}
-	}
-
-	/**
-	 * 設定モーダルを閉じる
-	 */
-	private closeSettingsModal(save: boolean): void {
-		const modal = document.getElementById('settings-modal');
-		if (!modal) return;
-
-		//! モーダルを非表示。
-		modal.classList.remove('active');
-
-		if (save) {
-			//! 設定を適用。
-			const volumeInput = document.getElementById('volume-input') as HTMLInputElement;
-			const frequencyInput = document.getElementById('frequency-input') as HTMLInputElement;
-			const wpmInput = document.getElementById('wpm-input') as HTMLInputElement;
-			const iambicModeSelect = document.getElementById('iambic-mode-select') as HTMLSelectElement;
-			const paddleLayoutSelect = document.getElementById('paddle-layout-select') as HTMLSelectElement;
-			const leftKeyBindingInput = document.getElementById('left-key-binding') as HTMLInputElement;
-			const rightKeyBindingInput = document.getElementById('right-key-binding') as HTMLInputElement;
-
-			if (volumeInput) {
-				const volume = parseInt(volumeInput.value, 10) / 100;
-				this.audio.setVolume(volume);
-			}
-
-			if (frequencyInput) {
-				const frequency = parseInt(frequencyInput.value, 10);
-				this.audio.setFrequency(frequency);
-			}
-
-			if (wpmInput) {
-				const newWpm = parseInt(wpmInput.value, 10);
-				this.currentWPM = newWpm;
-				this.audio.setWPM(newWpm);
-
-				//! WPMをlocalStorageに保存。
-				localStorage.setItem('horizontalKeyWPM', newWpm.toString());
-
-				//! 現在のWPM表示を更新。
-				const currentWpmDisplay = document.getElementById('current-wpm');
-				if (currentWpmDisplay) currentWpmDisplay.textContent = newWpm.toString();
-			}
-
-			if (iambicModeSelect) {
-				this.iambicMode = iambicModeSelect.value as IambicMode;
-
-				//! IambicモードをlocalStorageに保存。
-				localStorage.setItem('horizontalKeyIambicMode', this.iambicMode);
-
-				//! 現在のIambicモード表示を更新。
-				const currentIambicModeDisplay = document.getElementById('current-iambic-mode');
-				if (currentIambicModeDisplay) currentIambicModeDisplay.textContent = this.iambicMode;
-			}
-
-			if (paddleLayoutSelect) {
-				this.paddleLayout = paddleLayoutSelect.value as PaddleLayout;
-
-				//! パドルレイアウトをlocalStorageに保存。
-				localStorage.setItem('horizontalKeyPaddleLayout', this.paddleLayout);
-
-				this.updatePaddleLabels();
-			}
-
-			if (leftKeyBindingInput && leftKeyBindingInput.value) {
-				this.leftKeyCode = leftKeyBindingInput.value;
-
-				//! 左パドルキーバインドをlocalStorageに保存。
-				localStorage.setItem('horizontalKeyLeftCode', this.leftKeyCode);
-			}
-
-			if (rightKeyBindingInput && rightKeyBindingInput.value) {
-				this.rightKeyCode = rightKeyBindingInput.value;
-
-				//! 右パドルキーバインドをlocalStorageに保存。
-				localStorage.setItem('horizontalKeyRightCode', this.rightKeyCode);
-			}
-
-			//! トレーナーを再初期化。
-			this.initializeTrainer();
-		}
-		//! キャンセル時は何もしない（設定を元に戻す必要もない）。
+		modal.show('horizontal-key');
 	}
 
 	/**

@@ -7,7 +7,7 @@
 export type ScreenType = 'flashcard' | 'listening' | 'koch' | 'horizontal-key' | 'vertical-key';
 
 //! 入力タイプ。
-export type SettingInputType = 'number' | 'range-with-number' | 'button';
+export type SettingInputType = 'number' | 'range-with-number' | 'button' | 'checkbox' | 'select' | 'keybinding';
 
 //! 設定項目の定義。
 export interface SettingItemDef {
@@ -33,11 +33,17 @@ export interface SettingItemDef {
 	buttonText?: string;
 	/** ボタンの場合のクラス */
 	buttonClass?: string;
+	/** selectの場合の選択肢 */
+	options?: { value: string; label: string }[];
+	/** checkboxの初期値 */
+	defaultChecked?: boolean;
+	/** keybindingの場合のヒントテキスト */
+	hint?: string;
 }
 
 //! 設定値の型。
 export interface SettingValues {
-	[key: string]: number | string;
+	[key: string]: number | string | boolean;
 }
 
 //! モーダルのコールバック関数。
@@ -192,6 +198,40 @@ export class SettingsModal {
 					</div>
 				`;
 
+			case 'checkbox':
+				return `
+					<div class="setting-item">
+						<label>
+							<input type="checkbox" id="${this.modalId}-${item.key}"
+								data-key="${item.key}" ${value ? 'checked' : ''}>
+							${item.label}
+						</label>
+					</div>
+				`;
+
+			case 'select':
+				return `
+					<div class="setting-item">
+						<label for="${this.modalId}-${item.key}">${item.label}</label>
+						<select id="${this.modalId}-${item.key}" data-key="${item.key}">
+							${(item.options || []).map(opt => `
+								<option value="${opt.value}" ${value === opt.value ? 'selected' : ''}>${opt.label}</option>
+							`).join('')}
+						</select>
+					</div>
+				`;
+
+			case 'keybinding':
+				const formattedValue = typeof value === 'string' ? value.replace(/^Key/, '') : value;
+				return `
+					<div class="setting-item">
+						<label for="${this.modalId}-${item.key}">${item.label}</label>
+						<input type="text" id="${this.modalId}-${item.key}" class="keybinding-input"
+							value="${formattedValue}" readonly placeholder="キーを押してください" data-key="${item.key}">
+						${item.hint ? `<span class="key-hint">${item.hint}</span>` : ''}
+					</div>
+				`;
+
 			default:
 				return '';
 		}
@@ -232,6 +272,29 @@ export class SettingsModal {
 				const button = document.getElementById(`${this.modalId}-${item.key}`);
 				button?.addEventListener('click', () => {
 					this.callbacks.onTestPlay?.();
+				});
+			} else if (item.inputType === 'checkbox') {
+				const input = document.getElementById(`${this.modalId}-${item.key}`) as HTMLInputElement;
+				input?.addEventListener('change', () => {
+					this.currentValues[item.key] = input.checked;
+				});
+			} else if (item.inputType === 'select') {
+				const select = document.getElementById(`${this.modalId}-${item.key}`) as HTMLSelectElement;
+				select?.addEventListener('change', () => {
+					this.currentValues[item.key] = select.value;
+				});
+			} else if (item.inputType === 'keybinding') {
+				const input = document.getElementById(`${this.modalId}-${item.key}`) as HTMLInputElement;
+				input?.addEventListener('click', () => {
+					input.value = 'キーを押してください...';
+					input.classList.add('waiting-key');
+				});
+				input?.addEventListener('keydown', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					this.currentValues[item.key] = e.code;
+					input.value = e.code.replace(/^Key/, '');
+					input.classList.remove('waiting-key');
 				});
 			}
 		});
@@ -365,5 +428,101 @@ export const ALL_SETTING_ITEMS: SettingItemDef[] = [
 		inputType: 'button',
 		buttonText: '再生',
 		buttonClass: 'test-button'
+	},
+	//! Koch専用の設定。
+	{
+		screens: ['koch'],
+		priority: 5,
+		key: 'characterSpeed',
+		label: '文字速度 (WPM: 5-40)',
+		inputType: 'number',
+		min: 5,
+		max: 40,
+		step: 1
+	},
+	{
+		screens: ['koch'],
+		priority: 6,
+		key: 'effectiveSpeed',
+		label: '実効速度 (WPM: 5-40)',
+		inputType: 'number',
+		min: 5,
+		max: 40,
+		step: 1
+	},
+	{
+		screens: ['koch'],
+		priority: 40,
+		key: 'practiceDuration',
+		label: '練習時間 (秒: 30-300)',
+		inputType: 'number',
+		min: 30,
+		max: 300,
+		step: 30
+	},
+	{
+		screens: ['koch'],
+		priority: 50,
+		key: 'groupSize',
+		label: 'グループサイズ (文字: 3-10)',
+		inputType: 'number',
+		min: 3,
+		max: 10,
+		step: 1
+	},
+	{
+		screens: ['koch'],
+		priority: 60,
+		key: 'showInput',
+		label: '入力を表示',
+		inputType: 'checkbox'
+	},
+	//! HorizontalKey専用の設定。
+	{
+		screens: ['horizontal-key'],
+		priority: 40,
+		key: 'iambicMode',
+		label: 'Iambicモード',
+		inputType: 'select',
+		options: [
+			{ value: 'A', label: 'Iambic A' },
+			{ value: 'B', label: 'Iambic B' }
+		]
+	},
+	{
+		screens: ['horizontal-key'],
+		priority: 50,
+		key: 'paddleLayout',
+		label: 'パドルレイアウト',
+		inputType: 'select',
+		options: [
+			{ value: 'normal', label: '標準（左=dit / 右=dah）' },
+			{ value: 'reversed', label: '反転（左=dah / 右=dit）' }
+		]
+	},
+	{
+		screens: ['horizontal-key'],
+		priority: 60,
+		key: 'leftKeyCode',
+		label: '左パドルキー',
+		inputType: 'keybinding',
+		hint: 'クリックしてキーを押す'
+	},
+	{
+		screens: ['horizontal-key'],
+		priority: 70,
+		key: 'rightKeyCode',
+		label: '右パドルキー',
+		inputType: 'keybinding',
+		hint: 'クリックしてキーを押す'
+	},
+	//! VerticalKey専用の設定。
+	{
+		screens: ['vertical-key'],
+		priority: 40,
+		key: 'keyCode',
+		label: 'キーバインド',
+		inputType: 'keybinding',
+		hint: 'クリックしてキーを押す'
 	}
 ];
