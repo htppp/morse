@@ -1242,4 +1242,4 @@ window.location.hash="#menu"}}navigate(e){window.location.hash=`#${e}`}}//! ア�
 function W(){console.log("モールス練習アプリ v10 起動");//! ルーターを初期化。
 new re().init()}//! DOMContentLoaded後に初期化。
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",W):W();
-//# sourceMappingURL=index-BON6mBMS.js.map
+//# sourceMappingURL=index-DyXYrQmN.js.map

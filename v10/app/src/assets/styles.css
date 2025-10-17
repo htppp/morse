@@ -1598,6 +1598,12 @@ body {
 	text-align: center;
 }
 
+/* 単独のnumber入力は全幅を使用 */
+.settings-modal .setting-item input[type="number"]:only-of-type {
+	width: 100%;
+	text-align: left;
+}
+
 .setting-row {
 	display: flex;
 	align-items: center;
