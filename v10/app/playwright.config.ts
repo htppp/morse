@@ -8,9 +8,9 @@ export default defineConfig({
 	testDir: './e2e',
 
 	//! テストタイムアウト設定。
-	timeout: 30 * 1000,
+	timeout: 3 * 1000,
 	expect: {
-		timeout: 5000
+		timeout: 100
 	},
 
 	//! 並列実行設定。
@@ -35,6 +35,12 @@ export default defineConfig({
 
 		//! ヘッドレスモード（WSL環境でXServerなしで動作）。
 		headless: true,
+
+		//! ナビゲーションタイムアウト（ページ遷移）。
+		navigationTimeout: 3000,
+
+		//! アクションタイムアウト（クリック等）。
+		actionTimeout: 100,
 
 		//! トレース設定。
 		trace: 'on-first-retry',
@@ -74,11 +80,11 @@ export default defineConfig({
 		// },
 	],
 
-	//! 開発サーバー設定。
-	webServer: {
-		command: 'npm run dev',
-		url: 'http://localhost:3000',
-		reuseExistingServer: !process.env.CI,
-		timeout: 120 * 1000,
-	},
+	//! 開発サーバー設定（既に起動している場合はコメントアウト）。
+	// webServer: {
+	// 	command: 'npm run dev',
+	// 	url: 'http://localhost:3000',
+	// 	reuseExistingServer: !process.env.CI,
+	// 	timeout: 120 * 1000,
+	// },
 });

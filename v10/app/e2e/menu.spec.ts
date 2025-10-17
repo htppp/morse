@@ -11,7 +11,7 @@ test.describe('メニュー画面', () => {
 		await expect(page.locator('h1')).toContainText('モールス信号練習アプリ');
 
 		//! 5つの練習モードボタンが表示される。
-		await expect(page.locator('.menu-button')).toHaveCount(5);
+		await expect(page.locator('.menu-item')).toHaveCount(5);
 	});
 
 	test('縦振り電鍵練習画面に遷移できる', async ({ page }) => {
