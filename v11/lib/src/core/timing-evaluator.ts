@@ -22,6 +22,41 @@ export interface TimingRecord {
 }
 
 /**
+ * スペーシングタイプ
+ * 要素間/文字間/単語間のスペースを区別する
+ */
+export type SpacingType = 'element' | 'character' | 'word';
+
+/**
+ * スペーシングレコード
+ * 要素間/文字間/単語間のスペース（無入力期間）に関する情報
+ */
+export interface SpacingRecord {
+	/** スペーシングタイプ */
+	type: SpacingType;
+	/** 実際のスペース時間（ミリ秒） */
+	actualDuration: number;
+	/** 期待されるスペース時間（ミリ秒） */
+	expectedDuration: number;
+	/** 記録時刻（エポックミリ秒） */
+	timestamp: number;
+}
+
+/**
+ * スペーシング評価結果
+ */
+export interface SpacingEvaluation {
+	/** 元のレコード */
+	record: SpacingRecord;
+	/** 絶対誤差（ミリ秒） */
+	absoluteError: number;
+	/** 相対誤差（％） */
+	relativeError: number;
+	/** 精度（％、100 - relativeError） */
+	accuracy: number;
+}
+
+/**
  * タイミング評価結果
  */
 export interface TimingEvaluation {
@@ -251,5 +286,169 @@ export class TimingEvaluator {
 		return evaluations.filter(
 			(e) => e.record.timestamp >= startTime && e.record.timestamp <= endTime,
 		);
+	}
+
+	/**
+	 * スペーシングレコードを作成する
+	 *
+	 * @param actualDuration - 実際のスペース時間（ミリ秒）
+	 * @param timings - モールス信号のタイミング情報
+	 * @param timestamp - 記録時刻（エポックミリ秒、省略時は現在時刻）
+	 * @returns スペーシングレコード
+	 *
+	 * @example
+	 * ```ts
+	 * const timings = TimingCalculator.calculate(20);
+	 * const record = TimingEvaluator.createSpacingRecord(150, timings);
+	 * console.log(record.type); // 'character'（3 dot = 180ms に近い）
+	 * ```
+	 */
+	static createSpacingRecord(
+		actualDuration: number,
+		timings: MorseTimings,
+		timestamp: number = Date.now(),
+	): SpacingRecord {
+		//! スペースタイプを判定する。
+		//! 0 〜 2 dot: 要素間スペース
+		//! 2 〜 5 dot: 文字間スペース
+		//! 5 dot 以上: 単語間スペース
+		const dotDuration = timings.dot;
+		let type: SpacingType;
+		let expectedDuration: number;
+
+		if (actualDuration < dotDuration * 2) {
+			//! 要素間スペース（同じ文字内の次の要素）
+			type = 'element';
+			expectedDuration = 0; // すぐに次を送信することを期待
+		} else if (actualDuration < dotDuration * 5) {
+			//! 文字間スペース
+			type = 'character';
+			expectedDuration = timings.charGap; // 3 dot
+		} else {
+			//! 単語間スペース
+			type = 'word';
+			expectedDuration = timings.wordGap; // 7 dot
+		}
+
+		return {
+			type,
+			actualDuration,
+			expectedDuration,
+			timestamp,
+		};
+	}
+
+	/**
+	 * スペーシングレコードを評価する
+	 *
+	 * @param record - スペーシングレコード
+	 * @returns スペーシング評価結果
+	 *
+	 * @example
+	 * ```ts
+	 * const timings = TimingCalculator.calculate(20);
+	 * const record = TimingEvaluator.createSpacingRecord(150, timings);
+	 * const evaluation = TimingEvaluator.evaluateSpacing(record);
+	 * console.log(evaluation.accuracy); // スペーシング精度
+	 * ```
+	 */
+	static evaluateSpacing(record: SpacingRecord): SpacingEvaluation {
+		const absoluteError = Math.abs(record.actualDuration - record.expectedDuration);
+		//! 期待値が0の場合（要素間スペース）、相対誤差の計算で除算エラーを避ける。
+		//! この場合、絶対誤差をそのまま相対誤差（%）として扱う（1ms = 1%）。
+		const relativeError =
+			record.expectedDuration === 0
+				? absoluteError
+				: (absoluteError / record.expectedDuration) * 100;
+		const accuracy = Math.max(0, 100 - relativeError);
+
+		return {
+			record,
+			absoluteError,
+			relativeError,
+			accuracy,
+		};
+	}
+
+	/**
+	 * 複数のスペーシング評価結果から統計情報を計算する
+	 *
+	 * @param evaluations - スペーシング評価結果の配列
+	 * @returns 統計情報
+	 *
+	 * @example
+	 * ```ts
+	 * const evaluations = [...]; // SpacingEvaluation[]
+	 * const stats = TimingEvaluator.calculateSpacingStatistics(evaluations);
+	 * console.log(stats.averageAccuracy); // 平均精度
+	 * ```
+	 */
+	static calculateSpacingStatistics(evaluations: SpacingEvaluation[]): TimingStatistics {
+		if (evaluations.length === 0) {
+			return {
+				count: 0,
+				averageAccuracy: 0,
+				averageAbsoluteError: 0,
+				averageRelativeError: 0,
+				maxAccuracy: 0,
+				minAccuracy: 0,
+				standardDeviation: 0,
+			};
+		}
+
+		const accuracies = evaluations.map((e) => e.accuracy);
+		const absoluteErrors = evaluations.map((e) => e.absoluteError);
+		const relativeErrors = evaluations.map((e) => e.relativeError);
+
+		const averageAccuracy = accuracies.reduce((sum, a) => sum + a, 0) / accuracies.length;
+		const averageAbsoluteError =
+			absoluteErrors.reduce((sum, e) => sum + e, 0) / absoluteErrors.length;
+		const averageRelativeError =
+			relativeErrors.reduce((sum, e) => sum + e, 0) / relativeErrors.length;
+
+		const maxAccuracy = Math.max(...accuracies);
+		const minAccuracy = Math.min(...accuracies);
+
+		//! 標準偏差を計算する。
+		const variance =
+			accuracies.reduce((sum, a) => sum + Math.pow(a - averageAccuracy, 2), 0) /
+			accuracies.length;
+		const standardDeviation = Math.sqrt(variance);
+
+		return {
+			count: evaluations.length,
+			averageAccuracy,
+			averageAbsoluteError,
+			averageRelativeError,
+			maxAccuracy,
+			minAccuracy,
+			standardDeviation,
+		};
+	}
+
+	/**
+	 * スペーシング評価結果をスペースタイプ別に分類する
+	 *
+	 * @param evaluations - スペーシング評価結果の配列
+	 * @returns スペースタイプ別の評価結果
+	 *
+	 * @example
+	 * ```ts
+	 * const evaluations = [...]; // SpacingEvaluation[]
+	 * const classified = TimingEvaluator.classifyBySpacingType(evaluations);
+	 * console.log(classified.element.length); // 要素間スペースの数
+	 * console.log(classified.character.length); // 文字間スペースの数
+	 * console.log(classified.word.length); // 単語間スペースの数
+	 * ```
+	 */
+	static classifyBySpacingType(evaluations: SpacingEvaluation[]): {
+		element: SpacingEvaluation[];
+		character: SpacingEvaluation[];
+		word: SpacingEvaluation[];
+	} {
+		const element = evaluations.filter((e) => e.record.type === 'element');
+		const character = evaluations.filter((e) => e.record.type === 'character');
+		const word = evaluations.filter((e) => e.record.type === 'word');
+		return { element, character, word };
 	}
 }

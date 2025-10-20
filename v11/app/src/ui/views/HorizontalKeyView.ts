@@ -91,8 +91,8 @@ export class HorizontalKeyView implements View {
 					// scheduleToneに0を渡すと現在時刻から再生される
 					this.audio.scheduleTone(0, duration);
 				},
-				onTimingEvaluated: () => {
-					//! タイミング評価が完了したら画面を更新。
+				onSpacingEvaluated: () => {
+					//! スペーシング評価が完了したら画面を更新。
 					this.updateDisplay();
 				}
 			},
@@ -168,7 +168,7 @@ export class HorizontalKeyView implements View {
 					</div>
 
 					<div class="timing-evaluation-section">
-						<h3>タイミング評価</h3>
+						<h3>スペーシング評価</h3>
 						<div class="timing-stats-grid">
 							<div class="timing-stat-card">
 								<div class="timing-stat-label">平均精度</div>
@@ -185,19 +185,27 @@ export class HorizontalKeyView implements View {
 						</div>
 						<div class="timing-element-stats">
 							<div class="timing-element-stat">
-								<h4>短点 (.)</h4>
+								<h4>要素間</h4>
 								<div class="timing-element-detail">
-									<span>精度: <span id="timing-dot-accuracy">--%</span></span>
-									<span>誤差: <span id="timing-dot-error">--ms</span></span>
-									<span>回数: <span id="timing-dot-count">0</span></span>
+									<span>精度: <span id="timing-element-accuracy">--%</span></span>
+									<span>誤差: <span id="timing-element-error">--ms</span></span>
+									<span>回数: <span id="timing-element-count">0</span></span>
 								</div>
 							</div>
 							<div class="timing-element-stat">
-								<h4>長点 (-)</h4>
+								<h4>文字間</h4>
 								<div class="timing-element-detail">
-									<span>精度: <span id="timing-dash-accuracy">--%</span></span>
-									<span>誤差: <span id="timing-dash-error">--ms</span></span>
-									<span>回数: <span id="timing-dash-count">0</span></span>
+									<span>精度: <span id="timing-char-accuracy">--%</span></span>
+									<span>誤差: <span id="timing-char-error">--ms</span></span>
+									<span>回数: <span id="timing-char-count">0</span></span>
+								</div>
+							</div>
+							<div class="timing-element-stat">
+								<h4>単語間</h4>
+								<div class="timing-element-detail">
+									<span>精度: <span id="timing-word-accuracy">--%</span></span>
+									<span>誤差: <span id="timing-word-error">--ms</span></span>
+									<span>回数: <span id="timing-word-count">0</span></span>
 								</div>
 							</div>
 						</div>
@@ -455,9 +463,9 @@ export class HorizontalKeyView implements View {
 			charCount.textContent = text.length.toString();
 		}
 
-		//! タイミング評価統計を更新。
-		const stats = this.trainer.getTimingStatistics();
-		const elementStats = this.trainer.getStatisticsByElement();
+		//! スペーシング評価統計を更新。
+		const stats = this.trainer.getSpacingStatistics();
+		const spacingStats = this.trainer.getStatisticsBySpacingType();
 
 		const avgAccuracyEl = document.getElementById('timing-avg-accuracy');
 		const avgErrorEl = document.getElementById('timing-avg-error');
@@ -479,46 +487,67 @@ export class HorizontalKeyView implements View {
 			countEl.textContent = stats.count.toString();
 		}
 
-		//! 短点統計。
-		const dotAccuracyEl = document.getElementById('timing-dot-accuracy');
-		const dotErrorEl = document.getElementById('timing-dot-error');
-		const dotCountEl = document.getElementById('timing-dot-count');
+		//! 要素間スペース統計。
+		const elementAccuracyEl = document.getElementById('timing-element-accuracy');
+		const elementErrorEl = document.getElementById('timing-element-error');
+		const elementCountEl = document.getElementById('timing-element-count');
 
-		if (dotAccuracyEl) {
-			dotAccuracyEl.textContent = elementStats.dot.count > 0
-				? `${elementStats.dot.averageAccuracy.toFixed(1)}%`
+		if (elementAccuracyEl) {
+			elementAccuracyEl.textContent = spacingStats.element.count > 0
+				? `${spacingStats.element.averageAccuracy.toFixed(1)}%`
 				: '--%';
 		}
 
-		if (dotErrorEl) {
-			dotErrorEl.textContent = elementStats.dot.count > 0
-				? `${Math.round(elementStats.dot.averageAbsoluteError)}ms`
+		if (elementErrorEl) {
+			elementErrorEl.textContent = spacingStats.element.count > 0
+				? `${Math.round(spacingStats.element.averageAbsoluteError)}ms`
 				: '--ms';
 		}
 
-		if (dotCountEl) {
-			dotCountEl.textContent = elementStats.dot.count.toString();
+		if (elementCountEl) {
+			elementCountEl.textContent = spacingStats.element.count.toString();
 		}
 
-		//! 長点統計。
-		const dashAccuracyEl = document.getElementById('timing-dash-accuracy');
-		const dashErrorEl = document.getElementById('timing-dash-error');
-		const dashCountEl = document.getElementById('timing-dash-count');
+		//! 文字間スペース統計。
+		const charAccuracyEl = document.getElementById('timing-char-accuracy');
+		const charErrorEl = document.getElementById('timing-char-error');
+		const charCountEl = document.getElementById('timing-char-count');
 
-		if (dashAccuracyEl) {
-			dashAccuracyEl.textContent = elementStats.dash.count > 0
-				? `${elementStats.dash.averageAccuracy.toFixed(1)}%`
+		if (charAccuracyEl) {
+			charAccuracyEl.textContent = spacingStats.character.count > 0
+				? `${spacingStats.character.averageAccuracy.toFixed(1)}%`
 				: '--%';
 		}
 
-		if (dashErrorEl) {
-			dashErrorEl.textContent = elementStats.dash.count > 0
-				? `${Math.round(elementStats.dash.averageAbsoluteError)}ms`
+		if (charErrorEl) {
+			charErrorEl.textContent = spacingStats.character.count > 0
+				? `${Math.round(spacingStats.character.averageAbsoluteError)}ms`
 				: '--ms';
 		}
 
-		if (dashCountEl) {
-			dashCountEl.textContent = elementStats.dash.count.toString();
+		if (charCountEl) {
+			charCountEl.textContent = spacingStats.character.count.toString();
+		}
+
+		//! 単語間スペース統計。
+		const wordAccuracyEl = document.getElementById('timing-word-accuracy');
+		const wordErrorEl = document.getElementById('timing-word-error');
+		const wordCountEl = document.getElementById('timing-word-count');
+
+		if (wordAccuracyEl) {
+			wordAccuracyEl.textContent = spacingStats.word.count > 0
+				? `${spacingStats.word.averageAccuracy.toFixed(1)}%`
+				: '--%';
+		}
+
+		if (wordErrorEl) {
+			wordErrorEl.textContent = spacingStats.word.count > 0
+				? `${Math.round(spacingStats.word.averageAbsoluteError)}ms`
+				: '--ms';
+		}
+
+		if (wordCountEl) {
+			wordCountEl.textContent = spacingStats.word.count.toString();
 		}
 	}
 

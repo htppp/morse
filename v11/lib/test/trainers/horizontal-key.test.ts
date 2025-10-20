@@ -31,7 +31,7 @@ describe('HorizontalKeyTrainer', () => {
 			onWordSeparator: vi.fn(),
 			onBufferUpdate: vi.fn(),
 			onSqueezeChange: vi.fn(),
-			onTimingEvaluated: vi.fn(),
+			onSpacingEvaluated: vi.fn(),
 		};
 		trainer = new HorizontalKeyTrainer(buffer, timer, timings, callbacks);
 		vi.useFakeTimers();
@@ -458,91 +458,105 @@ describe('HorizontalKeyTrainer', () => {
 		});
 	});
 
-	describe('タイミング評価機能', () => {
-		it('onTimingEvaluatedコールバックが呼ばれる', () => {
+	describe('スペーシング評価機能', () => {
+		it('onSpacingEvaluatedコールバックが呼ばれる（2番目の要素送信時）', () => {
 			vi.clearAllMocks();
+			//! 1番目の要素送信時はスペーシング評価されない（lastElementEndTimeがnull）。
 			trainer.leftPaddlePress();
-			expect(callbacks.onTimingEvaluated).toHaveBeenCalledTimes(1);
-			const evaluation = (callbacks.onTimingEvaluated as any).mock.calls[0][0];
+			expect(callbacks.onSpacingEvaluated).toHaveBeenCalledTimes(0);
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 2番目の要素送信時にスペーシング評価される。
+			trainer.leftPaddlePress();
+			expect(callbacks.onSpacingEvaluated).toHaveBeenCalledTimes(1);
+			const evaluation = (callbacks.onSpacingEvaluated as any).mock.calls[0][0];
 			expect(evaluation).toHaveProperty('accuracy');
 			expect(evaluation).toHaveProperty('absoluteError');
 			expect(evaluation).toHaveProperty('relativeError');
+			expect(evaluation.record).toHaveProperty('type');
 		});
 
-		it('タイミング評価結果が記録される', () => {
+		it('スペーシング評価結果が記録される', () => {
+			//! 1番目の要素送信。
 			trainer.leftPaddlePress();
-			const evals = trainer.getAllEvaluations();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 2番目の要素送信でスペーシング評価。
+			trainer.leftPaddlePress();
+			const evals = trainer.getAllSpacingEvaluations();
 			expect(evals.length).toBe(1);
-			expect(evals[0].record.element).toBe('.');
+			expect(evals[0].record.type).toBe('element'); // すぐに次を送信した場合
 		});
 
-		it('複数の入力が記録される', () => {
-			trainer.leftPaddlePress();
-			trainer.leftPaddleRelease();
-			vi.advanceTimersByTime(timings.dot + timings.dot);
-
-			trainer.leftPaddlePress();
-			trainer.leftPaddleRelease();
-			vi.advanceTimersByTime(timings.dot + timings.dot);
-			const evals = trainer.getAllEvaluations();
+		it('複数のスペーシングが記録される', () => {
+			//! 3回要素を送信すると、2回のスペーシング評価が行われる。
+			for (let i = 0; i < 3; i++) {
+				trainer.leftPaddlePress();
+				trainer.leftPaddleRelease();
+				vi.advanceTimersByTime(timings.dot + timings.dot);
+			}
+			const evals = trainer.getAllSpacingEvaluations();
 			expect(evals.length).toBe(2);
 		});
 
-		it('統計情報が正しく計算される（自動送信のため100%精度）', () => {
+		it('スペーシングタイプが正しく判定される', () => {
+			//! 1番目の要素送信。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			trainer.rightPaddlePress();
-			trainer.rightPaddleRelease();
-			vi.advanceTimersByTime(timings.dash + timings.dot);
-
-			const stats = trainer.getTimingStatistics();
-			expect(stats.count).toBe(2);
-			expect(stats.averageAccuracy).toBe(100);
-			expect(stats.averageAbsoluteError).toBe(0);
-		});
-
-		it('要素タイプ別の統計情報が取得できる', () => {
+			//! 2番目の要素送信（すぐに送信 -> 要素間スペース）。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			trainer.rightPaddlePress();
-			trainer.rightPaddleRelease();
-			vi.advanceTimersByTime(timings.dash + timings.dot);
+			//! 3番目の要素送信（3 dot待機 -> 文字間スペース）。
+			vi.advanceTimersByTime(timings.charGap);
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			const stats = trainer.getStatisticsByElement();
-			expect(stats.dot.count).toBe(1);
-			expect(stats.dash.count).toBe(1);
+			//! 4番目の要素送信（7 dot待機 -> 単語間スペース）。
+			vi.advanceTimersByTime(timings.wordGap);
+			trainer.leftPaddlePress();
+
+			const stats = trainer.getStatisticsBySpacingType();
+			expect(stats.element.count).toBe(1); // 2番目の要素送信時
+			expect(stats.character.count).toBe(1); // 3番目の要素送信時
+			expect(stats.word.count).toBe(1); // 4番目の要素送信時
 		});
 
-		it('最近のN件の評価結果が取得できる', () => {
-			for (let i = 0; i < 5; i++) {
+		it('最近のN件のスペーシング評価結果が取得できる', () => {
+			//! 6回要素を送信すると、5回のスペーシング評価が行われる。
+			for (let i = 0; i < 6; i++) {
 				trainer.leftPaddlePress();
 				vi.advanceTimersByTime(timings.dot + timings.dot);
 				trainer.leftPaddleRelease();
 			}
 
-			const recent = trainer.getRecentEvaluations(3);
+			const recent = trainer.getRecentSpacingEvaluations(3);
 			expect(recent.length).toBe(3);
 		});
 
-		it('clear()でタイミング評価結果がリセットされる', () => {
+		it('clear()でスペーシング評価結果がリセットされる', () => {
+			//! 2回要素を送信して1回のスペーシング評価。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
-			expect(trainer.getAllEvaluations().length).toBe(1);
+			trainer.leftPaddlePress();
+			expect(trainer.getAllSpacingEvaluations().length).toBe(1);
 
 			trainer.clear();
 
-			expect(trainer.getAllEvaluations().length).toBe(0);
-			const stats = trainer.getTimingStatistics();
+			expect(trainer.getAllSpacingEvaluations().length).toBe(0);
+			const stats = trainer.getSpacingStatistics();
 			expect(stats.count).toBe(0);
 		});
 
 		it('評価結果が空の場合、統計情報は全て0になる', () => {
-			const stats = trainer.getTimingStatistics();
+			const stats = trainer.getSpacingStatistics();
 			expect(stats.count).toBe(0);
 			expect(stats.averageAccuracy).toBe(0);
 			expect(stats.averageAbsoluteError).toBe(0);

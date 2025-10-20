@@ -9,7 +9,10 @@ import { TimerManager } from '../core/timer';
 import { MorseCodec } from '../core/morse-codec';
 import type { MorseTimings } from '../core/timing';
 import { TimingEvaluator } from '../core/timing-evaluator';
-import type { TimingEvaluation, TimingStatistics } from '../core/timing-evaluator';
+import type {
+	SpacingEvaluation,
+	TimingStatistics,
+} from '../core/timing-evaluator';
 
 /**
  * Iambic モード
@@ -89,10 +92,10 @@ export interface HorizontalKeyCallbacks {
 	onSqueezeChange?: (squeezing: boolean) => void;
 
 	/**
-	 * タイミング評価が完了した時に呼ばれる
-	 * @param evaluation - タイミング評価結果
+	 * スペーシング評価が完了した時に呼ばれる
+	 * @param evaluation - スペーシング評価結果
 	 */
-	onTimingEvaluated?: (evaluation: TimingEvaluation) => void;
+	onSpacingEvaluated?: (evaluation: SpacingEvaluation) => void;
 }
 
 /**
@@ -120,8 +123,9 @@ export class HorizontalKeyTrainer {
 	private iambicMode: IambicMode;
 	private paddleLayout: PaddleLayout;
 
-	// タイミング評価
-	private evaluations: TimingEvaluation[] = [];
+	// スペーシング評価
+	private spacingEvaluations: SpacingEvaluation[] = [];
+	private lastElementEndTime: number | null = null;
 
 	/**
 	 * 横振り電鍵トレーナーを初期化する
@@ -213,6 +217,18 @@ export class HorizontalKeyTrainer {
 			this.squeezeDetected = false;
 		}
 
+		// スペーシング評価を実行
+		if (this.lastElementEndTime !== null) {
+			const spacingDuration = Date.now() - this.lastElementEndTime;
+			const spacingRecord = TimingEvaluator.createSpacingRecord(
+				spacingDuration,
+				this.timings,
+			);
+			const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
+			this.spacingEvaluations.push(spacingEvaluation);
+			this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+		}
+
 		// 送信時間を計算
 		const duration = element === '.' ? this.timings.dot : this.timings.dash;
 
@@ -222,12 +238,6 @@ export class HorizontalKeyTrainer {
 		// シーケンスに追加
 		this.buffer.addElement(element);
 		this.lastSent = element;
-
-		// タイミング評価を実行（自動送信のため、実測値は期待値と同じ）
-		const record = TimingEvaluator.createRecord(element, duration, this.timings);
-		const evaluation = TimingEvaluator.evaluate(record);
-		this.evaluations.push(evaluation);
-		this.callbacks.onTimingEvaluated?.(evaluation);
 
 		this.callbacks.onSequenceUpdate?.(this.buffer.getSequence());
 		this.notifyBufferUpdate();
@@ -251,6 +261,9 @@ export class HorizontalKeyTrainer {
 		this.timer.set('elementEnd', () => {
 			this.sending = false;
 			this.callbacks.onElementEnd?.(element);
+
+			// 要素送信終了時刻を記録（スペーシング評価用）
+			this.lastElementEndTime = Date.now();
 
 			// Iambic Bモード: forceNextElementが設定されている場合は必ず送信
 			if (this.forceNextElement) {
@@ -346,7 +359,8 @@ export class HorizontalKeyTrainer {
 		this.forceNextElement = null;
 		this.squeezeDetected = false;
 		this.lastSent = null;
-		this.evaluations = [];
+		this.spacingEvaluations = [];
+		this.lastElementEndTime = null;
 		this.notifyBufferUpdate();
 	}
 
@@ -441,42 +455,47 @@ export class HorizontalKeyTrainer {
 	}
 
 	/**
-	 * タイミング評価の統計情報を取得する
+	 * スペーシング評価の統計情報を取得する
 	 * @returns 統計情報
 	 */
-	getTimingStatistics(): TimingStatistics {
-		return TimingEvaluator.calculateStatistics(this.evaluations);
+	getSpacingStatistics(): TimingStatistics {
+		return TimingEvaluator.calculateSpacingStatistics(this.spacingEvaluations);
 	}
 
 	/**
-	 * 最近のN件のタイミング評価結果を取得する
+	 * 最近のN件のスペーシング評価結果を取得する
 	 * @param count - 取得する件数
-	 * @returns タイミング評価結果の配列
+	 * @returns スペーシング評価結果の配列
 	 */
-	getRecentEvaluations(count: number): TimingEvaluation[] {
-		return TimingEvaluator.getRecent(this.evaluations, count);
+	getRecentSpacingEvaluations(count: number): SpacingEvaluation[] {
+		const sorted = [...this.spacingEvaluations].sort(
+			(a, b) => b.record.timestamp - a.record.timestamp,
+		);
+		return sorted.slice(0, count);
 	}
 
 	/**
-	 * 全てのタイミング評価結果を取得する
-	 * @returns タイミング評価結果の配列
+	 * 全てのスペーシング評価結果を取得する
+	 * @returns スペーシング評価結果の配列
 	 */
-	getAllEvaluations(): TimingEvaluation[] {
-		return [...this.evaluations];
+	getAllSpacingEvaluations(): SpacingEvaluation[] {
+		return [...this.spacingEvaluations];
 	}
 
 	/**
-	 * 要素タイプ（dot/dash）別の統計情報を取得する
-	 * @returns dot/dash別の統計情報
+	 * スペースタイプ（element/character/word）別の統計情報を取得する
+	 * @returns スペースタイプ別の統計情報
 	 */
-	getStatisticsByElement(): {
-		dot: TimingStatistics;
-		dash: TimingStatistics;
+	getStatisticsBySpacingType(): {
+		element: TimingStatistics;
+		character: TimingStatistics;
+		word: TimingStatistics;
 	} {
-		const classified = TimingEvaluator.classifyByElement(this.evaluations);
+		const classified = TimingEvaluator.classifyBySpacingType(this.spacingEvaluations);
 		return {
-			dot: TimingEvaluator.calculateStatistics(classified.dot),
-			dash: TimingEvaluator.calculateStatistics(classified.dash),
+			element: TimingEvaluator.calculateSpacingStatistics(classified.element),
+			character: TimingEvaluator.calculateSpacingStatistics(classified.character),
+			word: TimingEvaluator.calculateSpacingStatistics(classified.word),
 		};
 	}
 }
