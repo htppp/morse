@@ -24,3 +24,12 @@ v8/src/node_modules/
 v9/src/node_modules/
 v9/src/.vite/
 v9/src/dist/
+
+# v10 build artifacts
+v10/app/node_modules/
+v10/app/.vite/
+v10/app/test-results/
+v10/app/playwright-report/
+v10/lib/node_modules/
+v10/lib/dist/
+v10/lib/coverage/
