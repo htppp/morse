@@ -1,4 +1,4 @@
-name: V11 E2E Tests
+name: E2E Tests (v11)
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   e2e-test:
-    name: V11 E2E Tests on Ubuntu
+    name: E2E Tests (v11) on Ubuntu
     runs-on: ubuntu-latest
     defaults:
       run:
