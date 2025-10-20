@@ -38,8 +38,8 @@ test.describe('横振り電鍵練習', () => {
 		await page.waitForSelector('.modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.modal')).toBeVisible();
 
-		//! 横振り電鍵固有の設定。
-		await expect(page.locator('text=Iambicモード')).toBeVisible();
-		await expect(page.locator('text=パドルレイアウト')).toBeVisible();
+		//! 横振り電鍵固有の設定（モーダル内のlabelを明示的に指定してstrict mode violationを回避）。
+		await expect(page.locator('.modal label:has-text("Iambicモード")')).toBeVisible();
+		await expect(page.locator('.modal label:has-text("パドルレイアウト")')).toBeVisible();
 	});
 });

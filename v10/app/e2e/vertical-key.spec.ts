@@ -40,10 +40,10 @@ test.describe('縦振り電鍵練習', () => {
 		await page.waitForSelector('.modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.modal')).toBeVisible();
 
-		//! 設定項目が表示される。
-		await expect(page.locator('text=音量')).toBeVisible();
-		await expect(page.locator('text=周波数')).toBeVisible();
-		await expect(page.locator('text=速度 (WPM)')).toBeVisible();
+		//! 設定項目が表示される（モーダル内のlabelを明示的に指定してstrict mode violationを回避）。
+		await expect(page.locator('.modal label:has-text("音量")')).toBeVisible();
+		await expect(page.locator('.modal label:has-text("周波数")')).toBeVisible();
+		await expect(page.locator('.modal label:has-text("速度 (WPM)")')).toBeVisible();
 	});
 
 	test('クリアボタンが機能する', async ({ page }) => {
