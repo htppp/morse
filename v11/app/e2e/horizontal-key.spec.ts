@@ -50,7 +50,7 @@ test.describe('横振り電鍵練習', () => {
 		//! タイミング評価の統計情報が表示される。
 		await expect(page.locator('#timing-avg-accuracy')).toBeVisible();
 		await expect(page.locator('#timing-avg-error')).toBeVisible();
-		await expect(page.locator('#timing-evaluation-count')).toBeVisible();
+		await expect(page.locator('#timing-count')).toBeVisible();
 
 		//! 短点と長点別の統計情報が表示される。
 		await expect(page.locator('#timing-dot-accuracy')).toBeVisible();
