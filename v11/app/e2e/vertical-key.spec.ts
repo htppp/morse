@@ -54,4 +54,22 @@ test.describe('縦振り電鍵練習', () => {
 		const morseBuffer = page.locator('#morse-buffer');
 		await expect(morseBuffer).toContainText('ここにモールス符号が表示されます');
 	});
+
+	test('タイミング評価UIが表示される', async ({ page }) => {
+		//! タイミング評価セクションが表示される。
+		await expect(page.locator('.timing-evaluation-section')).toBeVisible();
+
+		//! タイミング評価の統計情報が表示される。
+		await expect(page.locator('#timing-avg-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-avg-error')).toBeVisible();
+		await expect(page.locator('#timing-evaluation-count')).toBeVisible();
+
+		//! 短点と長点別の統計情報が表示される。
+		await expect(page.locator('#timing-dot-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-dot-error')).toBeVisible();
+		await expect(page.locator('#timing-dot-count')).toBeVisible();
+		await expect(page.locator('#timing-dash-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-dash-error')).toBeVisible();
+		await expect(page.locator('#timing-dash-count')).toBeVisible();
+	});
 });
