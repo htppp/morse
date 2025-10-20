@@ -1,0 +1,57 @@
+name: V11 E2E Tests
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'v11/**'
+      - '.github/workflows/v11-e2e-test.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'v11/**'
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    name: V11 E2E Tests on Ubuntu
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v11/app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build morse-engine (lib)
+        working-directory: v11/lib
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run debug E2E tests
+        run: npx playwright test e2e/debug.spec.ts --project=chromium
+        continue-on-error: true
+
+      - name: Run all E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-v11
+          path: v11/app/playwright-report/
+          retention-days: 30
