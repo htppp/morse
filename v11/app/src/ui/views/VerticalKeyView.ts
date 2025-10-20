@@ -8,7 +8,9 @@ import {
 	MorseBuffer,
 	TimerManager,
 	TimingCalculator,
-	AudioGenerator
+	AudioGenerator,
+	type TimingEvaluation,
+	type TimingStatistics
 } from 'morse-engine';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
@@ -26,6 +28,10 @@ export class VerticalKeyView implements View {
 	private updateIntervalId: number | null = null;
 	private currentWPM = 20;
 	private keyCode = 'Space';
+	private latestEvaluation: TimingEvaluation | null = null;
+	private overallStats: TimingStatistics | null = null;
+	private dotStats: TimingStatistics | null = null;
+	private dashStats: TimingStatistics | null = null;
 
 	constructor() {
 		//! 設定を読み込む。
@@ -51,7 +57,7 @@ export class VerticalKeyView implements View {
 		//! タイミング計算。
 		const timings = TimingCalculator.calculate(this.currentWPM);
 
-		//! トレーナーを初期化（コールバックで音声制御）。
+		//! トレーナーを初期化（コールバックで音声制御とタイミング評価）。
 		this.trainer = new VerticalKeyTrainer(
 			this.buffer,
 			this.timer,
@@ -64,6 +70,11 @@ export class VerticalKeyView implements View {
 				onKeyRelease: () => {
 					//! キー解放時に音を止める。
 					this.audio.stopContinuousTone();
+				},
+				onTimingEvaluated: (evaluation: TimingEvaluation) => {
+					//! タイミング評価結果を保存。
+					this.latestEvaluation = evaluation;
+					this.updateTimingStatistics();
 				}
 			}
 		);
@@ -124,6 +135,38 @@ export class VerticalKeyView implements View {
 						<div class="status-item">
 							<span class="label">入力文字数</span>
 							<span class="value" id="char-count">0</span>
+						</div>
+					</div>
+
+					<div class="timing-evaluation-area">
+						<h3>タイミング評価</h3>
+						<div class="evaluation-panel">
+							<div class="latest-evaluation">
+								<h4>最新の入力</h4>
+								<div id="latest-evaluation-content" class="evaluation-content">
+									（入力待ち）
+								</div>
+							</div>
+							<div class="statistics-panel">
+								<h4>全体統計</h4>
+								<div id="overall-stats-content" class="stats-content">
+									（統計データなし）
+								</div>
+							</div>
+							<div class="element-stats-panel">
+								<div class="dot-stats">
+									<h4>短点 (・) 統計</h4>
+									<div id="dot-stats-content" class="stats-content">
+										（データなし）
+									</div>
+								</div>
+								<div class="dash-stats">
+									<h4>長点 (ー) 統計</h4>
+									<div id="dash-stats-content" class="stats-content">
+										（データなし）
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -303,6 +346,140 @@ export class VerticalKeyView implements View {
 			const text = this.trainer.getDecoded();
 			charCount.textContent = text.length.toString();
 		}
+
+		//! タイミング評価表示を更新。
+		this.updateTimingDisplay();
+	}
+
+	/**
+	 * タイミング統計情報を更新する
+	 */
+	private updateTimingStatistics(): void {
+		this.overallStats = this.trainer.getTimingStatistics();
+		const elementStats = this.trainer.getStatisticsByElement();
+		this.dotStats = elementStats.dot;
+		this.dashStats = elementStats.dash;
+	}
+
+	/**
+	 * タイミング評価表示を更新する
+	 */
+	private updateTimingDisplay(): void {
+		//! 最新評価を表示。
+		const latestContent = document.getElementById('latest-evaluation-content');
+		if (latestContent && this.latestEvaluation) {
+			const eval_ = this.latestEvaluation;
+			const element = eval_.record.element === '.' ? '短点 (・)' : '長点 (ー)';
+			const accuracy = eval_.accuracy.toFixed(1);
+			const accuracyClass = this.getAccuracyClass(eval_.accuracy);
+
+			latestContent.innerHTML = `
+				<div class="eval-item">
+					<span class="eval-label">要素:</span>
+					<span class="eval-value">${element}</span>
+				</div>
+				<div class="eval-item">
+					<span class="eval-label">実測:</span>
+					<span class="eval-value">${eval_.record.actualDuration}ms</span>
+				</div>
+				<div class="eval-item">
+					<span class="eval-label">期待値:</span>
+					<span class="eval-value">${eval_.record.expectedDuration}ms</span>
+				</div>
+				<div class="eval-item">
+					<span class="eval-label">精度:</span>
+					<span class="eval-value accuracy-${accuracyClass}">${accuracy}%</span>
+				</div>
+				<div class="eval-item">
+					<span class="eval-label">誤差:</span>
+					<span class="eval-value">${eval_.absoluteError}ms (${eval_.relativeError.toFixed(1)}%)</span>
+				</div>
+			`;
+		}
+
+		//! 全体統計を表示。
+		const overallContent = document.getElementById('overall-stats-content');
+		if (overallContent && this.overallStats && this.overallStats.count > 0) {
+			const stats = this.overallStats;
+			const accuracyClass = this.getAccuracyClass(stats.averageAccuracy);
+
+			overallContent.innerHTML = `
+				<div class="stat-item">
+					<span class="stat-label">入力数:</span>
+					<span class="stat-value">${stats.count}回</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">平均精度:</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">最高精度:</span>
+					<span class="stat-value">${stats.maxAccuracy.toFixed(1)}%</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">最低精度:</span>
+					<span class="stat-value">${stats.minAccuracy.toFixed(1)}%</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">標準偏差:</span>
+					<span class="stat-value">${stats.standardDeviation.toFixed(1)}%</span>
+				</div>
+			`;
+		}
+
+		//! 短点統計を表示。
+		const dotContent = document.getElementById('dot-stats-content');
+		if (dotContent && this.dotStats && this.dotStats.count > 0) {
+			const stats = this.dotStats;
+			const accuracyClass = this.getAccuracyClass(stats.averageAccuracy);
+
+			dotContent.innerHTML = `
+				<div class="stat-item">
+					<span class="stat-label">入力数:</span>
+					<span class="stat-value">${stats.count}回</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">平均精度:</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">平均誤差:</span>
+					<span class="stat-value">${stats.averageAbsoluteError.toFixed(1)}ms</span>
+				</div>
+			`;
+		}
+
+		//! 長点統計を表示。
+		const dashContent = document.getElementById('dash-stats-content');
+		if (dashContent && this.dashStats && this.dashStats.count > 0) {
+			const stats = this.dashStats;
+			const accuracyClass = this.getAccuracyClass(stats.averageAccuracy);
+
+			dashContent.innerHTML = `
+				<div class="stat-item">
+					<span class="stat-label">入力数:</span>
+					<span class="stat-value">${stats.count}回</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">平均精度:</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">平均誤差:</span>
+					<span class="stat-value">${stats.averageAbsoluteError.toFixed(1)}ms</span>
+				</div>
+			`;
+		}
+	}
+
+	/**
+	 * 精度に応じたCSSクラス名を取得する
+	 */
+	private getAccuracyClass(accuracy: number): string {
+		if (accuracy >= 90) return 'excellent';
+		if (accuracy >= 70) return 'good';
+		if (accuracy >= 50) return 'fair';
+		return 'poor';
 	}
 
 	/**
@@ -373,6 +550,10 @@ export class VerticalKeyView implements View {
 							},
 							onKeyRelease: () => {
 								this.audio.stopContinuousTone();
+							},
+							onTimingEvaluated: (evaluation: TimingEvaluation) => {
+								this.latestEvaluation = evaluation;
+								this.updateTimingStatistics();
 							}
 						}
 					);

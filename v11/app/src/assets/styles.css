@@ -2772,3 +2772,165 @@ body {
 		flex: 1;
 	}
 }
+
+/* ========================================
+ * タイミング評価パネル (v11)
+ * ======================================== */
+
+/* タイミング評価エリア全体 */
+.timing-evaluation-area {
+	background: white;
+	border-radius: 12px;
+	padding: 20px;
+	margin-top: 20px;
+	box-shadow: var(--shadow);
+}
+
+.timing-evaluation-area h3 {
+	color: var(--primary-color);
+	margin-bottom: 15px;
+	font-size: 1.2rem;
+}
+
+.timing-evaluation-area h4 {
+	color: var(--text-color);
+	margin-bottom: 10px;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+/* 評価パネルコンテナ */
+.evaluation-panel {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 20px;
+}
+
+/* 最新評価パネル */
+.latest-evaluation {
+	background: #f8f9fa;
+	border-radius: 8px;
+	padding: 15px;
+	border: 2px solid #e0e0e0;
+}
+
+.evaluation-content {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.eval-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	background: white;
+	border-radius: 6px;
+	border-left: 3px solid var(--primary-color);
+}
+
+.eval-label {
+	font-weight: 600;
+	color: var(--text-light);
+	font-size: 0.9rem;
+}
+
+.eval-value {
+	font-weight: 600;
+	color: var(--text-color);
+	font-size: 1rem;
+}
+
+/* 統計パネル */
+.statistics-panel {
+	background: #f8f9fa;
+	border-radius: 8px;
+	padding: 15px;
+	border: 2px solid #e0e0e0;
+}
+
+.stats-content {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.stat-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	background: white;
+	border-radius: 6px;
+}
+
+.stat-label {
+	font-weight: 500;
+	color: var(--text-light);
+	font-size: 0.9rem;
+}
+
+.stat-value {
+	font-weight: 600;
+	color: var(--text-color);
+	font-size: 1rem;
+}
+
+/* 要素別統計パネル */
+.element-stats-panel {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 15px;
+}
+
+.dot-stats,
+.dash-stats {
+	background: #f8f9fa;
+	border-radius: 8px;
+	padding: 15px;
+	border: 2px solid #e0e0e0;
+}
+
+.dot-stats h4 {
+	color: #27ae60;
+}
+
+.dash-stats h4 {
+	color: #667eea;
+}
+
+/* 精度に応じた色分け */
+.accuracy-excellent {
+	color: #27ae60 !important;
+	font-weight: 700;
+}
+
+.accuracy-good {
+	color: #f39c12 !important;
+	font-weight: 700;
+}
+
+.accuracy-fair {
+	color: #e67e22 !important;
+	font-weight: 700;
+}
+
+.accuracy-poor {
+	color: #e74c3c !important;
+	font-weight: 700;
+}
+
+/* レスポンシブ対応 (タイミング評価) */
+@media (max-width: 768px) {
+	.element-stats-panel {
+		grid-template-columns: 1fr;
+	}
+
+	.eval-item,
+	.stat-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+	}
+}
