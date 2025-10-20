@@ -90,6 +90,10 @@ export class HorizontalKeyView implements View {
 					//! 要素送信開始時に指定時間だけ音を鳴らす。
 					// scheduleToneに0を渡すと現在時刻から再生される
 					this.audio.scheduleTone(0, duration);
+				},
+				onTimingEvaluated: () => {
+					//! タイミング評価が完了したら画面を更新。
+					this.updateDisplay();
 				}
 			},
 			{
@@ -160,6 +164,42 @@ export class HorizontalKeyView implements View {
 						<div class="status-item">
 							<span class="label">入力文字数</span>
 							<span class="value" id="char-count">0</span>
+						</div>
+					</div>
+
+					<div class="timing-evaluation-section">
+						<h3>タイミング評価</h3>
+						<div class="timing-stats-grid">
+							<div class="timing-stat-card">
+								<div class="timing-stat-label">平均精度</div>
+								<div class="timing-stat-value" id="timing-avg-accuracy">--%</div>
+							</div>
+							<div class="timing-stat-card">
+								<div class="timing-stat-label">平均誤差</div>
+								<div class="timing-stat-value" id="timing-avg-error">--ms</div>
+							</div>
+							<div class="timing-stat-card">
+								<div class="timing-stat-label">評価数</div>
+								<div class="timing-stat-value" id="timing-count">0</div>
+							</div>
+						</div>
+						<div class="timing-element-stats">
+							<div class="timing-element-stat">
+								<h4>短点 (.)</h4>
+								<div class="timing-element-detail">
+									<span>精度: <span id="timing-dot-accuracy">--%</span></span>
+									<span>誤差: <span id="timing-dot-error">--ms</span></span>
+									<span>回数: <span id="timing-dot-count">0</span></span>
+								</div>
+							</div>
+							<div class="timing-element-stat">
+								<h4>長点 (-)</h4>
+								<div class="timing-element-detail">
+									<span>精度: <span id="timing-dash-accuracy">--%</span></span>
+									<span>誤差: <span id="timing-dash-error">--ms</span></span>
+									<span>回数: <span id="timing-dash-count">0</span></span>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -413,6 +453,72 @@ export class HorizontalKeyView implements View {
 		if (charCount) {
 			const text = this.trainer.getDecoded();
 			charCount.textContent = text.length.toString();
+		}
+
+		//! タイミング評価統計を更新。
+		const stats = this.trainer.getTimingStatistics();
+		const elementStats = this.trainer.getStatisticsByElement();
+
+		const avgAccuracyEl = document.getElementById('timing-avg-accuracy');
+		const avgErrorEl = document.getElementById('timing-avg-error');
+		const countEl = document.getElementById('timing-count');
+
+		if (avgAccuracyEl) {
+			avgAccuracyEl.textContent = stats.count > 0
+				? `${stats.averageAccuracy.toFixed(1)}%`
+				: '--%';
+		}
+
+		if (avgErrorEl) {
+			avgErrorEl.textContent = stats.count > 0
+				? `${Math.round(stats.averageAbsoluteError)}ms`
+				: '--ms';
+		}
+
+		if (countEl) {
+			countEl.textContent = stats.count.toString();
+		}
+
+		//! 短点統計。
+		const dotAccuracyEl = document.getElementById('timing-dot-accuracy');
+		const dotErrorEl = document.getElementById('timing-dot-error');
+		const dotCountEl = document.getElementById('timing-dot-count');
+
+		if (dotAccuracyEl) {
+			dotAccuracyEl.textContent = elementStats.dot.count > 0
+				? `${elementStats.dot.averageAccuracy.toFixed(1)}%`
+				: '--%';
+		}
+
+		if (dotErrorEl) {
+			dotErrorEl.textContent = elementStats.dot.count > 0
+				? `${Math.round(elementStats.dot.averageAbsoluteError)}ms`
+				: '--ms';
+		}
+
+		if (dotCountEl) {
+			dotCountEl.textContent = elementStats.dot.count.toString();
+		}
+
+		//! 長点統計。
+		const dashAccuracyEl = document.getElementById('timing-dash-accuracy');
+		const dashErrorEl = document.getElementById('timing-dash-error');
+		const dashCountEl = document.getElementById('timing-dash-count');
+
+		if (dashAccuracyEl) {
+			dashAccuracyEl.textContent = elementStats.dash.count > 0
+				? `${elementStats.dash.averageAccuracy.toFixed(1)}%`
+				: '--%';
+		}
+
+		if (dashErrorEl) {
+			dashErrorEl.textContent = elementStats.dash.count > 0
+				? `${Math.round(elementStats.dash.averageAbsoluteError)}ms`
+				: '--ms';
+		}
+
+		if (dashCountEl) {
+			dashCountEl.textContent = elementStats.dash.count.toString();
 		}
 	}
 

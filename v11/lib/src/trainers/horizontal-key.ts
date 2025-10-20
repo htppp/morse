@@ -8,6 +8,8 @@ import { MorseBuffer } from '../core/buffer';
 import { TimerManager } from '../core/timer';
 import { MorseCodec } from '../core/morse-codec';
 import type { MorseTimings } from '../core/timing';
+import { TimingEvaluator } from '../core/timing-evaluator';
+import type { TimingEvaluation, TimingStatistics } from '../core/timing-evaluator';
 
 /**
  * Iambic モード
@@ -85,6 +87,12 @@ export interface HorizontalKeyCallbacks {
 	 * @param squeezing - スクイーズ中かどうか
 	 */
 	onSqueezeChange?: (squeezing: boolean) => void;
+
+	/**
+	 * タイミング評価が完了した時に呼ばれる
+	 * @param evaluation - タイミング評価結果
+	 */
+	onTimingEvaluated?: (evaluation: TimingEvaluation) => void;
 }
 
 /**
@@ -111,6 +119,9 @@ export class HorizontalKeyTrainer {
 	// 設定
 	private iambicMode: IambicMode;
 	private paddleLayout: PaddleLayout;
+
+	// タイミング評価
+	private evaluations: TimingEvaluation[] = [];
 
 	/**
 	 * 横振り電鍵トレーナーを初期化する
@@ -211,6 +222,12 @@ export class HorizontalKeyTrainer {
 		// シーケンスに追加
 		this.buffer.addElement(element);
 		this.lastSent = element;
+
+		// タイミング評価を実行（自動送信のため、実測値は期待値と同じ）
+		const record = TimingEvaluator.createRecord(element, duration, this.timings);
+		const evaluation = TimingEvaluator.evaluate(record);
+		this.evaluations.push(evaluation);
+		this.callbacks.onTimingEvaluated?.(evaluation);
 
 		this.callbacks.onSequenceUpdate?.(this.buffer.getSequence());
 		this.notifyBufferUpdate();
@@ -329,6 +346,7 @@ export class HorizontalKeyTrainer {
 		this.forceNextElement = null;
 		this.squeezeDetected = false;
 		this.lastSent = null;
+		this.evaluations = [];
 		this.notifyBufferUpdate();
 	}
 
@@ -420,5 +438,45 @@ export class HorizontalKeyTrainer {
 	 */
 	getPaddleLayout(): PaddleLayout {
 		return this.paddleLayout;
+	}
+
+	/**
+	 * タイミング評価の統計情報を取得する
+	 * @returns 統計情報
+	 */
+	getTimingStatistics(): TimingStatistics {
+		return TimingEvaluator.calculateStatistics(this.evaluations);
+	}
+
+	/**
+	 * 最近のN件のタイミング評価結果を取得する
+	 * @param count - 取得する件数
+	 * @returns タイミング評価結果の配列
+	 */
+	getRecentEvaluations(count: number): TimingEvaluation[] {
+		return TimingEvaluator.getRecent(this.evaluations, count);
+	}
+
+	/**
+	 * 全てのタイミング評価結果を取得する
+	 * @returns タイミング評価結果の配列
+	 */
+	getAllEvaluations(): TimingEvaluation[] {
+		return [...this.evaluations];
+	}
+
+	/**
+	 * 要素タイプ（dot/dash）別の統計情報を取得する
+	 * @returns dot/dash別の統計情報
+	 */
+	getStatisticsByElement(): {
+		dot: TimingStatistics;
+		dash: TimingStatistics;
+	} {
+		const classified = TimingEvaluator.classifyByElement(this.evaluations);
+		return {
+			dot: TimingEvaluator.calculateStatistics(classified.dot),
+			dash: TimingEvaluator.calculateStatistics(classified.dash),
+		};
 	}
 }

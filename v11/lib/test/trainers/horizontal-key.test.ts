@@ -31,6 +31,7 @@ describe('HorizontalKeyTrainer', () => {
 			onWordSeparator: vi.fn(),
 			onBufferUpdate: vi.fn(),
 			onSqueezeChange: vi.fn(),
+			onTimingEvaluated: vi.fn(),
 		};
 		trainer = new HorizontalKeyTrainer(buffer, timer, timings, callbacks);
 		vi.useFakeTimers();
@@ -454,6 +455,97 @@ describe('HorizontalKeyTrainer', () => {
 			expect(trainer.getPaddleLayout()).toBe('normal');
 			trainer.setPaddleLayout('reversed');
 			expect(trainer.getPaddleLayout()).toBe('reversed');
+		});
+	});
+
+	describe('タイミング評価機能', () => {
+		it('onTimingEvaluatedコールバックが呼ばれる', () => {
+			vi.clearAllMocks();
+			trainer.leftPaddlePress();
+			expect(callbacks.onTimingEvaluated).toHaveBeenCalledTimes(1);
+			const evaluation = (callbacks.onTimingEvaluated as any).mock.calls[0][0];
+			expect(evaluation).toHaveProperty('accuracy');
+			expect(evaluation).toHaveProperty('absoluteError');
+			expect(evaluation).toHaveProperty('relativeError');
+		});
+
+		it('タイミング評価結果が記録される', () => {
+			trainer.leftPaddlePress();
+			const evals = trainer.getAllEvaluations();
+			expect(evals.length).toBe(1);
+			expect(evals[0].record.element).toBe('.');
+		});
+
+		it('複数の入力が記録される', () => {
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+			const evals = trainer.getAllEvaluations();
+			expect(evals.length).toBe(2);
+		});
+
+		it('統計情報が正しく計算される（自動送信のため100%精度）', () => {
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			trainer.rightPaddlePress();
+			trainer.rightPaddleRelease();
+			vi.advanceTimersByTime(timings.dash + timings.dot);
+
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(2);
+			expect(stats.averageAccuracy).toBe(100);
+			expect(stats.averageAbsoluteError).toBe(0);
+		});
+
+		it('要素タイプ別の統計情報が取得できる', () => {
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			trainer.rightPaddlePress();
+			trainer.rightPaddleRelease();
+			vi.advanceTimersByTime(timings.dash + timings.dot);
+
+			const stats = trainer.getStatisticsByElement();
+			expect(stats.dot.count).toBe(1);
+			expect(stats.dash.count).toBe(1);
+		});
+
+		it('最近のN件の評価結果が取得できる', () => {
+			for (let i = 0; i < 5; i++) {
+				trainer.leftPaddlePress();
+				vi.advanceTimersByTime(timings.dot + timings.dot);
+				trainer.leftPaddleRelease();
+			}
+
+			const recent = trainer.getRecentEvaluations(3);
+			expect(recent.length).toBe(3);
+		});
+
+		it('clear()でタイミング評価結果がリセットされる', () => {
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+			expect(trainer.getAllEvaluations().length).toBe(1);
+
+			trainer.clear();
+
+			expect(trainer.getAllEvaluations().length).toBe(0);
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(0);
+		});
+
+		it('評価結果が空の場合、統計情報は全て0になる', () => {
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(0);
+			expect(stats.averageAccuracy).toBe(0);
+			expect(stats.averageAbsoluteError).toBe(0);
 		});
 	});
 });
