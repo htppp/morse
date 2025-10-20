@@ -44,6 +44,28 @@ jobs:
             v9/src/package-lock.json
             v10/lib/package-lock.json
             v10/app/package-lock.json
+            v11/lib/package-lock.json
+            v11/app/package-lock.json
+
+      # node_modulesを直接キャッシュして高速化。
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            v3/src/node_modules
+            v4/src/node_modules
+            v5/src/node_modules
+            v6/src/node_modules
+            v7/src/node_modules
+            v8/src/node_modules
+            v9/src/node_modules
+            v10/lib/node_modules
+            v10/app/node_modules
+            v11/lib/node_modules
+            v11/app/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
 
       - name: Build v3 (if v3/src exists)
         shell: bash
@@ -51,7 +73,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v3/src/package-lock.json" ]; then
             cd v3/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy built file to v3 root for GitHub Pages
@@ -68,7 +90,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v4/src/package-lock.json" ]; then
             cd v4/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy built files to v4 root for GitHub Pages
@@ -85,7 +107,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v5/src/package-lock.json" ]; then
             cd v5/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy built file to v5 root for GitHub Pages
@@ -102,7 +124,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v6/src/package-lock.json" ]; then
             cd v6/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy built file to v6 root for GitHub Pages
@@ -119,7 +141,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v7/src/package-lock.json" ]; then
             cd v7/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy built file to v7 root for GitHub Pages
@@ -136,7 +158,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v8/src/package-lock.json" ]; then
             cd v8/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy all built files to v8 root for GitHub Pages (PWA requires all assets)
@@ -153,7 +175,7 @@ jobs:
           set -euxo pipefail
           if [ -f "v9/src/package-lock.json" ]; then
             cd v9/src
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy all built files to v9 root for GitHub Pages (PWA requires all assets)
@@ -171,12 +193,12 @@ jobs:
           if [ -f "v10/lib/package-lock.json" ] && [ -f "v10/app/package-lock.json" ]; then
             # Build library first
             cd v10/lib
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Build app (depends on library)
             cd v10/app
-            npm ci
+            npm ci --prefer-offline --no-audit
             npm run build
             cd -
             # Copy all built files to v10 root for GitHub Pages (package.json has copy-to-root script)
@@ -186,6 +208,30 @@ jobs:
             fi
           else
             echo "Skipping v10 build: v10/lib or v10/app package-lock.json not found."
+          fi
+
+      - name: Build v11 (if v11/lib and v11/app exist)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ -f "v11/lib/package-lock.json" ] && [ -f "v11/app/package-lock.json" ]; then
+            # Build library first
+            cd v11/lib
+            npm ci --prefer-offline --no-audit
+            npm run build
+            cd -
+            # Build app (depends on library)
+            cd v11/app
+            npm ci --prefer-offline --no-audit
+            npm run build
+            cd -
+            # Copy all built files to v11 root for GitHub Pages (package.json has copy-to-root script)
+            # The build script already copies to v11 root, but ensure it's there
+            if [ -d "v11/app/dist" ]; then
+              cp -r v11/app/dist/index.html v11/app/dist/flashcard.tsv v11/app/dist/assets v11/
+            fi
+          else
+            echo "Skipping v11 build: v11/lib or v11/app package-lock.json not found."
           fi
 
       - name: Upload Pages artifact
