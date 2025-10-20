@@ -36,7 +36,8 @@ test.describe('縦振り電鍵練習', () => {
 		//! 設定アイコンをクリック。
 		await page.click('#settingsIcon');
 
-		//! モーダルが表示される。
+		//! モーダルが表示されるまで待機。
+		await page.waitForSelector('.settings-modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.settings-modal')).toBeVisible();
 
 		//! 設定項目が表示される。

@@ -21,8 +21,8 @@ test.describe('モールス信号聞き取り練習', () => {
 	});
 
 	test('QSOテンプレート一覧が表示される', async ({ page }) => {
-		//! ランダムQSO生成ボタン。
-		await expect(page.locator('button:has-text("ランダムQSO生成")')).toBeVisible();
+		//! ランダムQSO生成カード。
+		await expect(page.locator('.template-card h3:has-text("ランダムQSO生成")')).toBeVisible();
 
 		//! テンプレートカード。
 		await expect(page.locator('.template-card')).toHaveCount(await page.locator('.template-card').count());
@@ -52,6 +52,9 @@ test.describe('モールス信号聞き取り練習', () => {
 
 	test('設定モーダルが開ける', async ({ page }) => {
 		await page.click('#settingsIcon');
+
+		//! モーダルが表示されるまで待機。
+		await page.waitForSelector('.settings-modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.settings-modal')).toBeVisible();
 
 		//! リスニング固有の設定。

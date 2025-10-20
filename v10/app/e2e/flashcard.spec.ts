@@ -39,8 +39,8 @@ test.describe('CW略語・Q符号学習', () => {
 		await page.click('.tab-button:has-text("試験モード")');
 
 		//! 試験設定画面が表示される。
-		await expect(page.locator('h3:has-text("試験設定")')).toBeVisible();
-		await expect(page.locator('label:has-text("問題数")')).toBeVisible();
+		await expect(page.locator('h3:has-text("出題形式")')).toBeVisible();
+		await expect(page.locator('h3:has-text("問題数")')).toBeVisible();
 	});
 
 	test('メニューに戻るボタンが機能する', async ({ page }) => {

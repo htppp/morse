@@ -33,6 +33,9 @@ test.describe('横振り電鍵練習', () => {
 
 	test('設定モーダルが開ける', async ({ page }) => {
 		await page.click('#settingsIcon');
+
+		//! モーダルが表示されるまで待機。
+		await page.waitForSelector('.settings-modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.settings-modal')).toBeVisible();
 
 		//! 横振り電鍵固有の設定。

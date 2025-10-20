@@ -22,7 +22,7 @@ test.describe('コッホ法トレーニング', () => {
 		await expect(page.locator('h2:has-text("レッスン")')).toBeVisible();
 
 		//! 学習文字。
-		await expect(page.locator('p:has-text("学習文字:")')).toBeVisible();
+		await expect(page.locator('.chars:has-text("学習文字:")')).toBeVisible();
 
 		//! 練習開始ボタン。
 		await expect(page.locator('#startBtn')).toBeVisible();
@@ -49,6 +49,9 @@ test.describe('コッホ法トレーニング', () => {
 
 	test('設定モーダルが開ける', async ({ page }) => {
 		await page.click('#settingsIcon');
+
+		//! モーダルが表示されるまで待機。
+		await page.waitForSelector('.settings-modal', { state: 'visible', timeout: 10000 });
 		await expect(page.locator('.settings-modal')).toBeVisible();
 
 		//! コッホ法固有の設定。
