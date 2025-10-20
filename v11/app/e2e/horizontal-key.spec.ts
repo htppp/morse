@@ -43,21 +43,29 @@ test.describe('横振り電鍵練習', () => {
 		await expect(page.locator('.modal label:has-text("パドルレイアウト")')).toBeVisible();
 	});
 
-	test('タイミング評価UIが表示される', async ({ page }) => {
-		//! タイミング評価セクションが表示される。
+	test('スペーシング評価UIが表示される', async ({ page }) => {
+		//! スペーシング評価セクションが表示される。
 		await expect(page.locator('.timing-evaluation-section')).toBeVisible();
 
-		//! タイミング評価の統計情報が表示される。
+		//! スペーシング評価の統計情報が表示される。
 		await expect(page.locator('#timing-avg-accuracy')).toBeVisible();
 		await expect(page.locator('#timing-avg-error')).toBeVisible();
 		await expect(page.locator('#timing-count')).toBeVisible();
 
-		//! 短点と長点別の統計情報が表示される。
-		await expect(page.locator('#timing-dot-accuracy')).toBeVisible();
-		await expect(page.locator('#timing-dot-error')).toBeVisible();
-		await expect(page.locator('#timing-dot-count')).toBeVisible();
-		await expect(page.locator('#timing-dash-accuracy')).toBeVisible();
-		await expect(page.locator('#timing-dash-error')).toBeVisible();
-		await expect(page.locator('#timing-dash-count')).toBeVisible();
+		//! 要素間、文字間、単語間別の統計情報が表示される。
+		await expect(page.locator('#timing-element-expected')).toBeVisible();
+		await expect(page.locator('#timing-element-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-element-error')).toBeVisible();
+		await expect(page.locator('#timing-element-count')).toBeVisible();
+
+		await expect(page.locator('#timing-char-expected')).toBeVisible();
+		await expect(page.locator('#timing-char-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-char-error')).toBeVisible();
+		await expect(page.locator('#timing-char-count')).toBeVisible();
+
+		await expect(page.locator('#timing-word-expected')).toBeVisible();
+		await expect(page.locator('#timing-word-accuracy')).toBeVisible();
+		await expect(page.locator('#timing-word-error')).toBeVisible();
+		await expect(page.locator('#timing-word-count')).toBeVisible();
 	});
 });
