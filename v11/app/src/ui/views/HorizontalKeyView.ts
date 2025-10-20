@@ -10,7 +10,8 @@ import {
 	TimingCalculator,
 	AudioGenerator,
 	type IambicMode,
-	type PaddleLayout
+	type PaddleLayout,
+	type MorseTimings
 } from 'morse-engine';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
 
@@ -22,6 +23,7 @@ export class HorizontalKeyView implements View {
 	private buffer: MorseBuffer;
 	private timer: TimerManager;
 	private audio: AudioGenerator;
+	private timings!: MorseTimings;
 	private leftPressed = false;
 	private rightPressed = false;
 	private updateIntervalId: number | null = null;
@@ -79,12 +81,12 @@ export class HorizontalKeyView implements View {
 	 * トレーナーを初期化する
 	 */
 	private initializeTrainer(): void {
-		const timings = TimingCalculator.calculate(this.currentWPM);
+		this.timings = TimingCalculator.calculate(this.currentWPM);
 
 		this.trainer = new HorizontalKeyTrainer(
 			this.buffer,
 			this.timer,
-			timings,
+			this.timings,
 			{
 				onElementStart: (_element: '.' | '-', duration: number) => {
 					//! 要素送信開始時に指定時間だけ音を鳴らす。
@@ -187,6 +189,7 @@ export class HorizontalKeyView implements View {
 							<div class="timing-element-stat">
 								<h4>要素間</h4>
 								<div class="timing-element-detail">
+									<span>期待値: <span id="timing-element-expected">--ms</span></span>
 									<span>精度: <span id="timing-element-accuracy">--%</span></span>
 									<span>誤差: <span id="timing-element-error">--ms</span></span>
 									<span>回数: <span id="timing-element-count">0</span></span>
@@ -195,6 +198,7 @@ export class HorizontalKeyView implements View {
 							<div class="timing-element-stat">
 								<h4>文字間</h4>
 								<div class="timing-element-detail">
+									<span>期待値: <span id="timing-char-expected">--ms</span></span>
 									<span>精度: <span id="timing-char-accuracy">--%</span></span>
 									<span>誤差: <span id="timing-char-error">--ms</span></span>
 									<span>回数: <span id="timing-char-count">0</span></span>
@@ -203,6 +207,7 @@ export class HorizontalKeyView implements View {
 							<div class="timing-element-stat">
 								<h4>単語間</h4>
 								<div class="timing-element-detail">
+									<span>期待値: <span id="timing-word-expected">--ms</span></span>
 									<span>精度: <span id="timing-word-accuracy">--%</span></span>
 									<span>誤差: <span id="timing-word-error">--ms</span></span>
 									<span>回数: <span id="timing-word-count">0</span></span>
@@ -473,7 +478,7 @@ export class HorizontalKeyView implements View {
 
 		if (avgAccuracyEl) {
 			avgAccuracyEl.textContent = stats.count > 0
-				? `${stats.averageAccuracy.toFixed(1)}%`
+				? `${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%`
 				: '--%';
 		}
 
@@ -488,13 +493,18 @@ export class HorizontalKeyView implements View {
 		}
 
 		//! 要素間スペース統計。
+		const elementExpectedEl = document.getElementById('timing-element-expected');
 		const elementAccuracyEl = document.getElementById('timing-element-accuracy');
 		const elementErrorEl = document.getElementById('timing-element-error');
 		const elementCountEl = document.getElementById('timing-element-count');
 
+		if (elementExpectedEl) {
+			elementExpectedEl.textContent = '0ms (即座)';
+		}
+
 		if (elementAccuracyEl) {
 			elementAccuracyEl.textContent = spacingStats.element.count > 0
-				? `${spacingStats.element.averageAccuracy.toFixed(1)}%`
+				? `${spacingStats.element.averageAccuracy.toFixed(1)} ± ${spacingStats.element.standardDeviation.toFixed(1)}%`
 				: '--%';
 		}
 
@@ -509,13 +519,18 @@ export class HorizontalKeyView implements View {
 		}
 
 		//! 文字間スペース統計。
+		const charExpectedEl = document.getElementById('timing-char-expected');
 		const charAccuracyEl = document.getElementById('timing-char-accuracy');
 		const charErrorEl = document.getElementById('timing-char-error');
 		const charCountEl = document.getElementById('timing-char-count');
 
+		if (charExpectedEl) {
+			charExpectedEl.textContent = `${Math.round(this.timings.charGap)}ms`;
+		}
+
 		if (charAccuracyEl) {
 			charAccuracyEl.textContent = spacingStats.character.count > 0
-				? `${spacingStats.character.averageAccuracy.toFixed(1)}%`
+				? `${spacingStats.character.averageAccuracy.toFixed(1)} ± ${spacingStats.character.standardDeviation.toFixed(1)}%`
 				: '--%';
 		}
 
@@ -530,13 +545,18 @@ export class HorizontalKeyView implements View {
 		}
 
 		//! 単語間スペース統計。
+		const wordExpectedEl = document.getElementById('timing-word-expected');
 		const wordAccuracyEl = document.getElementById('timing-word-accuracy');
 		const wordErrorEl = document.getElementById('timing-word-error');
 		const wordCountEl = document.getElementById('timing-word-count');
 
+		if (wordExpectedEl) {
+			wordExpectedEl.textContent = `${Math.round(this.timings.wordGap)}ms`;
+		}
+
 		if (wordAccuracyEl) {
 			wordAccuracyEl.textContent = spacingStats.word.count > 0
-				? `${spacingStats.word.averageAccuracy.toFixed(1)}%`
+				? `${spacingStats.word.averageAccuracy.toFixed(1)} ± ${spacingStats.word.standardDeviation.toFixed(1)}%`
 				: '--%';
 		}
 

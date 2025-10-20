@@ -410,7 +410,7 @@ export class VerticalKeyView implements View {
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">平均精度:</span>
-					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">最高精度:</span>
@@ -419,10 +419,6 @@ export class VerticalKeyView implements View {
 				<div class="stat-item">
 					<span class="stat-label">最低精度:</span>
 					<span class="stat-value">${stats.minAccuracy.toFixed(1)}%</span>
-				</div>
-				<div class="stat-item">
-					<span class="stat-label">標準偏差:</span>
-					<span class="stat-value">${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 			`;
 		}
@@ -440,7 +436,7 @@ export class VerticalKeyView implements View {
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">平均精度:</span>
-					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">平均誤差:</span>
@@ -462,7 +458,7 @@ export class VerticalKeyView implements View {
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">平均精度:</span>
-					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)}%</span>
+					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">平均誤差:</span>
