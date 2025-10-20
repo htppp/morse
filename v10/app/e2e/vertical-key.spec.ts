@@ -36,9 +36,9 @@ test.describe('縦振り電鍵練習', () => {
 		//! 設定アイコンをクリック。
 		await page.click('#settingsIcon');
 
-		//! モーダルが表示されるまで待機。
-		await page.waitForSelector('.settings-modal', { state: 'visible', timeout: 10000 });
-		await expect(page.locator('.settings-modal')).toBeVisible();
+		//! モーダルが表示されるまで待機（vertical-keyは.modalクラスを使用）。
+		await page.waitForSelector('.modal', { state: 'visible', timeout: 10000 });
+		await expect(page.locator('.modal')).toBeVisible();
 
 		//! 設定項目が表示される。
 		await expect(page.locator('text=音量')).toBeVisible();
