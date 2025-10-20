@@ -26,6 +26,7 @@ describe('VerticalKeyTrainer', () => {
 			onCharacter: vi.fn(),
 			onWordSeparator: vi.fn(),
 			onBufferUpdate: vi.fn(),
+			onTimingEvaluated: vi.fn(),
 		};
 		trainer = new VerticalKeyTrainer(buffer, timer, timings, callbacks);
 		vi.useFakeTimers();
@@ -462,6 +463,162 @@ describe('VerticalKeyTrainer', () => {
 				trainerNoCallback.keyRelease();
 				vi.advanceTimersByTime(timings.charGap);
 			}).not.toThrow();
+		});
+	});
+
+	describe('タイミング評価機能', () => {
+		it('onTimingEvaluatedコールバックが呼ばれる', () => {
+			vi.clearAllMocks();
+			trainer.keyPress();
+			vi.advanceTimersByTime(50);
+			trainer.keyRelease();
+
+			expect(callbacks.onTimingEvaluated).toHaveBeenCalledTimes(1);
+			const evaluation = (callbacks.onTimingEvaluated as any).mock.calls[0][0];
+			expect(evaluation).toHaveProperty('accuracy');
+			expect(evaluation).toHaveProperty('absoluteError');
+			expect(evaluation).toHaveProperty('relativeError');
+		});
+
+		it('タイミング評価結果を正しく記録する', () => {
+			trainer.keyPress();
+			vi.advanceTimersByTime(60); // 理論値通り
+			trainer.keyRelease();
+
+			const evaluations = trainer.getAllEvaluations();
+			expect(evaluations.length).toBe(1);
+			expect(evaluations[0].record.element).toBe('.');
+			expect(evaluations[0].record.actualDuration).toBe(60);
+			expect(evaluations[0].record.expectedDuration).toBe(60);
+			expect(evaluations[0].accuracy).toBe(100);
+		});
+
+		it('複数の入力を記録する', () => {
+			// dot
+			trainer.keyPress();
+			vi.advanceTimersByTime(58);
+			trainer.keyRelease();
+
+			// dash
+			trainer.keyPress();
+			vi.advanceTimersByTime(175);
+			trainer.keyRelease();
+
+			const evaluations = trainer.getAllEvaluations();
+			expect(evaluations.length).toBe(2);
+			expect(evaluations[0].record.element).toBe('.');
+			expect(evaluations[1].record.element).toBe('-');
+		});
+
+		it('統計情報を正しく計算する', () => {
+			// 3回の入力（全て精度100%）
+			trainer.keyPress();
+			vi.advanceTimersByTime(60);
+			trainer.keyRelease();
+
+			trainer.keyPress();
+			vi.advanceTimersByTime(60);
+			trainer.keyRelease();
+
+			trainer.keyPress();
+			vi.advanceTimersByTime(180);
+			trainer.keyRelease();
+
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(3);
+			expect(stats.averageAccuracy).toBe(100);
+			expect(stats.averageAbsoluteError).toBe(0);
+			expect(stats.maxAccuracy).toBe(100);
+			expect(stats.minAccuracy).toBe(100);
+		});
+
+		it('精度が異なる入力の統計を計算する', () => {
+			// dot (58ms、期待値60ms)
+			trainer.keyPress();
+			vi.advanceTimersByTime(58);
+			trainer.keyRelease();
+
+			// dot (72ms、期待値60ms)
+			trainer.keyPress();
+			vi.advanceTimersByTime(72);
+			trainer.keyRelease();
+
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(2);
+			// (96.67 + 80) / 2 ≈ 88.33
+			expect(stats.averageAccuracy).toBeCloseTo(88.33, 1);
+			expect(stats.maxAccuracy).toBeCloseTo(96.67, 1);
+			expect(stats.minAccuracy).toBe(80);
+		});
+
+		it('要素タイプ別の統計を取得する', () => {
+			// dot 3回
+			trainer.keyPress();
+			vi.advanceTimersByTime(60);
+			trainer.keyRelease();
+
+			trainer.keyPress();
+			vi.advanceTimersByTime(58);
+			trainer.keyRelease();
+
+			trainer.keyPress();
+			vi.advanceTimersByTime(62);
+			trainer.keyRelease();
+
+			// dash 2回
+			trainer.keyPress();
+			vi.advanceTimersByTime(180);
+			trainer.keyRelease();
+
+			trainer.keyPress();
+			vi.advanceTimersByTime(175);
+			trainer.keyRelease();
+
+			const statsByElement = trainer.getStatisticsByElement();
+			expect(statsByElement.dot.count).toBe(3);
+			expect(statsByElement.dash.count).toBe(2);
+		});
+
+		it('最近のN件の評価結果を取得する', () => {
+			// 5回の入力
+			for (let i = 0; i < 5; i++) {
+				trainer.keyPress();
+				vi.advanceTimersByTime(60);
+				trainer.keyRelease();
+			}
+
+			const recent = trainer.getRecentEvaluations(3);
+			expect(recent.length).toBe(3);
+			// 新しい順にソートされている
+			expect(recent[0].record.timestamp).toBeGreaterThanOrEqual(
+				recent[1].record.timestamp
+			);
+			expect(recent[1].record.timestamp).toBeGreaterThanOrEqual(
+				recent[2].record.timestamp
+			);
+		});
+
+		it('clear()で評価記録もクリアされる', () => {
+			trainer.keyPress();
+			vi.advanceTimersByTime(60);
+			trainer.keyRelease();
+
+			expect(trainer.getAllEvaluations().length).toBe(1);
+
+			trainer.clear();
+			expect(trainer.getAllEvaluations().length).toBe(0);
+
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(0);
+		});
+
+		it('評価記録が空の場合の統計情報', () => {
+			const stats = trainer.getTimingStatistics();
+			expect(stats.count).toBe(0);
+			expect(stats.averageAccuracy).toBe(0);
+			expect(stats.averageAbsoluteError).toBe(0);
+			expect(stats.maxAccuracy).toBe(0);
+			expect(stats.minAccuracy).toBe(0);
 		});
 	});
 });

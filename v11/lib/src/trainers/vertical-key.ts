@@ -7,6 +7,8 @@ import { MorseBuffer } from '../core/buffer';
 import { TimerManager } from '../core/timer';
 import { MorseCodec } from '../core/morse-codec';
 import type { MorseTimings } from '../core/timing';
+import { TimingEvaluator } from '../core/timing-evaluator';
+import type { TimingEvaluation, TimingStatistics } from '../core/timing-evaluator';
 
 /**
  * 縦振り電鍵トレーナーのコールバック定義
@@ -47,6 +49,12 @@ export interface VerticalKeyCallbacks {
 	 * @param decoded - 解読された文字列 (例: "AB")
 	 */
 	onBufferUpdate?: (buffer: string, decoded: string) => void;
+
+	/**
+	 * タイミング評価が完了した時に呼ばれる
+	 * @param evaluation - タイミング評価結果
+	 */
+	onTimingEvaluated?: (evaluation: TimingEvaluation) => void;
 }
 
 /**
@@ -56,6 +64,7 @@ export interface VerticalKeyCallbacks {
 export class VerticalKeyTrainer {
 	private keyDown: boolean = false;
 	private keyDownTime: number = 0;
+	private evaluations: TimingEvaluation[] = [];
 
 	/**
 	 * 縦振り電鍵トレーナーを初期化する
@@ -99,9 +108,15 @@ export class VerticalKeyTrainer {
 		const element = duration < this.timings.dot * 2 ? '.' : '-';
 		this.buffer.addElement(element);
 
+		// タイミング評価を実行
+		const record = TimingEvaluator.createRecord(element, duration, this.timings);
+		const evaluation = TimingEvaluator.evaluate(record);
+		this.evaluations.push(evaluation);
+
 		// コールバック呼び出し
 		this.callbacks.onKeyRelease?.(element);
 		this.callbacks.onSequenceUpdate?.(this.buffer.getSequence());
+		this.callbacks.onTimingEvaluated?.(evaluation);
 		this.notifyBufferUpdate();
 
 		// 文字確定・語間スペースタイマーを設定
@@ -157,6 +172,7 @@ export class VerticalKeyTrainer {
 	clear(): void {
 		this.buffer.clear();
 		this.timer.clearAll();
+		this.evaluations = [];
 		this.notifyBufferUpdate();
 	}
 
@@ -200,5 +216,45 @@ export class VerticalKeyTrainer {
 	 */
 	getTimerCount(): number {
 		return this.timer.count();
+	}
+
+	/**
+	 * タイミング評価の統計情報を取得する
+	 * @returns 統計情報
+	 */
+	getTimingStatistics(): TimingStatistics {
+		return TimingEvaluator.calculateStatistics(this.evaluations);
+	}
+
+	/**
+	 * 最近のN件のタイミング評価結果を取得する
+	 * @param count - 取得する件数
+	 * @returns タイミング評価結果の配列
+	 */
+	getRecentEvaluations(count: number): TimingEvaluation[] {
+		return TimingEvaluator.getRecent(this.evaluations, count);
+	}
+
+	/**
+	 * 全てのタイミング評価結果を取得する
+	 * @returns タイミング評価結果の配列
+	 */
+	getAllEvaluations(): TimingEvaluation[] {
+		return [...this.evaluations];
+	}
+
+	/**
+	 * 要素タイプ（dot/dash）別の統計情報を取得する
+	 * @returns dot/dash別の統計情報
+	 */
+	getStatisticsByElement(): {
+		dot: TimingStatistics;
+		dash: TimingStatistics;
+	} {
+		const classified = TimingEvaluator.classifyByElement(this.evaluations);
+		return {
+			dot: TimingEvaluator.calculateStatistics(classified.dot),
+			dash: TimingEvaluator.calculateStatistics(classified.dash),
+		};
 	}
 }
