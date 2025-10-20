@@ -33,3 +33,13 @@ v10/app/playwright-report/
 v10/lib/node_modules/
 v10/lib/dist/
 v10/lib/coverage/
+
+# v11 build artifacts
+v11/app/node_modules/
+v11/app/.vite/
+v11/app/dist/
+v11/app/test-results/
+v11/app/playwright-report/
+v11/lib/node_modules/
+v11/lib/dist/
+v11/lib/coverage/
