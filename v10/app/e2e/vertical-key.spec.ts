@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('縦振り電鍵練習', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/#vertical-key');
+		await page.goto('/#vertical');
 		//! ページが完全に読み込まれるまで待機。
 		await page.waitForLoadState('networkidle');
 	});

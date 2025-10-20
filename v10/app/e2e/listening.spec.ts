@@ -10,11 +10,11 @@ test.describe('モールス信号聞き取り練習', () => {
 		await expect(page.locator('h1')).toContainText('モールス信号聞き取り練習');
 
 		//! カテゴリータブ。
-		await expect(page.locator('text=ラバースタンプQSO')).toBeVisible();
-		await expect(page.locator('text=英文100字')).toBeVisible();
-		await expect(page.locator('text=英文200字')).toBeVisible();
-		await expect(page.locator('text=英文300字')).toBeVisible();
-		await expect(page.locator('text=ユーザー定義')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("ラバースタンプQSO")')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("英文100字")')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("英文200字")')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("英文300字")')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("ユーザー定義")')).toBeVisible();
 
 		//! 設定アイコン。
 		await expect(page.locator('#settingsIcon')).toBeVisible();
@@ -22,21 +22,21 @@ test.describe('モールス信号聞き取り練習', () => {
 
 	test('QSOテンプレート一覧が表示される', async ({ page }) => {
 		//! ランダムQSO生成ボタン。
-		await expect(page.locator('text=ランダムQSO生成')).toBeVisible();
+		await expect(page.locator('button:has-text("ランダムQSO生成")')).toBeVisible();
 
 		//! テンプレートカード。
 		await expect(page.locator('.template-card')).toHaveCount(await page.locator('.template-card').count());
 	});
 
 	test('英文カテゴリに切り替えられる', async ({ page }) => {
-		await page.click('text=英文100字');
+		await page.click('.tab-button:has-text("英文100字")');
 
 		//! テンプレートが表示される。
 		await expect(page.locator('.template-card')).toHaveCount(await page.locator('.template-card').count());
 	});
 
 	test('ユーザー定義カテゴリに切り替えられる', async ({ page }) => {
-		await page.click('text=ユーザー定義');
+		await page.click('.tab-button:has-text("ユーザー定義")');
 
 		//! 新規作成ボタンが表示される（テンプレートがない場合）。
 		const addBtn = page.locator('#addCustomBtn');
@@ -46,7 +46,7 @@ test.describe('モールス信号聞き取り練習', () => {
 	});
 
 	test('メニューに戻るボタンが機能する', async ({ page }) => {
-		await page.click('#backBtn');
+		await page.click('.back-btn');
 		await expect(page).toHaveURL(/#menu/);
 	});
 

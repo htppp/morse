@@ -10,8 +10,8 @@ test.describe('コッホ法トレーニング', () => {
 		await expect(page.locator('h1')).toContainText('コッホ法トレーニング');
 
 		//! 2つのタブ。
-		await expect(page.locator('text=基本学習')).toBeVisible();
-		await expect(page.locator('text=任意文字列練習')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("基本学習")')).toBeVisible();
+		await expect(page.locator('.tab-button:has-text("任意文字列練習")')).toBeVisible();
 
 		//! 設定アイコン。
 		await expect(page.locator('#settingsIcon')).toBeVisible();
@@ -19,10 +19,10 @@ test.describe('コッホ法トレーニング', () => {
 
 	test('基本学習モードの要素が表示される', async ({ page }) => {
 		//! レッスン番号。
-		await expect(page.locator('text=レッスン')).toBeVisible();
+		await expect(page.locator('h2:has-text("レッスン")')).toBeVisible();
 
 		//! 学習文字。
-		await expect(page.locator('text=学習文字:')).toBeVisible();
+		await expect(page.locator('p:has-text("学習文字:")')).toBeVisible();
 
 		//! 練習開始ボタン。
 		await expect(page.locator('#startBtn')).toBeVisible();
@@ -32,18 +32,18 @@ test.describe('コッホ法トレーニング', () => {
 	});
 
 	test('任意文字列練習モードに切り替えられる', async ({ page }) => {
-		await page.click('text=任意文字列練習');
+		await page.click('.tab-button:has-text("任意文字列練習")');
 
 		//! 文字選択画面が表示される。
-		await expect(page.locator('text=任意文字列練習モード')).toBeVisible();
-		await expect(page.locator('text=練習したい文字を選択してください')).toBeVisible();
+		await expect(page.locator('h2:has-text("任意文字列練習モード")')).toBeVisible();
+		await expect(page.locator('p:has-text("練習したい文字を選択してください")')).toBeVisible();
 
 		//! 文字選択ボタンが表示される。
 		await expect(page.locator('.char-select-btn')).toHaveCount(41); // KOCH_SEQUENCEは41文字
 	});
 
 	test('メニューに戻るボタンが機能する', async ({ page }) => {
-		await page.click('#back-btn');
+		await page.click('.back-btn');
 		await expect(page).toHaveURL(/#menu/);
 	});
 
