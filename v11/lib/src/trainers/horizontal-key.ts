@@ -12,7 +12,56 @@ import { TimingEvaluator } from '../core/timing-evaluator';
 import type {
 	SpacingEvaluation,
 	TimingStatistics,
+	SpacingType,
 } from '../core/timing-evaluator';
+
+/**
+ * 要素（dit/dash）のタイミング記録
+ */
+export interface ElementTimingRecord {
+	/** 要素タイプ ('.' または '-') */
+	element: '.' | '-';
+	/** 送信開始時刻（エポックミリ秒） */
+	startTime: number;
+	/** 送信終了時刻（エポックミリ秒） */
+	endTime: number;
+	/** 実際の長さ（ミリ秒） */
+	duration: number;
+	/** 理論値（ミリ秒） */
+	expectedDuration: number;
+}
+
+/**
+ * ギャップ（無入力区間）のタイミング記録
+ */
+export interface GapTimingRecord {
+	/** ギャップタイプ */
+	type: SpacingType;
+	/** 開始時刻（エポックミリ秒） */
+	startTime: number;
+	/** 終了時刻（エポックミリ秒） */
+	endTime: number;
+	/** 実際の長さ（ミリ秒） */
+	duration: number;
+	/** 理論値（ミリ秒） */
+	expectedDuration: number;
+	/** 精度（%） */
+	accuracy: number;
+}
+
+/**
+ * 1単語分のタイミングデータ
+ */
+export interface WordTimingData {
+	/** 要素のタイミング記録 */
+	elements: ElementTimingRecord[];
+	/** ギャップのタイミング記録 */
+	gaps: GapTimingRecord[];
+	/** デコードされた文字 */
+	decodedChar: string;
+	/** モールス符号 */
+	morseCode: string;
+}
 
 /**
  * Iambic モード
@@ -127,6 +176,12 @@ export class HorizontalKeyTrainer {
 	private spacingEvaluations: SpacingEvaluation[] = [];
 	private lastElementEndTime: number | null = null;
 
+	// タイミング図用のデータ記録
+	private currentWordElements: ElementTimingRecord[] = [];
+	private currentWordGaps: GapTimingRecord[] = [];
+	private lastWordTimingData: WordTimingData | null = null;
+	private currentElementStartTime: number | null = null;
+
 	/**
 	 * 横振り電鍵トレーナーを初期化する
 	 * @param buffer - モールスバッファインスタンス
@@ -217,18 +272,39 @@ export class HorizontalKeyTrainer {
 			this.squeezeDetected = false;
 		}
 
+		// 要素送信開始時刻を記録（タイミング図用）
+		const elementStartTime = Date.now();
+		this.currentElementStartTime = elementStartTime;
+
 		// スペーシング評価を実行
 		// 要素間スペースは自動生成のため評価しない（文字間・単語間のみ評価）
 		if (this.lastElementEndTime !== null) {
-			const spacingDuration = Date.now() - this.lastElementEndTime;
+			const spacingDuration = elementStartTime - this.lastElementEndTime;
 			const spacingRecord = TimingEvaluator.createSpacingRecord(
 				spacingDuration,
 				this.timings,
 			);
 
-			// 要素間スペース（type === 'element'）は記録しない
+			// ギャップをタイミング図用に記録
+			const expectedDuration = spacingRecord.type === 'character'
+				? this.timings.charGap
+				: spacingRecord.type === 'word'
+					? this.timings.wordGap
+					: 0;
+
+			const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
+			const gapRecord: GapTimingRecord = {
+				type: spacingRecord.type,
+				startTime: this.lastElementEndTime,
+				endTime: elementStartTime,
+				duration: spacingDuration,
+				expectedDuration,
+				accuracy: spacingEvaluation.accuracy,
+			};
+			this.currentWordGaps.push(gapRecord);
+
+			// 要素間スペース（type === 'element'）は統計には記録しない
 			if (spacingRecord.type !== 'element') {
-				const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
 				this.spacingEvaluations.push(spacingEvaluation);
 				this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
 			}
@@ -268,7 +344,23 @@ export class HorizontalKeyTrainer {
 			this.callbacks.onElementEnd?.(element);
 
 			// 要素送信終了時刻を記録（スペーシング評価用）
-			this.lastElementEndTime = Date.now();
+			const elementEndTime = Date.now();
+			this.lastElementEndTime = elementEndTime;
+
+			// 要素のタイミングをタイミング図用に記録
+			if (this.currentElementStartTime !== null) {
+				const actualDuration = elementEndTime - this.currentElementStartTime;
+				const expectedDuration = element === '.' ? this.timings.dot : this.timings.dash;
+				const elementRecord: ElementTimingRecord = {
+					element,
+					startTime: this.currentElementStartTime,
+					endTime: elementEndTime,
+					duration: actualDuration,
+					expectedDuration,
+				};
+				this.currentWordElements.push(elementRecord);
+				this.currentElementStartTime = null;
+			}
 
 			// Iambic Bモード: forceNextElementが設定されている場合は必ず送信
 			if (this.forceNextElement) {
@@ -316,6 +408,18 @@ export class HorizontalKeyTrainer {
 				this.buffer.commitSequence();
 				this.callbacks.onCharacter?.(sequence, char || '?');
 				this.notifyBufferUpdate();
+
+				// 単語データとして保存（タイミング図用）
+				this.lastWordTimingData = {
+					elements: [...this.currentWordElements],
+					gaps: [...this.currentWordGaps],
+					decodedChar: char || '?',
+					morseCode: sequence,
+				};
+
+				// 次の単語のために現在のデータをクリア
+				this.currentWordElements = [];
+				this.currentWordGaps = [];
 			}
 		}, this.timings.charGap);
 
@@ -326,6 +430,18 @@ export class HorizontalKeyTrainer {
 				const char = MorseCodec.morseToText([sequence]);
 				this.buffer.commitSequence();
 				this.callbacks.onCharacter?.(sequence, char || '?');
+
+				// 単語データとして保存（タイミング図用）
+				this.lastWordTimingData = {
+					elements: [...this.currentWordElements],
+					gaps: [...this.currentWordGaps],
+					decodedChar: char || '?',
+					morseCode: sequence,
+				};
+
+				// 次の単語のために現在のデータをクリア
+				this.currentWordElements = [];
+				this.currentWordGaps = [];
 			}
 			this.buffer.addWordSeparator();
 			this.callbacks.onWordSeparator?.();
@@ -366,6 +482,10 @@ export class HorizontalKeyTrainer {
 		this.lastSent = null;
 		this.spacingEvaluations = [];
 		this.lastElementEndTime = null;
+		this.currentWordElements = [];
+		this.currentWordGaps = [];
+		this.lastWordTimingData = null;
+		this.currentElementStartTime = null;
 		this.notifyBufferUpdate();
 	}
 
@@ -502,5 +622,13 @@ export class HorizontalKeyTrainer {
 			character: TimingEvaluator.calculateSpacingStatistics(classified.character),
 			word: TimingEvaluator.calculateSpacingStatistics(classified.word),
 		};
+	}
+
+	/**
+	 * 最後に確定した単語のタイミングデータを取得する（タイミング図表示用）
+	 * @returns 単語のタイミングデータ、またはnull（まだ文字が確定していない場合）
+	 */
+	getLastWordTimingData(): WordTimingData | null {
+		return this.lastWordTimingData;
 	}
 }

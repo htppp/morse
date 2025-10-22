@@ -3036,3 +3036,262 @@ body {
 		gap: 5px;
 	}
 }
+
+/* ========================================
+   タイミング図スタイル
+======================================== */
+
+.timing-diagram-section {
+	background: white;
+	border-radius: 12px;
+	padding: 20px;
+	margin: 20px 0;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	border: 2px solid #e0e0e0;
+}
+
+.timing-diagram-section h3 {
+	margin: 0 0 15px 0;
+	color: var(--text-color);
+	font-size: 1.2rem;
+	font-weight: 600;
+	border-bottom: 2px solid var(--primary-color);
+	padding-bottom: 8px;
+}
+
+.timing-diagram-content {
+	min-height: 100px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.timing-diagram-header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 15px;
+	padding: 10px;
+	background: #f8f9fa;
+	border-radius: 8px;
+	border: 1px solid #e0e0e0;
+}
+
+.timing-diagram-char {
+	font-size: 2rem;
+	font-weight: 700;
+	color: var(--primary-color);
+}
+
+.timing-diagram-morse {
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: var(--text-light);
+	font-family: 'Courier New', monospace;
+}
+
+.timing-diagram-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.timing-diagram-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.timing-row-label {
+	min-width: 70px;
+	font-weight: 600;
+	color: var(--text-color);
+	font-size: 0.95rem;
+	text-align: right;
+}
+
+.timing-row-content {
+	flex: 1;
+	display: flex;
+	height: 40px;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	overflow: hidden;
+	background: #f8f9fa;
+}
+
+/* タイミング要素（dit/dash） */
+.timing-element {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-right: 1px solid rgba(0, 0, 0, 0.1);
+	transition: all 0.2s ease;
+	cursor: help;
+	position: relative;
+}
+
+.timing-element:hover {
+	opacity: 0.8;
+	transform: scaleY(1.05);
+}
+
+/* 期待値の要素 */
+.timing-element.expected.dit {
+	background: linear-gradient(180deg, #a8e6cf 0%, #7ed3a6 100%);
+	border-top: 2px solid #5cb85c;
+	border-bottom: 2px solid #5cb85c;
+}
+
+.timing-element.expected.dah {
+	background: linear-gradient(180deg, #84b6f4 0%, #5a9fd4 100%);
+	border-top: 2px solid #3498db;
+	border-bottom: 2px solid #3498db;
+}
+
+/* 実測値の要素 - 短点（dit） */
+.timing-element.actual.dit.good {
+	background: linear-gradient(180deg, #27ae60 0%, #229954 100%);
+	border-top: 2px solid #1e8449;
+	border-bottom: 2px solid #1e8449;
+}
+
+.timing-element.actual.dit.fair {
+	background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%);
+	border-top: 2px solid #d68910;
+	border-bottom: 2px solid #d68910;
+}
+
+.timing-element.actual.dit.poor {
+	background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+	border-top: 2px solid #a93226;
+	border-bottom: 2px solid #a93226;
+}
+
+/* 実測値の要素 - 長点（dah） */
+.timing-element.actual.dah.good {
+	background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+	border-top: 2px solid #2471a3;
+	border-bottom: 2px solid #2471a3;
+}
+
+.timing-element.actual.dah.fair {
+	background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%);
+	border-top: 2px solid #d68910;
+	border-bottom: 2px solid #d68910;
+}
+
+.timing-element.actual.dah.poor {
+	background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+	border-top: 2px solid #a93226;
+	border-bottom: 2px solid #a93226;
+}
+
+/* タイミングギャップ */
+.timing-gap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-right: 1px solid rgba(0, 0, 0, 0.05);
+	cursor: help;
+	position: relative;
+	transition: all 0.2s ease;
+}
+
+.timing-gap:hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+/* 期待値のギャップ */
+.timing-gap.expected {
+	background: repeating-linear-gradient(
+		45deg,
+		#f0f0f0,
+		#f0f0f0 4px,
+		#e8e8e8 4px,
+		#e8e8e8 8px
+	);
+}
+
+/* 実測値のギャップ */
+.timing-gap.actual.good {
+	background: repeating-linear-gradient(
+		45deg,
+		#d5f4e6,
+		#d5f4e6 4px,
+		#c3e8d5 4px,
+		#c3e8d5 8px
+	);
+}
+
+.timing-gap.actual.fair {
+	background: repeating-linear-gradient(
+		45deg,
+		#fce8cd,
+		#fce8cd 4px,
+		#f9dbb7 4px,
+		#f9dbb7 8px
+	);
+}
+
+.timing-gap.actual.poor {
+	background: repeating-linear-gradient(
+		45deg,
+		#f8d7da,
+		#f8d7da 4px,
+		#f1c0c4 4px,
+		#f1c0c4 8px
+	);
+}
+
+/* タイミングスケール */
+.timing-diagram-scale {
+	display: flex;
+	justify-content: space-between;
+	padding: 8px 80px 0 80px;
+	font-size: 0.75rem;
+	color: var(--text-light);
+	border-top: 1px solid #e0e0e0;
+	margin-top: 8px;
+	padding-top: 8px;
+}
+
+.timing-diagram-scale span {
+	position: relative;
+}
+
+.timing-diagram-scale span::before {
+	content: '';
+	position: absolute;
+	top: -9px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1px;
+	height: 5px;
+	background: var(--text-light);
+}
+
+/* レスポンシブ対応 (タイミング図) */
+@media (max-width: 768px) {
+	.timing-row-label {
+		min-width: 50px;
+		font-size: 0.85rem;
+	}
+
+	.timing-row-content {
+		height: 30px;
+	}
+
+	.timing-diagram-scale {
+		padding: 8px 60px 0 60px;
+		font-size: 0.7rem;
+	}
+
+	.timing-diagram-char {
+		font-size: 1.5rem;
+	}
+
+	.timing-diagram-morse {
+		font-size: 1.2rem;
+	}
+}
