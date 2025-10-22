@@ -3246,21 +3246,22 @@ body {
 
 /* タイミングスケール */
 .timing-diagram-scale {
-	display: flex;
-	justify-content: space-between;
-	padding: 8px 80px 0 80px;
+	position: relative;
+	margin-top: 8px;
+	margin-left: 80px; /* timing-row-labelの幅（70px）+ gap（10px） */
+	height: 20px;
 	font-size: 0.75rem;
 	color: var(--text-light);
 	border-top: 1px solid #e0e0e0;
-	margin-top: 8px;
 	padding-top: 8px;
 }
 
-.timing-diagram-scale span {
-	position: relative;
+.timing-diagram-scale .scale-tick {
+	position: absolute;
+	transform: translateX(-50%);
 }
 
-.timing-diagram-scale span::before {
+.timing-diagram-scale .scale-tick::before {
 	content: '';
 	position: absolute;
 	top: -9px;
@@ -3283,7 +3284,7 @@ body {
 	}
 
 	.timing-diagram-scale {
-		padding: 8px 60px 0 60px;
+		margin-left: 60px; /* モバイル: timing-row-labelの幅（50px）+ gap（10px） */
 		font-size: 0.7rem;
 	}
 
@@ -3462,6 +3463,42 @@ body {
 	text-align: center;
 	color: var(--text-light);
 	font-style: italic;
+}
+
+/* タイミングデバッグ情報 */
+.timing-debug-info {
+	margin-top: 15px;
+	padding: 15px;
+	background: #f8f9fa;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	font-size: 0.85rem;
+}
+
+.debug-section {
+	margin-bottom: 10px;
+}
+
+.debug-section:last-child {
+	margin-bottom: 0;
+}
+
+.debug-section h5 {
+	margin: 0 0 8px 0;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.debug-events,
+.debug-squeezes {
+	padding: 8px 12px;
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	font-family: 'Courier New', monospace;
+	line-height: 1.6;
+	color: #555;
 }
 
 /* レスポンシブ対応 (タイミングチャート) */

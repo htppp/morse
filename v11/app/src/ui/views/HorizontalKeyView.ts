@@ -713,11 +713,11 @@ export class HorizontalKeyView implements View {
 	private generateTimingScale(maxTime: number): string {
 		const quarter = maxTime / 4;
 		return `
-			<span>0ms</span>
-			<span>${Math.round(quarter)}ms</span>
-			<span>${Math.round(quarter * 2)}ms</span>
-			<span>${Math.round(quarter * 3)}ms</span>
-			<span>${Math.round(maxTime)}ms</span>
+			<span class="scale-tick" style="left: 0%">0ms</span>
+			<span class="scale-tick" style="left: 25%">${Math.round(quarter)}ms</span>
+			<span class="scale-tick" style="left: 50%">${Math.round(quarter * 2)}ms</span>
+			<span class="scale-tick" style="left: 75%">${Math.round(quarter * 3)}ms</span>
+			<span class="scale-tick" style="left: 100%">${Math.round(maxTime)}ms</span>
 		`;
 	}
 
@@ -758,6 +758,9 @@ export class HorizontalKeyView implements View {
 		//! 時間軸を生成。
 		const timeAxis = this.generateTimeAxis(totalTime);
 
+		//! デバッグ情報を生成。
+		const debugInfo = this.generateDebugInfo(wordData, startTime);
+
 		return `
 			<div class="timing-chart-section">
 				<h4>タイミングチャート</h4>
@@ -770,6 +773,7 @@ export class HorizontalKeyView implements View {
 					</div>
 					<div class="timing-chart-axis">${timeAxis}</div>
 				</div>
+				${debugInfo}
 			</div>
 		`;
 	}
@@ -906,6 +910,47 @@ export class HorizontalKeyView implements View {
 			<span class="axis-tick" style="left: 50%">${Math.round(step * 2)}ms</span>
 			<span class="axis-tick" style="left: 75%">${Math.round(step * 3)}ms</span>
 			<span class="axis-tick" style="left: 100%">${Math.round(totalTime)}ms</span>
+		`;
+	}
+
+	/**
+	 * デバッグ情報を生成する
+	 */
+	private generateDebugInfo(wordData: WordTimingData, startTime: number): string {
+		//! パドル入力イベントをソートして整理。
+		const sortedInputs = [...wordData.paddleInputs].sort((a, b) => a.timestamp - b.timestamp);
+
+		//! イベントリストを生成。
+		const eventLines = sortedInputs.map(event => {
+			const relativeTime = event.timestamp - startTime;
+			const paddleLabel = event.paddle === 'left' ? 'Dit' : 'Dash';
+			const stateLabel = event.state === 'press' ? '押下' : '解放';
+			return `${relativeTime.toFixed(0)}ms: ${paddleLabel}${stateLabel}`;
+		});
+
+		//! スクイーズ区間リストを生成。
+		const squeezeLines = wordData.squeezeIntervals.map(interval => {
+			const startRelative = interval.startTime - startTime;
+			const endRelative = interval.endTime - startTime;
+			const duration = interval.endTime - interval.startTime;
+			return `Squeeze ON: ${startRelative.toFixed(0)}ms, OFF: ${endRelative.toFixed(0)}ms (${duration.toFixed(0)}ms)`;
+		});
+
+		return `
+			<div class="timing-debug-info">
+				<div class="debug-section">
+					<h5>パドル入力イベント（相対時刻）</h5>
+					<div class="debug-events">
+						${eventLines.length > 0 ? eventLines.join('<br>') : '（イベントなし）'}
+					</div>
+				</div>
+				<div class="debug-section">
+					<h5>スクイーズ区間</h5>
+					<div class="debug-squeezes">
+						${squeezeLines.length > 0 ? squeezeLines.join('<br>') : '（スクイーズなし）'}
+					</div>
+				</div>
+			</div>
 		`;
 	}
 
