@@ -729,15 +729,18 @@ export class HorizontalKeyView implements View {
 			return '<div class="timing-chart-empty">（パドル入力データなし）</div>';
 		}
 
-		//! 時間範囲を決定（最初のイベントから最後の要素終了まで）。
-		const startTime = Math.min(
-			...wordData.paddleInputs.map(e => e.timestamp),
-			...wordData.elements.map(e => e.startTime)
-		);
-		const endTime = Math.max(
+		//! パドル入力イベントを時刻順にソート。
+		const sortedPaddleInputs = [...wordData.paddleInputs].sort((a, b) => a.timestamp - b.timestamp);
+
+		//! 時間範囲を決定（最初のイベントから最後のイベントまで）。
+		const allTimestamps = [
+			...sortedPaddleInputs.map(e => e.timestamp),
+			...wordData.elements.map(e => e.startTime),
 			...wordData.elements.map(e => e.endTime),
-			...wordData.paddleInputs.map(e => e.timestamp)
-		);
+			...wordData.squeezeIntervals.flatMap(s => [s.startTime, s.endTime])
+		];
+		const startTime = Math.min(...allTimestamps);
+		const endTime = Math.max(...allTimestamps);
 		const totalTime = endTime - startTime;
 
 		//! 3本の信号ラインを生成。
@@ -781,7 +784,10 @@ export class HorizontalKeyView implements View {
 		totalTime: number
 	): string {
 		const label = paddle === 'left' ? 'Dit入力' : 'Dash入力';
-		const events = wordData.paddleInputs.filter(e => e.paddle === paddle);
+		//! 該当パドルのイベントを抽出して時刻順にソート。
+		const events = wordData.paddleInputs
+			.filter(e => e.paddle === paddle)
+			.sort((a, b) => a.timestamp - b.timestamp);
 
 		//! 信号の状態変化を時系列で追跡。
 		let isHigh = false;
@@ -831,7 +837,7 @@ export class HorizontalKeyView implements View {
 		startTime: number,
 		totalTime: number
 	): string {
-		//! 要素の送信期間をセグメントとして生成。
+		//! 要素の送信期間をセグメントとして生成（時刻順にソート）。
 		const segments: { start: number; end: number; element: '.' | '-' }[] = [];
 
 		for (const element of wordData.elements) {
@@ -841,6 +847,9 @@ export class HorizontalKeyView implements View {
 				element: element.element,
 			});
 		}
+
+		//! 開始時刻順にソート。
+		segments.sort((a, b) => a.start - b.start);
 
 		//! セグメントをHTMLに変換。
 		let lastEnd = startTime;

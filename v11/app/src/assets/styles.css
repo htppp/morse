@@ -3410,6 +3410,8 @@ body {
 	border-right: 2px dashed #ff9800;
 	pointer-events: none;
 	z-index: 1;
+	/* 信号ラベルの幅（80px）+ gap（10px）を左マージンとして追加 */
+	margin-left: 90px;
 }
 
 .squeeze-highlight::before {
@@ -3483,5 +3485,10 @@ body {
 
 	.element-label {
 		font-size: 1rem;
+	}
+
+	.squeeze-highlight {
+		/* モバイル表示: 信号ラベルの幅（60px）+ gap（10px） */
+		margin-left: 70px;
 	}
 }

@@ -134,12 +134,17 @@ for(let i=0;i<t.elements.length;i++){const a=t.elements[i],r=a.duration/e*100,o=
 if(
 //! 要素を追加。
 n+=`<div class="timing-element actual ${"."===a.element?"dit":"dah"} ${d}"\n\t\t\t\tstyle="width: ${r}%"\n\t\t\t\ttitle="${"."===a.element?"短点":"長点"}: ${a.duration}ms (期待: ${a.expectedDuration}ms, 精度: ${o.toFixed(1)}%)">\n\t\t\t</div>`,s+=a.duration,i<t.gaps.length){const a=t.gaps[i],r=a.duration/e*100;n+=`<div class="timing-gap actual ${a.accuracy>=90?"good":a.accuracy>=70?"fair":"poor"}"\n\t\t\t\t\tstyle="width: ${r}%"\n\t\t\t\t\ttitle="${"character"===a.type?"文字間":"word"===a.type?"単語間":"要素間"}: ${a.duration}ms (期待: ${a.expectedDuration}ms, 精度: ${a.accuracy.toFixed(1)}%)">\n\t\t\t\t</div>`,s+=a.duration}}return n}generateTimingScale(t){const e=t/4;return`\n\t\t\t<span>0ms</span>\n\t\t\t<span>${Math.round(e)}ms</span>\n\t\t\t<span>${Math.round(2*e)}ms</span>\n\t\t\t<span>${Math.round(3*e)}ms</span>\n\t\t\t<span>${Math.round(t)}ms</span>\n\t\t`}generateTimingChart(t){if(0===t.paddleInputs.length)return'<div class="timing-chart-empty">（パドル入力データなし）</div>';
-//! 時間範囲を決定（最初のイベントから最後の要素終了まで）。
-const e=Math.min(...t.paddleInputs.map(t=>t.timestamp),...t.elements.map(t=>t.startTime)),n=Math.max(...t.elements.map(t=>t.endTime),...t.paddleInputs.map(t=>t.timestamp))-e,s=this.generatePaddleSignalLine("left",t,e,n),i=this.generatePaddleSignalLine("right",t,e,n),a=this.generateOutputSignalLine(t,e,n);return`\n\t\t\t<div class="timing-chart-section">\n\t\t\t\t<h4>タイミングチャート</h4>\n\t\t\t\t<div class="timing-chart-container">\n\t\t\t\t\t${t.squeezeIntervals.map(t=>`<div class="squeeze-highlight" style="left: ${(t.startTime-e)/n*100}%; width: ${(t.endTime-t.startTime)/n*100}%"></div>`).join("")}\n\t\t\t\t\t<div class="timing-chart-signals">\n\t\t\t\t\t\t${s}\n\t\t\t\t\t\t${i}\n\t\t\t\t\t\t${a}\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="timing-chart-axis">${this.generateTimeAxis(n)}</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t`}generatePaddleSignalLine(t,e,n,s){const i="left"===t?"Dit入力":"Dash入力",a=e.paddleInputs.filter(e=>e.paddle===t);
+//! パドル入力イベントを時刻順にソート。
+const e=[...[...t.paddleInputs].sort((t,e)=>t.timestamp-e.timestamp).map(t=>t.timestamp),...t.elements.map(t=>t.startTime),...t.elements.map(t=>t.endTime),...t.squeezeIntervals.flatMap(t=>[t.startTime,t.endTime])],n=Math.min(...e),s=Math.max(...e)-n,i=this.generatePaddleSignalLine("left",t,n,s),a=this.generatePaddleSignalLine("right",t,n,s),r=this.generateOutputSignalLine(t,n,s);
+//! 時間範囲を決定（最初のイベントから最後のイベントまで）。
+return`\n\t\t\t<div class="timing-chart-section">\n\t\t\t\t<h4>タイミングチャート</h4>\n\t\t\t\t<div class="timing-chart-container">\n\t\t\t\t\t${t.squeezeIntervals.map(t=>`<div class="squeeze-highlight" style="left: ${(t.startTime-n)/s*100}%; width: ${(t.endTime-t.startTime)/s*100}%"></div>`).join("")}\n\t\t\t\t\t<div class="timing-chart-signals">\n\t\t\t\t\t\t${i}\n\t\t\t\t\t\t${a}\n\t\t\t\t\t\t${r}\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="timing-chart-axis">${this.generateTimeAxis(s)}</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t`}generatePaddleSignalLine(t,e,n,s){const i="left"===t?"Dit入力":"Dash入力",a=e.paddleInputs.filter(e=>e.paddle===t).sort((t,e)=>t.timestamp-e.timestamp);
+//! 該当パドルのイベントを抽出して時刻順にソート。
 //! 信号の状態変化を時系列で追跡。
 let r=!1;const o=[];let d=n;for(const c of a)c.timestamp>d&&o.push({start:d,end:c.timestamp,high:r}),r="press"===c.state,d=c.timestamp;o.push({start:d,end:n+s,high:r});return`\n\t\t\t<div class="timing-chart-signal">\n\t\t\t\t<div class="signal-label">${i}</div>\n\t\t\t\t<div class="signal-timeline">${o.map(t=>{const e=(t.start-n)/s*100,i=(t.end-t.start)/s*100;return`<div class="signal-segment ${t.high?"signal-high":"signal-low"}" style="left: ${e}%; width: ${i}%"></div>`}).join("")}</div>\n\t\t\t</div>\n\t\t`}generateOutputSignalLine(t,e,n){
-//! 要素の送信期間をセグメントとして生成。
+//! 要素の送信期間をセグメントとして生成（時刻順にソート）。
 const s=[];for(const r of t.elements)s.push({start:r.startTime,end:r.endTime,element:r.element});
+//! 開始時刻順にソート。
+s.sort((t,e)=>t.start-e.start);
 //! セグメントをHTMLに変換。
 let i=e;const a=[];for(const r of s){if(r.start>i){const t=(i-e)/n*100,s=(r.start-i)/n*100;a.push(`<div class="signal-segment signal-low" style="left: ${t}%; width: ${s}%"></div>`)}const t=(r.start-e)/n*100,s=(r.end-r.start)/n*100,o="."===r.element?"output-dit":"output-dah";a.push(`<div class="signal-segment signal-high ${o}" style="left: ${t}%; width: ${s}%">\n\t\t\t\t\t<span class="element-label">${r.element}</span>\n\t\t\t\t</div>`),i=r.end}if(i<e+n){const t=(i-e)/n*100,s=(e+n-i)/n*100;a.push(`<div class="signal-segment signal-low" style="left: ${t}%; width: ${s}%"></div>`)}return`\n\t\t\t<div class="timing-chart-signal">\n\t\t\t\t<div class="signal-label">出力</div>\n\t\t\t\t<div class="signal-timeline">${a.join("")}</div>\n\t\t\t</div>\n\t\t`}generateTimeAxis(t){const e=t/4;return`\n\t\t\t<span>0ms</span>\n\t\t\t<span>${Math.round(e)}ms</span>\n\t\t\t<span>${Math.round(2*e)}ms</span>\n\t\t\t<span>${Math.round(3*e)}ms</span>\n\t\t\t<span>${Math.round(t)}ms</span>\n\t\t`}openSettingsModal(){
 //! 現在の設定値を取得。
@@ -498,4 +503,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function I(){(new S).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",I):I();
-//# sourceMappingURL=index-DEuiN-J0.js.map
+//# sourceMappingURL=index-DglSeifc.js.map
