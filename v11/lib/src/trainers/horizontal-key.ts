@@ -218,15 +218,20 @@ export class HorizontalKeyTrainer {
 		}
 
 		// スペーシング評価を実行
+		// 要素間スペースは自動生成のため評価しない（文字間・単語間のみ評価）
 		if (this.lastElementEndTime !== null) {
 			const spacingDuration = Date.now() - this.lastElementEndTime;
 			const spacingRecord = TimingEvaluator.createSpacingRecord(
 				spacingDuration,
 				this.timings,
 			);
-			const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
-			this.spacingEvaluations.push(spacingEvaluation);
-			this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+
+			// 要素間スペース（type === 'element'）は記録しない
+			if (spacingRecord.type !== 'element') {
+				const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
+				this.spacingEvaluations.push(spacingEvaluation);
+				this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+			}
 		}
 
 		// 送信時間を計算

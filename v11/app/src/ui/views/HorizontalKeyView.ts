@@ -187,15 +187,6 @@ export class HorizontalKeyView implements View {
 						</div>
 						<div class="timing-element-stats">
 							<div class="timing-element-stat">
-								<h4>要素間</h4>
-								<div class="timing-element-detail">
-									<span>期待値: <span id="timing-element-expected">--ms</span></span>
-									<span>精度: <span id="timing-element-accuracy">--%</span></span>
-									<span>誤差: <span id="timing-element-error">--ms</span></span>
-									<span>回数: <span id="timing-element-count">0</span></span>
-								</div>
-							</div>
-							<div class="timing-element-stat">
 								<h4>文字間</h4>
 								<div class="timing-element-detail">
 									<span>期待値: <span id="timing-char-expected">--ms</span></span>
@@ -490,32 +481,6 @@ export class HorizontalKeyView implements View {
 
 		if (countEl) {
 			countEl.textContent = stats.count.toString();
-		}
-
-		//! 要素間スペース統計。
-		const elementExpectedEl = document.getElementById('timing-element-expected');
-		const elementAccuracyEl = document.getElementById('timing-element-accuracy');
-		const elementErrorEl = document.getElementById('timing-element-error');
-		const elementCountEl = document.getElementById('timing-element-count');
-
-		if (elementExpectedEl) {
-			elementExpectedEl.textContent = '0ms (即座)';
-		}
-
-		if (elementAccuracyEl) {
-			elementAccuracyEl.textContent = spacingStats.element.count > 0
-				? `${spacingStats.element.averageAccuracy.toFixed(1)} ± ${spacingStats.element.standardDeviation.toFixed(1)}%`
-				: '--%';
-		}
-
-		if (elementErrorEl) {
-			elementErrorEl.textContent = spacingStats.element.count > 0
-				? `${Math.round(spacingStats.element.averageAbsoluteError)}ms`
-				: '--ms';
-		}
-
-		if (elementCountEl) {
-			elementCountEl.textContent = spacingStats.element.count.toString();
 		}
 
 		//! 文字間スペース統計。

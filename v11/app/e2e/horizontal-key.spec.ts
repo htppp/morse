@@ -52,12 +52,7 @@ test.describe('横振り電鍵練習', () => {
 		await expect(page.locator('#timing-avg-error')).toBeVisible();
 		await expect(page.locator('#timing-count')).toBeVisible();
 
-		//! 要素間、文字間、単語間別の統計情報が表示される。
-		await expect(page.locator('#timing-element-expected')).toBeVisible();
-		await expect(page.locator('#timing-element-accuracy')).toBeVisible();
-		await expect(page.locator('#timing-element-error')).toBeVisible();
-		await expect(page.locator('#timing-element-count')).toBeVisible();
-
+		//! 文字間、単語間別の統計情報が表示される（要素間は自動生成のため除外）。
 		await expect(page.locator('#timing-char-expected')).toBeVisible();
 		await expect(page.locator('#timing-char-accuracy')).toBeVisible();
 		await expect(page.locator('#timing-char-error')).toBeVisible();

@@ -459,7 +459,7 @@ describe('HorizontalKeyTrainer', () => {
 	});
 
 	describe('スペーシング評価機能', () => {
-		it('onSpacingEvaluatedコールバックが呼ばれる（2番目の要素送信時）', () => {
+		it('onSpacingEvaluatedコールバックが呼ばれる（文字間スペース送信時）', () => {
 			vi.clearAllMocks();
 			//! 1番目の要素送信時はスペーシング評価されない（lastElementEndTimeがnull）。
 			trainer.leftPaddlePress();
@@ -467,7 +467,14 @@ describe('HorizontalKeyTrainer', () => {
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			//! 2番目の要素送信時にスペーシング評価される。
+			//! 2番目の要素送信（要素間スペースは評価しない）。
+			trainer.leftPaddlePress();
+			expect(callbacks.onSpacingEvaluated).toHaveBeenCalledTimes(0);
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 文字間スペースを空けてから3番目の要素送信。
+			vi.advanceTimersByTime(timings.charGap);
 			trainer.leftPaddlePress();
 			expect(callbacks.onSpacingEvaluated).toHaveBeenCalledTimes(1);
 			const evaluation = (callbacks.onSpacingEvaluated as any).mock.calls[0][0];
@@ -475,28 +482,52 @@ describe('HorizontalKeyTrainer', () => {
 			expect(evaluation).toHaveProperty('absoluteError');
 			expect(evaluation).toHaveProperty('relativeError');
 			expect(evaluation.record).toHaveProperty('type');
+			expect(evaluation.record.type).toBe('character');
 		});
 
-		it('スペーシング評価結果が記録される', () => {
+		it('スペーシング評価結果が記録される（要素間スペースは除外）', () => {
 			//! 1番目の要素送信。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			//! 2番目の要素送信でスペーシング評価。
+			//! 2番目の要素送信（要素間スペースは記録されない）。
 			trainer.leftPaddlePress();
-			const evals = trainer.getAllSpacingEvaluations();
-			expect(evals.length).toBe(1);
-			expect(evals[0].record.type).toBe('element'); // すぐに次を送信した場合
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+			const evals1 = trainer.getAllSpacingEvaluations();
+			expect(evals1.length).toBe(0);
+
+			//! 文字間スペースを空けてから3番目の要素送信。
+			vi.advanceTimersByTime(timings.charGap);
+			trainer.leftPaddlePress();
+			const evals2 = trainer.getAllSpacingEvaluations();
+			expect(evals2.length).toBe(1);
+			expect(evals2[0].record.type).toBe('character');
 		});
 
 		it('複数のスペーシングが記録される', () => {
-			//! 3回要素を送信すると、2回のスペーシング評価が行われる。
-			for (let i = 0; i < 3; i++) {
-				trainer.leftPaddlePress();
-				trainer.leftPaddleRelease();
-				vi.advanceTimersByTime(timings.dot + timings.dot);
-			}
+			//! 文字間・単語間スペースのみ記録される。
+			//! 1番目の要素。
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 2番目の要素（要素間スペース - 記録されない）。
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 3番目の要素（文字間スペース - 記録される）。
+			vi.advanceTimersByTime(timings.charGap);
+			trainer.leftPaddlePress();
+			trainer.leftPaddleRelease();
+			vi.advanceTimersByTime(timings.dot + timings.dot);
+
+			//! 4番目の要素（単語間スペース - 記録される）。
+			vi.advanceTimersByTime(timings.wordGap);
+			trainer.leftPaddlePress();
+
 			const evals = trainer.getAllSpacingEvaluations();
 			expect(evals.length).toBe(2);
 		});
@@ -507,7 +538,7 @@ describe('HorizontalKeyTrainer', () => {
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
 
-			//! 2番目の要素送信（すぐに送信 -> 要素間スペース）。
+			//! 2番目の要素送信（すぐに送信 -> 要素間スペース - 記録されない）。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
@@ -523,17 +554,21 @@ describe('HorizontalKeyTrainer', () => {
 			trainer.leftPaddlePress();
 
 			const stats = trainer.getStatisticsBySpacingType();
-			expect(stats.element.count).toBe(1); // 2番目の要素送信時
+			expect(stats.element.count).toBe(0); // 要素間スペースは記録されない
 			expect(stats.character.count).toBe(1); // 3番目の要素送信時
 			expect(stats.word.count).toBe(1); // 4番目の要素送信時
 		});
 
 		it('最近のN件のスペーシング評価結果が取得できる', () => {
-			//! 6回要素を送信すると、5回のスペーシング評価が行われる。
+			//! 文字間スペースを使って5回のスペーシング評価を作成。
 			for (let i = 0; i < 6; i++) {
 				trainer.leftPaddlePress();
-				vi.advanceTimersByTime(timings.dot + timings.dot);
 				trainer.leftPaddleRelease();
+				vi.advanceTimersByTime(timings.dot + timings.dot);
+				//! 文字間スペースを空ける（最後の要素以外）。
+				if (i < 5) {
+					vi.advanceTimersByTime(timings.charGap);
+				}
 			}
 
 			const recent = trainer.getRecentSpacingEvaluations(3);
@@ -541,10 +576,11 @@ describe('HorizontalKeyTrainer', () => {
 		});
 
 		it('clear()でスペーシング評価結果がリセットされる', () => {
-			//! 2回要素を送信して1回のスペーシング評価。
+			//! 文字間スペースを使って1回のスペーシング評価を作成。
 			trainer.leftPaddlePress();
 			trainer.leftPaddleRelease();
 			vi.advanceTimersByTime(timings.dot + timings.dot);
+			vi.advanceTimersByTime(timings.charGap);
 			trainer.leftPaddlePress();
 			expect(trainer.getAllSpacingEvaluations().length).toBe(1);
 
