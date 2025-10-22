@@ -3431,21 +3431,22 @@ body {
 
 /* 時間軸 */
 .timing-chart-axis {
-	display: flex;
-	justify-content: space-between;
+	position: relative;
 	margin-top: 12px;
-	padding: 0 90px 0 90px;
+	margin-left: 90px; /* 信号ラベル幅（80px）+ gap（10px） */
+	height: 20px;
 	font-size: 0.75rem;
 	color: var(--text-light);
 	border-top: 1px solid #e0e0e0;
 	padding-top: 8px;
 }
 
-.timing-chart-axis span {
-	position: relative;
+.timing-chart-axis .axis-tick {
+	position: absolute;
+	transform: translateX(-50%);
 }
 
-.timing-chart-axis span::before {
+.timing-chart-axis .axis-tick::before {
 	content: '';
 	position: absolute;
 	top: -9px;
@@ -3479,7 +3480,7 @@ body {
 	}
 
 	.timing-chart-axis {
-		padding: 8px 70px 0 70px;
+		margin-left: 70px; /* モバイル: 信号ラベル幅（60px）+ gap（10px） */
 		font-size: 0.7rem;
 	}
 

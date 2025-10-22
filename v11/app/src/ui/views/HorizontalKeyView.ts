@@ -901,11 +901,11 @@ export class HorizontalKeyView implements View {
 	private generateTimeAxis(totalTime: number): string {
 		const step = totalTime / 4;
 		return `
-			<span>0ms</span>
-			<span>${Math.round(step)}ms</span>
-			<span>${Math.round(step * 2)}ms</span>
-			<span>${Math.round(step * 3)}ms</span>
-			<span>${Math.round(totalTime)}ms</span>
+			<span class="axis-tick" style="left: 0%">0ms</span>
+			<span class="axis-tick" style="left: 25%">${Math.round(step)}ms</span>
+			<span class="axis-tick" style="left: 50%">${Math.round(step * 2)}ms</span>
+			<span class="axis-tick" style="left: 75%">${Math.round(step * 3)}ms</span>
+			<span class="axis-tick" style="left: 100%">${Math.round(totalTime)}ms</span>
 		`;
 	}
 
