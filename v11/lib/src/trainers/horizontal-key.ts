@@ -50,6 +50,28 @@ export interface GapTimingRecord {
 }
 
 /**
+ * パドル入力イベント
+ */
+export interface PaddleInputEvent {
+	/** パドル種別 */
+	paddle: 'left' | 'right';
+	/** 状態（押下/解放） */
+	state: 'press' | 'release';
+	/** イベント発生時刻（エポックミリ秒） */
+	timestamp: number;
+}
+
+/**
+ * スクイーズ区間（両パドル同時押し）
+ */
+export interface SqueezeInterval {
+	/** 開始時刻（エポックミリ秒） */
+	startTime: number;
+	/** 終了時刻（エポックミリ秒） */
+	endTime: number;
+}
+
+/**
  * 1単語分のタイミングデータ
  */
 export interface WordTimingData {
@@ -57,6 +79,10 @@ export interface WordTimingData {
 	elements: ElementTimingRecord[];
 	/** ギャップのタイミング記録 */
 	gaps: GapTimingRecord[];
+	/** パドル入力イベント */
+	paddleInputs: PaddleInputEvent[];
+	/** スクイーズ区間 */
+	squeezeIntervals: SqueezeInterval[];
 	/** デコードされた文字 */
 	decodedChar: string;
 	/** モールス符号 */
@@ -179,8 +205,11 @@ export class HorizontalKeyTrainer {
 	// タイミング図用のデータ記録
 	private currentWordElements: ElementTimingRecord[] = [];
 	private currentWordGaps: GapTimingRecord[] = [];
+	private currentWordPaddleInputs: PaddleInputEvent[] = [];
+	private currentWordSqueezeIntervals: SqueezeInterval[] = [];
 	private lastWordTimingData: WordTimingData | null = null;
 	private currentElementStartTime: number | null = null;
+	private squeezeStartTime: number | null = null;
 
 	/**
 	 * 横振り電鍵トレーナーを初期化する
@@ -205,6 +234,13 @@ export class HorizontalKeyTrainer {
 	 * 左パドルが押された時の処理
 	 */
 	leftPaddlePress(): void {
+		//! パドル入力イベントを記録（タイミングチャート用）。
+		this.currentWordPaddleInputs.push({
+			paddle: 'left',
+			state: 'press',
+			timestamp: Date.now(),
+		});
+
 		this.leftDown = true;
 		this.updateSqueezeState();
 
@@ -225,6 +261,13 @@ export class HorizontalKeyTrainer {
 	 * 右パドルが押された時の処理
 	 */
 	rightPaddlePress(): void {
+		//! パドル入力イベントを記録（タイミングチャート用）。
+		this.currentWordPaddleInputs.push({
+			paddle: 'right',
+			state: 'press',
+			timestamp: Date.now(),
+		});
+
 		this.rightDown = true;
 		this.updateSqueezeState();
 
@@ -245,6 +288,13 @@ export class HorizontalKeyTrainer {
 	 * 左パドルが離された時の処理
 	 */
 	leftPaddleRelease(): void {
+		//! パドル入力イベントを記録（タイミングチャート用）。
+		this.currentWordPaddleInputs.push({
+			paddle: 'left',
+			state: 'release',
+			timestamp: Date.now(),
+		});
+
 		this.leftDown = false;
 		this.updateSqueezeState();
 	}
@@ -253,6 +303,13 @@ export class HorizontalKeyTrainer {
 	 * 右パドルが離された時の処理
 	 */
 	rightPaddleRelease(): void {
+		//! パドル入力イベントを記録（タイミングチャート用）。
+		this.currentWordPaddleInputs.push({
+			paddle: 'right',
+			state: 'release',
+			timestamp: Date.now(),
+		});
+
 		this.rightDown = false;
 		this.updateSqueezeState();
 	}
@@ -413,6 +470,8 @@ export class HorizontalKeyTrainer {
 				this.lastWordTimingData = {
 					elements: [...this.currentWordElements],
 					gaps: [...this.currentWordGaps],
+					paddleInputs: [...this.currentWordPaddleInputs],
+					squeezeIntervals: [...this.currentWordSqueezeIntervals],
 					decodedChar: char || '?',
 					morseCode: sequence,
 				};
@@ -435,6 +494,8 @@ export class HorizontalKeyTrainer {
 				this.lastWordTimingData = {
 					elements: [...this.currentWordElements],
 					gaps: [...this.currentWordGaps],
+					paddleInputs: [...this.currentWordPaddleInputs],
+					squeezeIntervals: [...this.currentWordSqueezeIntervals],
 					decodedChar: char || '?',
 					morseCode: sequence,
 				};
@@ -457,6 +518,19 @@ export class HorizontalKeyTrainer {
 		if (this.isSqueezing !== squeezing) {
 			this.isSqueezing = squeezing;
 			this.callbacks.onSqueezeChange?.(squeezing);
+
+			//! スクイーズ区間を記録（タイミングチャート用）。
+			if (squeezing) {
+				// スクイーズ開始
+				this.squeezeStartTime = Date.now();
+			} else if (this.squeezeStartTime !== null) {
+				// スクイーズ終了
+				this.currentWordSqueezeIntervals.push({
+					startTime: this.squeezeStartTime,
+					endTime: Date.now(),
+				});
+				this.squeezeStartTime = null;
+			}
 		}
 	}
 
@@ -484,8 +558,11 @@ export class HorizontalKeyTrainer {
 		this.lastElementEndTime = null;
 		this.currentWordElements = [];
 		this.currentWordGaps = [];
+		this.currentWordPaddleInputs = [];
+		this.currentWordSqueezeIntervals = [];
 		this.lastWordTimingData = null;
 		this.currentElementStartTime = null;
+		this.squeezeStartTime = null;
 		this.notifyBufferUpdate();
 	}
 

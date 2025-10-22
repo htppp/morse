@@ -603,6 +603,9 @@ export class HorizontalKeyView implements View {
 		//! スケール表示を生成。
 		const scale = this.generateTimingScale(maxTime);
 
+		//! タイミングチャート（PlantUML風）を生成。
+		const timingChart = this.generateTimingChart(wordData);
+
 		return `
 			<div class="timing-diagram-header">
 				<span class="timing-diagram-char">${wordData.decodedChar}</span>
@@ -619,6 +622,7 @@ export class HorizontalKeyView implements View {
 				</div>
 			</div>
 			<div class="timing-diagram-scale">${scale}</div>
+			${timingChart}
 		`;
 	}
 
@@ -714,6 +718,185 @@ export class HorizontalKeyView implements View {
 			<span>${Math.round(quarter * 2)}ms</span>
 			<span>${Math.round(quarter * 3)}ms</span>
 			<span>${Math.round(maxTime)}ms</span>
+		`;
+	}
+
+	/**
+	 * タイミングチャート（PlantUML風）を生成する
+	 */
+	private generateTimingChart(wordData: WordTimingData): string {
+		if (wordData.paddleInputs.length === 0) {
+			return '<div class="timing-chart-empty">（パドル入力データなし）</div>';
+		}
+
+		//! 時間範囲を決定（最初のイベントから最後の要素終了まで）。
+		const startTime = Math.min(
+			...wordData.paddleInputs.map(e => e.timestamp),
+			...wordData.elements.map(e => e.startTime)
+		);
+		const endTime = Math.max(
+			...wordData.elements.map(e => e.endTime),
+			...wordData.paddleInputs.map(e => e.timestamp)
+		);
+		const totalTime = endTime - startTime;
+
+		//! 3本の信号ラインを生成。
+		const ditInputLine = this.generatePaddleSignalLine('left', wordData, startTime, totalTime);
+		const dahInputLine = this.generatePaddleSignalLine('right', wordData, startTime, totalTime);
+		const outputLine = this.generateOutputSignalLine(wordData, startTime, totalTime);
+
+		//! スクイーズ区間のハイライトを生成。
+		const squeezeHighlights = wordData.squeezeIntervals.map(interval => {
+			const offsetPercent = ((interval.startTime - startTime) / totalTime) * 100;
+			const widthPercent = ((interval.endTime - interval.startTime) / totalTime) * 100;
+			return `<div class="squeeze-highlight" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
+		}).join('');
+
+		//! 時間軸を生成。
+		const timeAxis = this.generateTimeAxis(totalTime);
+
+		return `
+			<div class="timing-chart-section">
+				<h4>タイミングチャート</h4>
+				<div class="timing-chart-container">
+					${squeezeHighlights}
+					<div class="timing-chart-signals">
+						${ditInputLine}
+						${dahInputLine}
+						${outputLine}
+					</div>
+					<div class="timing-chart-axis">${timeAxis}</div>
+				</div>
+			</div>
+		`;
+	}
+
+	/**
+	 * パドル信号ラインを生成する
+	 */
+	private generatePaddleSignalLine(
+		paddle: 'left' | 'right',
+		wordData: WordTimingData,
+		startTime: number,
+		totalTime: number
+	): string {
+		const label = paddle === 'left' ? 'Dit入力' : 'Dash入力';
+		const events = wordData.paddleInputs.filter(e => e.paddle === paddle);
+
+		//! 信号の状態変化を時系列で追跡。
+		let isHigh = false;
+		const segments: { start: number; end: number; high: boolean }[] = [];
+		let lastTime = startTime;
+
+		for (const event of events) {
+			if (event.timestamp > lastTime) {
+				segments.push({
+					start: lastTime,
+					end: event.timestamp,
+					high: isHigh,
+				});
+			}
+			isHigh = (event.state === 'press');
+			lastTime = event.timestamp;
+		}
+
+		// 最後のセグメント
+		segments.push({
+			start: lastTime,
+			end: startTime + totalTime,
+			high: isHigh,
+		});
+
+		//! セグメントをHTMLに変換。
+		const segmentsHTML = segments.map(seg => {
+			const offsetPercent = ((seg.start - startTime) / totalTime) * 100;
+			const widthPercent = ((seg.end - seg.start) / totalTime) * 100;
+			const heightClass = seg.high ? 'signal-high' : 'signal-low';
+			return `<div class="signal-segment ${heightClass}" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
+		}).join('');
+
+		return `
+			<div class="timing-chart-signal">
+				<div class="signal-label">${label}</div>
+				<div class="signal-timeline">${segmentsHTML}</div>
+			</div>
+		`;
+	}
+
+	/**
+	 * 出力信号ラインを生成する
+	 */
+	private generateOutputSignalLine(
+		wordData: WordTimingData,
+		startTime: number,
+		totalTime: number
+	): string {
+		//! 要素の送信期間をセグメントとして生成。
+		const segments: { start: number; end: number; element: '.' | '-' }[] = [];
+
+		for (const element of wordData.elements) {
+			segments.push({
+				start: element.startTime,
+				end: element.endTime,
+				element: element.element,
+			});
+		}
+
+		//! セグメントをHTMLに変換。
+		let lastEnd = startTime;
+		const segmentsHTML: string[] = [];
+
+		for (const seg of segments) {
+			// ギャップ（Low）
+			if (seg.start > lastEnd) {
+				const offsetPercent = ((lastEnd - startTime) / totalTime) * 100;
+				const widthPercent = ((seg.start - lastEnd) / totalTime) * 100;
+				segmentsHTML.push(
+					`<div class="signal-segment signal-low" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`
+				);
+			}
+
+			// 要素（High）
+			const offsetPercent = ((seg.start - startTime) / totalTime) * 100;
+			const widthPercent = ((seg.end - seg.start) / totalTime) * 100;
+			const elementClass = seg.element === '.' ? 'output-dit' : 'output-dah';
+			segmentsHTML.push(
+				`<div class="signal-segment signal-high ${elementClass}" style="left: ${offsetPercent}%; width: ${widthPercent}%">
+					<span class="element-label">${seg.element}</span>
+				</div>`
+			);
+
+			lastEnd = seg.end;
+		}
+
+		// 最後のギャップ
+		if (lastEnd < startTime + totalTime) {
+			const offsetPercent = ((lastEnd - startTime) / totalTime) * 100;
+			const widthPercent = ((startTime + totalTime - lastEnd) / totalTime) * 100;
+			segmentsHTML.push(
+				`<div class="signal-segment signal-low" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`
+			);
+		}
+
+		return `
+			<div class="timing-chart-signal">
+				<div class="signal-label">出力</div>
+				<div class="signal-timeline">${segmentsHTML.join('')}</div>
+			</div>
+		`;
+	}
+
+	/**
+	 * 時間軸を生成する
+	 */
+	private generateTimeAxis(totalTime: number): string {
+		const step = totalTime / 4;
+		return `
+			<span>0ms</span>
+			<span>${Math.round(step)}ms</span>
+			<span>${Math.round(step * 2)}ms</span>
+			<span>${Math.round(step * 3)}ms</span>
+			<span>${Math.round(totalTime)}ms</span>
 		`;
 	}
 
