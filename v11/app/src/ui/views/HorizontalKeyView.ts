@@ -616,13 +616,42 @@ export class HorizontalKeyView implements View {
 			return `<div class="squeeze-highlight" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
 		}).join('');
 
-		//! 文字間ギャップのハイライトを生成。
-		const gapHighlights = wordData.elements.map((element, index) => {
-			if (index >= wordData.elements.length - 1) return '';
-			const gapStart = element.endTime;
-			const gapEnd = wordData.elements[index + 1].startTime;
-			const offsetPercent = ((gapStart - startTime) / totalTime) * 100;
-			const widthPercent = ((gapEnd - gapStart) / totalTime) * 100;
+		//! パドル入力がない期間（両方のパドルが解放されている期間）を抽出。
+		const paddleGaps: { startTime: number; endTime: number }[] = [];
+		let leftDown = false;
+		let rightDown = false;
+		let gapStartTime: number | null = null;
+
+		for (const event of sortedPaddleInputs) {
+			const prevBothReleased = !leftDown && !rightDown;
+
+			if (event.paddle === 'left') {
+				leftDown = (event.state === 'press');
+			} else {
+				rightDown = (event.state === 'press');
+			}
+
+			const currentBothReleased = !leftDown && !rightDown;
+
+			if (prevBothReleased && !currentBothReleased) {
+				//! ギャップ終了（どちらかのパドルが押された）。
+				if (gapStartTime !== null) {
+					paddleGaps.push({
+						startTime: gapStartTime,
+						endTime: event.timestamp
+					});
+					gapStartTime = null;
+				}
+			} else if (!prevBothReleased && currentBothReleased) {
+				//! ギャップ開始（両方のパドルが解放された）。
+				gapStartTime = event.timestamp;
+			}
+		}
+
+		//! ギャップのハイライトを生成。
+		const gapHighlights = paddleGaps.map(gap => {
+			const offsetPercent = ((gap.startTime - startTime) / totalTime) * 100;
+			const widthPercent = ((gap.endTime - gap.startTime) / totalTime) * 100;
 			return `<div class="gap-highlight" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
 		}).join('');
 
@@ -630,7 +659,7 @@ export class HorizontalKeyView implements View {
 		const timeAxis = this.generateTimeAxis(totalTime);
 
 		//! デバッグ情報を生成。
-		const debugInfo = this.generateDebugInfo(wordData, startTime);
+		const debugInfo = this.generateDebugInfo(wordData, startTime, paddleGaps);
 
 		return `
 			<div class="timing-chart-section">
@@ -790,7 +819,11 @@ export class HorizontalKeyView implements View {
 	/**
 	 * デバッグ情報を生成する
 	 */
-	private generateDebugInfo(wordData: WordTimingData, startTime: number): string {
+	private generateDebugInfo(
+		wordData: WordTimingData,
+		startTime: number,
+		paddleGaps: { startTime: number; endTime: number }[]
+	): string {
 		//! パドル入力イベントをソートして整理。
 		const sortedInputs = [...wordData.paddleInputs].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -811,16 +844,12 @@ export class HorizontalKeyView implements View {
 		});
 
 		//! 無入力期間（ギャップ）リストを生成。
-		const gapLines = wordData.elements.map((element, index) => {
-			if (index >= wordData.elements.length - 1) return null;
-			const gapStart = element.endTime;
-			const gapEnd = wordData.elements[index + 1].startTime;
-			const startRelative = gapStart - startTime;
-			const endRelative = gapEnd - startTime;
-			const duration = gapEnd - gapStart;
-			const gapType = wordData.gaps[index]?.type === 'character' ? '文字間' : '要素間';
-			return `${gapType} ON: ${startRelative.toFixed(0)}ms, OFF: ${endRelative.toFixed(0)}ms (${duration.toFixed(0)}ms)`;
-		}).filter(line => line !== null);
+		const gapLines = paddleGaps.map(gap => {
+			const startRelative = gap.startTime - startTime;
+			const endRelative = gap.endTime - startTime;
+			const duration = gap.endTime - gap.startTime;
+			return `Gap ON: ${startRelative.toFixed(0)}ms, OFF: ${endRelative.toFixed(0)}ms (${duration.toFixed(0)}ms)`;
+		});
 
 		return `
 			<div class="timing-debug-info">
