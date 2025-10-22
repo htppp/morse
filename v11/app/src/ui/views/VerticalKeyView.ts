@@ -373,10 +373,12 @@ export class VerticalKeyView implements View {
 			const accuracy = eval_.accuracy.toFixed(1);
 			const accuracyClass = this.getAccuracyClass(eval_.accuracy);
 
-			//! 棒グラフの幅計算（理論値を基準とする）。
+			//! 棒グラフの幅計算（8短点分を100%とする固定スケール）。
+			const timings = TimingCalculator.calculate(this.currentWPM);
+			const dotDuration = timings.dot;
+			const maxDuration = dotDuration * 8; // 8短点分を100%とする
 			const expected = eval_.record.expectedDuration;
 			const actual = eval_.record.actualDuration;
-			const maxDuration = Math.max(expected, actual) * 1.3; // 最大値は大きい方の1.3倍
 			const expectedPercent = (expected / maxDuration) * 100;
 			const actualPercent = (actual / maxDuration) * 100;
 
@@ -409,7 +411,7 @@ export class VerticalKeyView implements View {
 					</div>
 					<div class="chart-scale">
 						<span>0ms</span>
-						<span>${Math.round(maxDuration / 2)}ms</span>
+						<span>${Math.round(dotDuration * 4)}ms</span>
 						<span>${Math.round(maxDuration)}ms</span>
 					</div>
 				</div>
