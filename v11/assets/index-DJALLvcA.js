@@ -137,7 +137,7 @@ n+=`<div class="timing-element actual ${"."===a.element?"dit":"dah"} ${d}"\n\t\t
 //! パドル入力イベントを時刻順にソート。
 const e=[...[...t.paddleInputs].sort((t,e)=>t.timestamp-e.timestamp).map(t=>t.timestamp),...t.elements.map(t=>t.startTime),...t.elements.map(t=>t.endTime),...t.squeezeIntervals.flatMap(t=>[t.startTime,t.endTime])],n=Math.min(...e),s=Math.max(...e)-n,i=this.generatePaddleSignalLine("left",t,n,s),a=this.generatePaddleSignalLine("right",t,n,s),r=this.generateOutputSignalLine(t,n,s);
 //! 時間範囲を決定（最初のイベントから最後のイベントまで）。
-return`\n\t\t\t<div class="timing-chart-section">\n\t\t\t\t<h4>タイミングチャート</h4>\n\t\t\t\t<div class="timing-chart-container">\n\t\t\t\t\t${t.squeezeIntervals.map(t=>`<div class="squeeze-highlight" style="left: ${(t.startTime-n)/s*100}%; width: ${(t.endTime-t.startTime)/s*100}%"></div>`).join("")}\n\t\t\t\t\t<div class="timing-chart-signals">\n\t\t\t\t\t\t${i}\n\t\t\t\t\t\t${a}\n\t\t\t\t\t\t${r}\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="timing-chart-axis">${this.generateTimeAxis(s)}</div>\n\t\t\t\t</div>\n\t\t\t\t${this.generateDebugInfo(t,n)}\n\t\t\t</div>\n\t\t`}generatePaddleSignalLine(t,e,n,s){const i="left"===t?"Dit入力":"Dash入力",a=e.paddleInputs.filter(e=>e.paddle===t).sort((t,e)=>t.timestamp-e.timestamp);
+return`\n\t\t\t<div class="timing-chart-section">\n\t\t\t\t<h4>タイミングチャート</h4>\n\t\t\t\t<div class="timing-chart-container">\n\t\t\t\t\t<div class="timing-chart-signals">\n\t\t\t\t\t\t<div class="squeeze-highlights-layer">\n\t\t\t\t\t\t\t${t.squeezeIntervals.map(t=>`<div class="squeeze-highlight" style="left: ${(t.startTime-n)/s*100}%; width: ${(t.endTime-t.startTime)/s*100}%"></div>`).join("")}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t${i}\n\t\t\t\t\t\t${a}\n\t\t\t\t\t\t${r}\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="timing-chart-axis">${this.generateTimeAxis(s)}</div>\n\t\t\t\t</div>\n\t\t\t\t${this.generateDebugInfo(t,n)}\n\t\t\t</div>\n\t\t`}generatePaddleSignalLine(t,e,n,s){const i="left"===t?"Dit入力":"Dash入力",a=e.paddleInputs.filter(e=>e.paddle===t).sort((t,e)=>t.timestamp-e.timestamp);
 //! 該当パドルのイベントを抽出して時刻順にソート。
 //! 信号の状態変化を時系列で追跡。
 let r=!1;const o=[];let d=n;for(const c of a)c.timestamp>d&&o.push({start:d,end:c.timestamp,high:r}),r="press"===c.state,d=c.timestamp;o.push({start:d,end:n+s,high:r});return`\n\t\t\t<div class="timing-chart-signal">\n\t\t\t\t<div class="signal-label">${i}</div>\n\t\t\t\t<div class="signal-timeline">${o.map(t=>{const e=(t.start-n)/s*100,i=(t.end-t.start)/s*100;return`<div class="signal-segment ${t.high?"signal-high":"signal-low"}" style="left: ${e}%; width: ${i}%"></div>`}).join("")}</div>\n\t\t\t</div>\n\t\t`}generateOutputSignalLine(t,e,n){
@@ -507,4 +507,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new I).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-C7eax7AG.js.map
+//# sourceMappingURL=index-DJALLvcA.js.map

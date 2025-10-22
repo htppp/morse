@@ -765,8 +765,10 @@ export class HorizontalKeyView implements View {
 			<div class="timing-chart-section">
 				<h4>タイミングチャート</h4>
 				<div class="timing-chart-container">
-					${squeezeHighlights}
 					<div class="timing-chart-signals">
+						<div class="squeeze-highlights-layer">
+							${squeezeHighlights}
+						</div>
 						${ditInputLine}
 						${dahInputLine}
 						${outputLine}

@@ -3401,18 +3401,26 @@ body {
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* スクイーズハイライトレイヤー */
+.squeeze-highlights-layer {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 90px; /* 信号ラベルの幅（80px）+ gap（10px） */
+	right: 0;
+	pointer-events: none;
+	z-index: 1;
+}
+
 /* スクイーズ区間のハイライト */
 .squeeze-highlight {
 	position: absolute;
 	top: 0;
-	bottom: 30px; /* 時間軸の高さを除く */
+	bottom: 0;
 	background: rgba(255, 235, 59, 0.2);
 	border-left: 2px dashed #ff9800;
 	border-right: 2px dashed #ff9800;
 	pointer-events: none;
-	z-index: 1;
-	/* 信号ラベルの幅（80px）+ gap（10px）を左マージンとして追加 */
-	margin-left: 90px;
 }
 
 .squeeze-highlight::before {
@@ -3525,8 +3533,8 @@ body {
 		font-size: 1rem;
 	}
 
-	.squeeze-highlight {
+	.squeeze-highlights-layer {
 		/* モバイル表示: 信号ラベルの幅（60px）+ gap（10px） */
-		margin-left: 70px;
+		left: 70px;
 	}
 }
