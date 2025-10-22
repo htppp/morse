@@ -177,7 +177,7 @@ export class HorizontalKeyView implements View {
 						</div>
 					</div>
 
-					<div class="timing-diagram-section">
+					<div class="timing-diagram-section timing-evaluation-section">
 						<h3>スペーシング評価</h3>
 						<div class="timing-stats-grid">
 							<div class="timing-stat-card">
