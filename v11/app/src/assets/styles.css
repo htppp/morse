@@ -3525,7 +3525,8 @@ body {
 }
 
 .debug-events,
-.debug-squeezes {
+.debug-squeezes,
+.debug-gaps {
 	padding: 8px 12px;
 	background: white;
 	border: 1px solid #e0e0e0;
