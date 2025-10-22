@@ -373,18 +373,45 @@ export class VerticalKeyView implements View {
 			const accuracy = eval_.accuracy.toFixed(1);
 			const accuracyClass = this.getAccuracyClass(eval_.accuracy);
 
+			//! 棒グラフの幅計算（理論値を基準とする）。
+			const expected = eval_.record.expectedDuration;
+			const actual = eval_.record.actualDuration;
+			const maxDuration = Math.max(expected, actual) * 1.3; // 最大値は大きい方の1.3倍
+			const expectedPercent = (expected / maxDuration) * 100;
+			const actualPercent = (actual / maxDuration) * 100;
+
+			//! 誤差の方向（長い/短い）を判定。
+			const diff = actual - expected;
+			const diffClass = diff > 0 ? 'longer' : diff < 0 ? 'shorter' : 'perfect';
+			const diffText = diff > 0 ? `+${diff}ms (長い)` : diff < 0 ? `${diff}ms (短い)` : '完璧';
+
 			latestContent.innerHTML = `
 				<div class="eval-item">
 					<span class="eval-label">要素:</span>
 					<span class="eval-value">${element}</span>
 				</div>
-				<div class="eval-item">
-					<span class="eval-label">実測:</span>
-					<span class="eval-value">${eval_.record.actualDuration}ms</span>
-				</div>
-				<div class="eval-item">
-					<span class="eval-label">期待値:</span>
-					<span class="eval-value">${eval_.record.expectedDuration}ms</span>
+				<div class="timing-chart">
+					<div class="chart-row">
+						<div class="chart-label">理論値:</div>
+						<div class="chart-bar-container">
+							<div class="chart-bar expected" style="width: ${expectedPercent}%">
+								<span class="chart-value">${expected}ms</span>
+							</div>
+						</div>
+					</div>
+					<div class="chart-row">
+						<div class="chart-label">実測値:</div>
+						<div class="chart-bar-container">
+							<div class="chart-bar actual ${accuracyClass}" style="width: ${actualPercent}%">
+								<span class="chart-value">${actual}ms</span>
+							</div>
+						</div>
+					</div>
+					<div class="chart-scale">
+						<span>0ms</span>
+						<span>${Math.round(maxDuration / 2)}ms</span>
+						<span>${Math.round(maxDuration)}ms</span>
+					</div>
 				</div>
 				<div class="eval-item">
 					<span class="eval-label">精度:</span>
@@ -392,7 +419,7 @@ export class VerticalKeyView implements View {
 				</div>
 				<div class="eval-item">
 					<span class="eval-label">誤差:</span>
-					<span class="eval-value">${eval_.absoluteError}ms (${eval_.relativeError.toFixed(1)}%)</span>
+					<span class="eval-value timing-diff-${diffClass}">${diffText}</span>
 				</div>
 			`;
 		}
