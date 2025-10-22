@@ -170,7 +170,14 @@ export class HorizontalKeyView implements View {
 						</div>
 					</div>
 
-					<div class="timing-evaluation-section">
+					<div class="timing-diagram-section">
+						<h3>タイミング図（直前の1文字）</h3>
+						<div id="timing-diagram-content" class="timing-diagram-content">
+							（文字が確定すると表示されます）
+						</div>
+					</div>
+
+					<div class="timing-diagram-section">
 						<h3>スペーシング評価</h3>
 						<div class="timing-stats-grid">
 							<div class="timing-stat-card">
@@ -205,13 +212,6 @@ export class HorizontalKeyView implements View {
 									<span>回数: <span id="timing-word-count">0</span></span>
 								</div>
 							</div>
-						</div>
-					</div>
-
-					<div class="timing-diagram-section">
-						<h3>タイミング図（直前の1文字）</h3>
-						<div id="timing-diagram-content" class="timing-diagram-content">
-							（文字が確定すると表示されます）
 						</div>
 					</div>
 

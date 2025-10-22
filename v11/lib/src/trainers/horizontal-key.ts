@@ -333,6 +333,21 @@ export class HorizontalKeyTrainer {
 		const elementStartTime = Date.now();
 		this.currentElementStartTime = elementStartTime;
 
+		//! 長時間無入力（単語区切りの2倍以上）後はタイミングデータをリセット。
+		let resetTimingData = false;
+		if (this.lastElementEndTime !== null) {
+			const timeSinceLastElement = elementStartTime - this.lastElementEndTime;
+			if (timeSinceLastElement > this.timings.wordGap * 2) {
+				// タイミング図用データをリセット
+				this.currentWordElements = [];
+				this.currentWordGaps = [];
+				this.currentWordPaddleInputs = [];
+				this.currentWordSqueezeIntervals = [];
+				this.squeezeStartTime = null;
+				resetTimingData = true;
+			}
+		}
+
 		// スペーシング評価を実行
 		// 要素間スペースは自動生成のため評価しない（文字間・単語間のみ評価）
 		if (this.lastElementEndTime !== null) {
@@ -342,28 +357,37 @@ export class HorizontalKeyTrainer {
 				this.timings,
 			);
 
-			// ギャップをタイミング図用に記録
-			const expectedDuration = spacingRecord.type === 'character'
-				? this.timings.charGap
-				: spacingRecord.type === 'word'
-					? this.timings.wordGap
-					: 0;
+			// ギャップをタイミング図用に記録（リセット直後はスキップ）
+			if (!resetTimingData) {
+				const expectedDuration = spacingRecord.type === 'character'
+					? this.timings.charGap
+					: spacingRecord.type === 'word'
+						? this.timings.wordGap
+						: 0;
 
-			const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
-			const gapRecord: GapTimingRecord = {
-				type: spacingRecord.type,
-				startTime: this.lastElementEndTime,
-				endTime: elementStartTime,
-				duration: spacingDuration,
-				expectedDuration,
-				accuracy: spacingEvaluation.accuracy,
-			};
-			this.currentWordGaps.push(gapRecord);
+				const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
+				const gapRecord: GapTimingRecord = {
+					type: spacingRecord.type,
+					startTime: this.lastElementEndTime,
+					endTime: elementStartTime,
+					duration: spacingDuration,
+					expectedDuration,
+					accuracy: spacingEvaluation.accuracy,
+				};
+				this.currentWordGaps.push(gapRecord);
 
-			// 要素間スペース（type === 'element'）は統計には記録しない
-			if (spacingRecord.type !== 'element') {
-				this.spacingEvaluations.push(spacingEvaluation);
-				this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+				// 要素間スペース（type === 'element'）は統計には記録しない
+				if (spacingRecord.type !== 'element') {
+					this.spacingEvaluations.push(spacingEvaluation);
+					this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+				}
+			} else {
+				// リセット後も統計評価は実施（タイミング図には記録しない）
+				const spacingEvaluation = TimingEvaluator.evaluateSpacing(spacingRecord);
+				if (spacingRecord.type !== 'element') {
+					this.spacingEvaluations.push(spacingEvaluation);
+					this.callbacks.onSpacingEvaluated?.(spacingEvaluation);
+				}
 			}
 		}
 
