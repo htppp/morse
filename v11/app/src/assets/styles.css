@@ -3438,6 +3438,32 @@ body {
 	white-space: nowrap;
 }
 
+/* ギャップ（無入力期間）のハイライト */
+.gap-highlight {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background: rgba(33, 150, 243, 0.15);
+	border-left: 2px dashed #2196f3;
+	border-right: 2px dashed #2196f3;
+	pointer-events: none;
+}
+
+.gap-highlight::before {
+	content: 'Gap';
+	position: absolute;
+	top: 30px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #2196f3;
+	color: white;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
 /* 時間軸 */
 .timing-chart-axis {
 	position: relative;

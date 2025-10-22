@@ -570,39 +570,6 @@ export class HorizontalKeyView implements View {
 	 * タイミング図のHTMLを生成する
 	 */
 	private generateTimingDiagramHTML(wordData: WordTimingData): string {
-		//! 全体の時間範囲を計算。
-		let totalExpectedTime = 0;
-		let totalActualTime = 0;
-
-		//! 理論値の総時間を計算。
-		wordData.elements.forEach(el => {
-			totalExpectedTime += el.expectedDuration;
-		});
-		wordData.gaps.forEach(gap => {
-			totalExpectedTime += gap.expectedDuration;
-		});
-
-		//! 実測値の総時間を計算。
-		wordData.elements.forEach(el => {
-			totalActualTime += el.duration;
-		});
-		wordData.gaps.forEach(gap => {
-			totalActualTime += gap.duration;
-		});
-
-		//! スケールの最大値を決定（8短点分を基準とする）。
-		const dotDuration = this.timings.dot;
-		const maxTime = Math.max(totalExpectedTime, totalActualTime, dotDuration * 8);
-
-		//! 理論値行を生成。
-		const expectedRow = this.generateExpectedTimingRow(wordData, maxTime);
-
-		//! 実測値行を生成。
-		const actualRow = this.generateActualTimingRow(wordData, maxTime);
-
-		//! スケール表示を生成。
-		const scale = this.generateTimingScale(maxTime);
-
 		//! タイミングチャート（PlantUML風）を生成。
 		const timingChart = this.generateTimingChart(wordData);
 
@@ -611,113 +578,7 @@ export class HorizontalKeyView implements View {
 				<span class="timing-diagram-char">${wordData.decodedChar}</span>
 				<span class="timing-diagram-morse">${wordData.morseCode}</span>
 			</div>
-			<div class="timing-diagram-rows">
-				<div class="timing-diagram-row">
-					<div class="timing-row-label">理論値:</div>
-					<div class="timing-row-content">${expectedRow}</div>
-				</div>
-				<div class="timing-diagram-row">
-					<div class="timing-row-label">実測値:</div>
-					<div class="timing-row-content">${actualRow}</div>
-				</div>
-			</div>
-			<div class="timing-diagram-scale">${scale}</div>
 			${timingChart}
-		`;
-	}
-
-	/**
-	 * 理論値タイミング行を生成する
-	 */
-	private generateExpectedTimingRow(wordData: WordTimingData, maxTime: number): string {
-		let html = '';
-		let timeOffset = 0;
-
-		//! 要素とギャップを時系列順に並べる。
-		for (let i = 0; i < wordData.elements.length; i++) {
-			const element = wordData.elements[i];
-			const widthPercent = (element.expectedDuration / maxTime) * 100;
-
-			//! 要素を追加。
-			html += `<div class="timing-element expected ${element.element === '.' ? 'dit' : 'dah'}"
-				style="width: ${widthPercent}%"
-				title="${element.element === '.' ? '短点' : '長点'}: ${element.expectedDuration}ms">
-			</div>`;
-
-			timeOffset += element.expectedDuration;
-
-			//! ギャップを追加（最後の要素以外）。
-			if (i < wordData.gaps.length) {
-				const gap = wordData.gaps[i];
-				const gapWidthPercent = (gap.expectedDuration / maxTime) * 100;
-				const gapTypeLabel = gap.type === 'character' ? '文字間' : gap.type === 'word' ? '単語間' : '要素間';
-
-				html += `<div class="timing-gap expected"
-					style="width: ${gapWidthPercent}%"
-					title="${gapTypeLabel}: ${gap.expectedDuration}ms">
-				</div>`;
-
-				timeOffset += gap.expectedDuration;
-			}
-		}
-
-		return html;
-	}
-
-	/**
-	 * 実測値タイミング行を生成する
-	 */
-	private generateActualTimingRow(wordData: WordTimingData, maxTime: number): string {
-		let html = '';
-		let timeOffset = 0;
-
-		//! 要素とギャップを時系列順に並べる。
-		for (let i = 0; i < wordData.elements.length; i++) {
-			const element = wordData.elements[i];
-			const widthPercent = (element.duration / maxTime) * 100;
-
-			//! 精度を計算。
-			const accuracy = (element.duration / element.expectedDuration) * 100;
-			const accuracyClass = accuracy >= 90 ? 'good' : accuracy >= 70 ? 'fair' : 'poor';
-
-			//! 要素を追加。
-			html += `<div class="timing-element actual ${element.element === '.' ? 'dit' : 'dah'} ${accuracyClass}"
-				style="width: ${widthPercent}%"
-				title="${element.element === '.' ? '短点' : '長点'}: ${element.duration}ms (期待: ${element.expectedDuration}ms, 精度: ${accuracy.toFixed(1)}%)">
-			</div>`;
-
-			timeOffset += element.duration;
-
-			//! ギャップを追加（最後の要素以外）。
-			if (i < wordData.gaps.length) {
-				const gap = wordData.gaps[i];
-				const gapWidthPercent = (gap.duration / maxTime) * 100;
-				const gapAccuracyClass = gap.accuracy >= 90 ? 'good' : gap.accuracy >= 70 ? 'fair' : 'poor';
-				const gapTypeLabel = gap.type === 'character' ? '文字間' : gap.type === 'word' ? '単語間' : '要素間';
-
-				html += `<div class="timing-gap actual ${gapAccuracyClass}"
-					style="width: ${gapWidthPercent}%"
-					title="${gapTypeLabel}: ${gap.duration}ms (期待: ${gap.expectedDuration}ms, 精度: ${gap.accuracy.toFixed(1)}%)">
-				</div>`;
-
-				timeOffset += gap.duration;
-			}
-		}
-
-		return html;
-	}
-
-	/**
-	 * タイミングスケールを生成する
-	 */
-	private generateTimingScale(maxTime: number): string {
-		const quarter = maxTime / 4;
-		return `
-			<span class="scale-tick" style="left: 0%">0ms</span>
-			<span class="scale-tick" style="left: 25%">${Math.round(quarter)}ms</span>
-			<span class="scale-tick" style="left: 50%">${Math.round(quarter * 2)}ms</span>
-			<span class="scale-tick" style="left: 75%">${Math.round(quarter * 3)}ms</span>
-			<span class="scale-tick" style="left: 100%">${Math.round(maxTime)}ms</span>
 		`;
 	}
 
@@ -755,6 +616,16 @@ export class HorizontalKeyView implements View {
 			return `<div class="squeeze-highlight" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
 		}).join('');
 
+		//! 文字間ギャップのハイライトを生成。
+		const gapHighlights = wordData.elements.map((element, index) => {
+			if (index >= wordData.elements.length - 1) return '';
+			const gapStart = element.endTime;
+			const gapEnd = wordData.elements[index + 1].startTime;
+			const offsetPercent = ((gapStart - startTime) / totalTime) * 100;
+			const widthPercent = ((gapEnd - gapStart) / totalTime) * 100;
+			return `<div class="gap-highlight" style="left: ${offsetPercent}%; width: ${widthPercent}%"></div>`;
+		}).join('');
+
 		//! 時間軸を生成。
 		const timeAxis = this.generateTimeAxis(totalTime);
 
@@ -768,6 +639,7 @@ export class HorizontalKeyView implements View {
 					<div class="timing-chart-signals">
 						<div class="squeeze-highlights-layer">
 							${squeezeHighlights}
+							${gapHighlights}
 						</div>
 						${ditInputLine}
 						${dahInputLine}
@@ -938,6 +810,18 @@ export class HorizontalKeyView implements View {
 			return `Squeeze ON: ${startRelative.toFixed(0)}ms, OFF: ${endRelative.toFixed(0)}ms (${duration.toFixed(0)}ms)`;
 		});
 
+		//! 無入力期間（ギャップ）リストを生成。
+		const gapLines = wordData.elements.map((element, index) => {
+			if (index >= wordData.elements.length - 1) return null;
+			const gapStart = element.endTime;
+			const gapEnd = wordData.elements[index + 1].startTime;
+			const startRelative = gapStart - startTime;
+			const endRelative = gapEnd - startTime;
+			const duration = gapEnd - gapStart;
+			const gapType = wordData.gaps[index]?.type === 'character' ? '文字間' : '要素間';
+			return `${gapType} ON: ${startRelative.toFixed(0)}ms, OFF: ${endRelative.toFixed(0)}ms (${duration.toFixed(0)}ms)`;
+		}).filter(line => line !== null);
+
 		return `
 			<div class="timing-debug-info">
 				<div class="debug-section">
@@ -950,6 +834,12 @@ export class HorizontalKeyView implements View {
 					<h5>スクイーズ区間</h5>
 					<div class="debug-squeezes">
 						${squeezeLines.length > 0 ? squeezeLines.join('<br>') : '（スクイーズなし）'}
+					</div>
+				</div>
+				<div class="debug-section">
+					<h5>無入力期間</h5>
+					<div class="debug-gaps">
+						${gapLines.length > 0 ? gapLines.join('<br>') : '（ギャップなし）'}
 					</div>
 				</div>
 			</div>
