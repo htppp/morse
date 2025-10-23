@@ -142,37 +142,146 @@
 		"gapOff": "Gap OFF"
 	},
 	"flashcard": {
-		"title": "CW略語・Q符号",
-		"modes": {
-			"browse": "閲覧モード",
+		"title": "CW略語・Q符号学習",
+		"loading": "フラッシュカードデータを読み込み中...",
+		"loadError": "データの読み込みに失敗しました。",
+		"error": "エラー:",
+		"tabs": {
+			"browse": "一覧",
 			"learn": "学習モード",
-			"test": "試験モード"
+			"exam": "試験モード"
 		},
-		"filters": {
-			"all": "すべて",
-			"common": "よく使う",
-			"qCode": "Q符号",
-			"abbreviation": "略語"
+		"filter": {
+			"title": "フィルター設定",
+			"tagLabel": "タグで絞り込み",
+			"frequencyLabel": "使用頻度で絞り込み（1=低頻度、5=高頻度）",
+			"searchLabel": "検索（略語・意味・タグ）",
+			"searchPlaceholder": "例: QTH, location, Q符号",
+			"filteredCount": "該当:",
+			"totalCount": "全体:",
+			"items": "件"
 		},
-		"stats": {
-			"total": "全{count}語",
-			"learned": "学習済み: {count}語",
-			"remaining": "未学習: {count}語"
+		"browse": {
+			"entriesHeader": "略語一覧",
+			"entriesCount": "件",
+			"toggleList": "📋 リスト表示",
+			"toggleCard": "🃏 カード表示",
+			"examplePrefix": "例: ",
+			"tableHeaders": {
+				"abbreviation": "略語",
+				"english": "英文",
+				"japanese": "和訳",
+				"frequency": "頻度",
+				"tags": "タグ",
+				"description": "説明",
+				"example": "具体例"
+			},
+			"howToUse": "使い方",
+			"instruction1": "タグ、使用頻度、検索で略語を絞り込めます",
+			"instruction2": "略語カードをクリックするとモールス信号を再生できます",
+			"instruction3": "カード表示とリスト表示を切り替えられます",
+			"instruction4": "「学習モード」タブでフラッシュカード学習ができます",
+			"instruction5": "「試験モード」タブで理解度テストができます",
+			"instruction6": "画面右上の⚙アイコンから音量・周波数・速度を調整できます"
 		},
-		"fields": {
-			"abbreviation": "略語",
-			"english": "英文",
-			"japanese": "和訳",
-			"description": "説明",
-			"example": "具体例"
+		"learn": {
+			"setupTitle": "学習設定",
+			"modeLabel": "モード",
+			"reviewMode": "復習モード（わからないカードのみ:",
+			"reviewModeCount": "件）",
+			"questionTypeLabel": "出題形式",
+			"questionTypes": {
+				"abbrToMeaning": "略語→意味（基本）",
+				"meaningToAbbr": "意味→略語（応用）",
+				"morseToAbbr": "モールス音→略語（実践）",
+				"morseToMeaning": "モールス音→意味（実践）"
+			},
+			"availableCards": "学習可能:",
+			"cardsUnit": "枚",
+			"startButton": "学習開始",
+			"clearProgressButton": "進捗をリセット",
+			"backToSetup": "← 設定に戻る",
+			"progressIndicator": " / ",
+			"cardLabels": {
+				"abbreviation": "略語",
+				"meaning": "意味",
+				"morseToAbbrPrompt": "モールス音を聞いて略語を答えてください",
+				"morseToMeaningPrompt": "モールス音を聞いて意味を答えてください"
+			},
+			"playMorseButton": "🔊 モールス再生",
+			"flipToAnswer": "正解を確認する",
+			"flipToQuestion": "問題に戻る",
+			"spaceHint": "(Space)",
+			"judgmentButtons": {
+				"unknown": "× わからない",
+				"known": "○ わかる"
+			},
+			"navigation": {
+				"prev": "← 前のカード",
+				"next": "次のカード →"
+			},
+			"confirmReset": "学習進捗をリセットしますか？",
+			"noCards": "学習可能なカードがありません。",
+			"completed": "学習完了しました！",
+			"howToUse": "使い方",
+			"instruction1": "フィルターで学習する略語を絞り込みます",
+			"instruction2": "出題形式を選択します（略語→意味、意味→略語、モールス音からの解読）",
+			"instruction3": "カードをクリックで裏返し、「わかる」「わからない」で進捗を記録",
+			"instruction4": "復習モードで「わからない」カードのみを学習できます",
+			"instruction5": "学習進捗はブラウザに自動保存されます"
 		},
-		"showAnswer": "答えを表示",
-		"nextCard": "次へ",
-		"previousCard": "前へ",
-		"shuffle": "シャッフル",
-		"export": "エクスポート",
-		"markAsLearned": "学習済みにする",
-		"markAsUnlearned": "未学習に戻す"
+		"exam": {
+			"setupTitle": "出題形式",
+			"questionTypeLabel": "出題形式",
+			"questionTypes": {
+				"abbrToMeaning": "略語→意味（基礎）",
+				"meaningToAbbr": "意味→略語（応用）",
+				"morseToAbbr": "モールス音→略語（実践）",
+				"morseToMeaning": "モールス音→意味（実践）"
+			},
+			"questionCountLabel": "問題数",
+			"questionCounts": {
+				"five": "5問",
+				"ten": "10問",
+				"twenty": "20問",
+				"fifty": "50問",
+				"all": "全問"
+			},
+			"startButton": "試験開始",
+			"titleInProgress": "CW略語・Q符号学習 - 試験中",
+			"interruptButton": "中断",
+			"questionProgress": "問題",
+			"questionTemplates": {
+				"abbrToMeaning": "次の略語の意味は？",
+				"meaningToAbbr": "次の意味を表す略語は？",
+				"morseToAbbr": "モールス音を聞いて、対応する略語は？",
+				"morseToMeaning": "モールス音を聞いて、対応する意味は？"
+			},
+			"replayButton": "🔊 もう一度再生",
+			"confirmInterrupt": "試験を中断してメニューに戻りますか？",
+			"noEntries": "該当するエントリーがありません。フィルターを調整してください。",
+			"invalidCount": "問題数を1以上に設定してください。",
+			"howToUse": "使い方",
+			"instruction1": "フィルターで出題範囲を絞り込みます",
+			"instruction2": "出題形式を選択します（略語→意味、意味→略語、モールス音から）",
+			"instruction3": "問題数を選択します（5問〜全問）",
+			"instruction4": "4つの選択肢から正解を選びます",
+			"instruction5": "80%以上で合格です"
+		},
+		"result": {
+			"title": "CW略語・Q符号学習 - 結果",
+			"passed": "合格！",
+			"failed": "不合格",
+			"scoreDetail": " / ",
+			"scoreUnit": "問正解",
+			"wrongAnswersTitle": "間違えた問題（",
+			"wrongAnswersCount": "件）",
+			"yourAnswer": "あなたの回答:",
+			"correctAnswer": "正解:",
+			"perfectScore": "すべて正解しました！",
+			"retryButton": "もう一度",
+			"backToSetupButton": "設定に戻る"
+		}
 	},
 	"koch": {
 		"title": "コッホ法トレーニング",

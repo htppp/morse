@@ -155,36 +155,145 @@ export interface Translations {
 	};
 	flashcard: {
 		title: string;
-		modes: {
+		loading: string;
+		loadError: string;
+		error: string;
+		tabs: {
 			browse: string;
 			learn: string;
-			test: string;
+			exam: string;
 		};
-		filters: {
-			all: string;
-			common: string;
-			qCode: string;
-			abbreviation: string;
+		filter: {
+			title: string;
+			tagLabel: string;
+			frequencyLabel: string;
+			searchLabel: string;
+			searchPlaceholder: string;
+			filteredCount: string;
+			totalCount: string;
+			items: string;
 		};
-		stats: {
-			total: string;
-			learned: string;
-			remaining: string;
+		browse: {
+			entriesHeader: string;
+			entriesCount: string;
+			toggleList: string;
+			toggleCard: string;
+			examplePrefix: string;
+			tableHeaders: {
+				abbreviation: string;
+				english: string;
+				japanese: string;
+				frequency: string;
+				tags: string;
+				description: string;
+				example: string;
+			};
+			howToUse: string;
+			instruction1: string;
+			instruction2: string;
+			instruction3: string;
+			instruction4: string;
+			instruction5: string;
+			instruction6: string;
 		};
-		fields: {
-			abbreviation: string;
-			english: string;
-			japanese: string;
-			description: string;
-			example: string;
+		learn: {
+			setupTitle: string;
+			modeLabel: string;
+			reviewMode: string;
+			reviewModeCount: string;
+			questionTypeLabel: string;
+			questionTypes: {
+				abbrToMeaning: string;
+				meaningToAbbr: string;
+				morseToAbbr: string;
+				morseToMeaning: string;
+			};
+			availableCards: string;
+			cardsUnit: string;
+			startButton: string;
+			clearProgressButton: string;
+			backToSetup: string;
+			progressIndicator: string;
+			cardLabels: {
+				abbreviation: string;
+				meaning: string;
+				morseToAbbrPrompt: string;
+				morseToMeaningPrompt: string;
+			};
+			playMorseButton: string;
+			flipToAnswer: string;
+			flipToQuestion: string;
+			spaceHint: string;
+			judgmentButtons: {
+				unknown: string;
+				known: string;
+			};
+			navigation: {
+				prev: string;
+				next: string;
+			};
+			confirmReset: string;
+			noCards: string;
+			completed: string;
+			howToUse: string;
+			instruction1: string;
+			instruction2: string;
+			instruction3: string;
+			instruction4: string;
+			instruction5: string;
 		};
-		showAnswer: string;
-		nextCard: string;
-		previousCard: string;
-		shuffle: string;
-		export: string;
-		markAsLearned: string;
-		markAsUnlearned: string;
+		exam: {
+			setupTitle: string;
+			questionTypeLabel: string;
+			questionTypes: {
+				abbrToMeaning: string;
+				meaningToAbbr: string;
+				morseToAbbr: string;
+				morseToMeaning: string;
+			};
+			questionCountLabel: string;
+			questionCounts: {
+				five: string;
+				ten: string;
+				twenty: string;
+				fifty: string;
+				all: string;
+			};
+			startButton: string;
+			titleInProgress: string;
+			interruptButton: string;
+			questionProgress: string;
+			questionTemplates: {
+				abbrToMeaning: string;
+				meaningToAbbr: string;
+				morseToAbbr: string;
+				morseToMeaning: string;
+			};
+			replayButton: string;
+			confirmInterrupt: string;
+			noEntries: string;
+			invalidCount: string;
+			howToUse: string;
+			instruction1: string;
+			instruction2: string;
+			instruction3: string;
+			instruction4: string;
+			instruction5: string;
+		};
+		result: {
+			title: string;
+			passed: string;
+			failed: string;
+			scoreDetail: string;
+			scoreUnit: string;
+			wrongAnswersTitle: string;
+			wrongAnswersCount: string;
+			yourAnswer: string;
+			correctAnswer: string;
+			perfectScore: string;
+			retryButton: string;
+			backToSetupButton: string;
+		};
 	};
 	koch: {
 		title: string;

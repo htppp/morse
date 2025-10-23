@@ -21,6 +21,8 @@ import {
 } from 'morse-engine';
 import { loadFlashcardData } from '../../utils/flashcard-loader';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
+import { t } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 /**
  * 画面状態（ローディングと結果表示用）
@@ -31,6 +33,7 @@ type ViewState = 'loading' | 'browse' | 'learn' | 'exam' | 'exam-result';
  * フラッシュカードビュークラス
  */
 export class FlashcardView implements View {
+	private languageSwitcher = new LanguageSwitcher();
 	private allEntries: FlashcardEntry[] = [];
 	private filteredEntries: FlashcardEntry[] = [];
 	private currentState: ViewState = 'loading';
@@ -123,11 +126,16 @@ export class FlashcardView implements View {
 			app.innerHTML = `
 				<div class="container">
 					<header class="header">
-						<h1>CW略語・Q符号学習</h1>
-						<button class="back-btn">メニューに戻る</button>
+						<div class="header-top">
+							<button class="back-btn">${t('common.backToMenu')}</button>
+							<h1>${t('flashcard.title')}</h1>
+							<div id="languageSwitcherContainer">
+								${this.languageSwitcher.render()}
+							</div>
+						</div>
 					</header>
 					<div class="loading-container">
-						<p>フラッシュカードデータを読み込み中...</p>
+						<p>${t('flashcard.loading')}</p>
 					</div>
 				</div>
 			`;
@@ -150,12 +158,17 @@ export class FlashcardView implements View {
 				app.innerHTML = `
 					<div class="container">
 						<header class="header">
-							<h1>CW略語・Q符号学習</h1>
-							<button class="back-btn">メニューに戻る</button>
+							<div class="header-top">
+								<button class="back-btn">${t('common.backToMenu')}</button>
+								<h1>${t('flashcard.title')}</h1>
+								<div id="languageSwitcherContainer">
+									${this.languageSwitcher.render()}
+								</div>
+							</div>
 						</header>
 						<div class="error-container">
-							<p>データの読み込みに失敗しました。</p>
-							<p>エラー: ${error}</p>
+							<p>${t('flashcard.loadError')}</p>
+							<p>${t('flashcard.error')} ${error}</p>
 						</div>
 					</div>
 				`;
@@ -179,10 +192,10 @@ export class FlashcardView implements View {
 
 		return `
 			<div class="filter-section">
-				<h3>フィルター設定</h3>
+				<h3>${t('flashcard.filter.title')}</h3>
 
 				<div class="filter-group">
-					<label>タグで絞り込み</label>
+					<label>${t('flashcard.filter.tagLabel')}</label>
 					<div class="tag-filter" id="tag-filter">
 						${allTags.map(tag => `
 							<label class="tag-checkbox">
@@ -194,7 +207,7 @@ export class FlashcardView implements View {
 				</div>
 
 				<div class="filter-group">
-					<label>使用頻度で絞り込み（1=低頻度、5=高頻度）</label>
+					<label>${t('flashcard.filter.frequencyLabel')}</label>
 					<div class="frequency-filter" id="frequency-filter">
 						${[5, 4, 3, 2, 1].map(freq => `
 							<label class="frequency-checkbox">
@@ -206,13 +219,13 @@ export class FlashcardView implements View {
 				</div>
 
 				<div class="filter-group">
-					<label for="search-input">検索（略語・意味・タグ）</label>
-					<input type="text" id="search-input" class="search-input" placeholder="例: QTH, location, Q符号" value="${this.searchQuery}">
+					<label for="search-input">${t('flashcard.filter.searchLabel')}</label>
+					<input type="text" id="search-input" class="search-input" placeholder="${t('flashcard.filter.searchPlaceholder')}" value="${this.searchQuery}">
 				</div>
 
 				<div class="filter-stats">
-					<span>該当: <strong id="filtered-count">${this.filteredEntries.length}</strong> 件</span>
-					<span>全体: <strong>${this.allEntries.length}</strong> 件</span>
+					<span>${t('flashcard.filter.filteredCount')} <strong id="filtered-count">${this.filteredEntries.length}</strong> ${t('flashcard.filter.items')}</span>
+					<span>${t('flashcard.filter.totalCount')} <strong>${this.allEntries.length}</strong> ${t('flashcard.filter.items')}</span>
 				</div>
 			</div>
 		`;
@@ -234,14 +247,19 @@ export class FlashcardView implements View {
 
 			<div class="container">
 				<header class="header">
-					<button class="back-btn">メニューに戻る</button>
-					<h1>CW略語・Q符号学習</h1>
+					<div class="header-top">
+						<button class="back-btn">${t('common.backToMenu')}</button>
+						<h1>${t('flashcard.title')}</h1>
+						<div id="languageSwitcherContainer">
+							${this.languageSwitcher.render()}
+						</div>
+					</div>
 				</header>
 
 				<div class="tabs">
-					<button class="tab-button active" data-tab="browse">一覧</button>
-					<button class="tab-button" data-tab="learn">学習モード</button>
-					<button class="tab-button" data-tab="exam">試験モード</button>
+					<button class="tab-button active" data-tab="browse">${t('flashcard.tabs.browse')}</button>
+					<button class="tab-button" data-tab="learn">${t('flashcard.tabs.learn')}</button>
+					<button class="tab-button" data-tab="exam">${t('flashcard.tabs.exam')}</button>
 				</div>
 
 				<div class="flashcard-container">
@@ -252,14 +270,14 @@ export class FlashcardView implements View {
 					</div>
 
 					<div class="instructions">
-						<h3>使い方</h3>
+						<h3>${t('flashcard.browse.howToUse')}</h3>
 						<ul>
-							<li>タグ、使用頻度、検索で略語を絞り込めます</li>
-							<li>略語カードをクリックするとモールス信号を再生できます</li>
-							<li>カード表示とリスト表示を切り替えられます</li>
-							<li>「学習モード」タブでフラッシュカード学習ができます</li>
-							<li>「試験モード」タブで理解度テストができます</li>
-							<li>画面右上の⚙アイコンから音量・周波数・速度を調整できます</li>
+							<li>${t('flashcard.browse.instruction1')}</li>
+							<li>${t('flashcard.browse.instruction2')}</li>
+							<li>${t('flashcard.browse.instruction3')}</li>
+							<li>${t('flashcard.browse.instruction4')}</li>
+							<li>${t('flashcard.browse.instruction5')}</li>
+							<li>${t('flashcard.browse.instruction6')}</li>
 						</ul>
 					</div>
 				</div>
@@ -290,20 +308,20 @@ export class FlashcardView implements View {
 	private renderCardView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
-				<h3>略語一覧 (${this.filteredEntries.length}件)</h3>
-				<button id="toggle-display-btn" class="toggle-display-btn">📋 リスト表示</button>
+				<h3>${t('flashcard.browse.entriesHeader')} (${this.filteredEntries.length}${t('flashcard.browse.entriesCount')})</h3>
+				<button id="toggle-display-btn" class="toggle-display-btn">${t('flashcard.browse.toggleList')}</button>
 			</div>
 			<div class="entries-grid">
 				${this.filteredEntries.map(entry => `
 					<div class="entry-card ${this.currentlyPlaying === entry.abbreviation ? 'playing' : ''}" data-abbr="${entry.abbreviation}">
 						<div class="entry-header">
 							<div class="entry-abbr">${this.formatAbbreviation(entry.abbreviation)}</div>
-							<div class="entry-frequency" title="使用頻度: ${entry.frequency}/5">${'★'.repeat(entry.frequency)}${'☆'.repeat(5 - entry.frequency)}</div>
+							<div class="entry-frequency" title="${t('flashcard.filter.frequencyLabel')}: ${entry.frequency}/5">${'★'.repeat(entry.frequency)}${'☆'.repeat(5 - entry.frequency)}</div>
 						</div>
 						<div class="entry-english">${entry.english}</div>
 						<div class="entry-japanese">${entry.japanese}</div>
 						${entry.description ? `<div class="entry-description">${entry.description}</div>` : ''}
-						${entry.example ? `<div class="entry-example">例: ${entry.example}</div>` : ''}
+						${entry.example ? `<div class="entry-example">${t('flashcard.browse.examplePrefix')}${entry.example}</div>` : ''}
 						<div class="entry-tags">${entry.tags}</div>
 					</div>
 				`).join('')}
@@ -335,20 +353,20 @@ export class FlashcardView implements View {
 	private renderListView(container: HTMLElement): void {
 		container.innerHTML = `
 			<div class="entries-header">
-				<h3>略語一覧 (${this.filteredEntries.length}件)</h3>
-				<button id="toggle-display-btn" class="toggle-display-btn">🃏 カード表示</button>
+				<h3>${t('flashcard.browse.entriesHeader')} (${this.filteredEntries.length}${t('flashcard.browse.entriesCount')})</h3>
+				<button id="toggle-display-btn" class="toggle-display-btn">${t('flashcard.browse.toggleCard')}</button>
 			</div>
 			<div class="list-table-container">
 				<table class="list-table">
 					<thead>
 						<tr>
-							<th class="sortable" data-column="abbreviation">略語${this.getSortIndicator('abbreviation')}</th>
-							<th class="sortable" data-column="english">英文${this.getSortIndicator('english')}</th>
-							<th class="sortable" data-column="japanese">和訳${this.getSortIndicator('japanese')}</th>
-							<th class="sortable" data-column="frequency">頻度${this.getSortIndicator('frequency')}</th>
-							<th class="sortable" data-column="tags">タグ${this.getSortIndicator('tags')}</th>
-							<th>説明</th>
-							<th>具体例</th>
+							<th class="sortable" data-column="abbreviation">${t('flashcard.browse.tableHeaders.abbreviation')}${this.getSortIndicator('abbreviation')}</th>
+							<th class="sortable" data-column="english">${t('flashcard.browse.tableHeaders.english')}${this.getSortIndicator('english')}</th>
+							<th class="sortable" data-column="japanese">${t('flashcard.browse.tableHeaders.japanese')}${this.getSortIndicator('japanese')}</th>
+							<th class="sortable" data-column="frequency">${t('flashcard.browse.tableHeaders.frequency')}${this.getSortIndicator('frequency')}</th>
+							<th class="sortable" data-column="tags">${t('flashcard.browse.tableHeaders.tags')}${this.getSortIndicator('tags')}</th>
+							<th>${t('flashcard.browse.tableHeaders.description')}</th>
+							<th>${t('flashcard.browse.tableHeaders.example')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -361,7 +379,7 @@ export class FlashcardView implements View {
 								</td>
 								<td>${entry.english}</td>
 								<td>${entry.japanese}</td>
-								<td title="使用頻度: ${entry.frequency}/5">${'★'.repeat(entry.frequency)}${'☆'.repeat(5 - entry.frequency)}</td>
+								<td title="${t('flashcard.filter.frequencyLabel')}: ${entry.frequency}/5">${'★'.repeat(entry.frequency)}${'☆'.repeat(5 - entry.frequency)}</td>
 								<td>${entry.tags}</td>
 								<td>${entry.description || ''}</td>
 								<td>${entry.example || ''}</td>
@@ -438,59 +456,64 @@ export class FlashcardView implements View {
 
 			<div class="container">
 				<header class="header">
-					<button class="back-btn">メニューに戻る</button>
-					<h1>CW略語・Q符号学習</h1>
+					<div class="header-top">
+						<button class="back-btn">${t('common.backToMenu')}</button>
+						<h1>${t('flashcard.title')}</h1>
+						<div id="languageSwitcherContainer">
+							${this.languageSwitcher.render()}
+						</div>
+					</div>
 				</header>
 
 				<div class="tabs">
-					<button class="tab-button" data-tab="browse">一覧</button>
-					<button class="tab-button active" data-tab="learn">学習モード</button>
-					<button class="tab-button" data-tab="exam">試験モード</button>
+					<button class="tab-button" data-tab="browse">${t('flashcard.tabs.browse')}</button>
+					<button class="tab-button active" data-tab="learn">${t('flashcard.tabs.learn')}</button>
+					<button class="tab-button" data-tab="exam">${t('flashcard.tabs.exam')}</button>
 				</div>
 
 				<div class="flashcard-container">
 					${this.renderFilterSection()}
 
 					<div class="learn-setup-section">
-						<h3>学習設定</h3>
+						<h3>${t('flashcard.learn.setupTitle')}</h3>
 
 						<div class="filter-group">
-							<label>モード</label>
+							<label>${t('flashcard.learn.modeLabel')}</label>
 							<div class="mode-buttons">
 								<button class="mode-btn ${this.reviewMode ? 'active' : ''}" id="review-mode-btn">
-									復習モード（わからないカードのみ: ${this.progress.unknown.size}件）
+									${t('flashcard.learn.reviewMode')}${this.progress.unknown.size}${t('flashcard.learn.reviewModeCount')}
 								</button>
 							</div>
 						</div>
 
 						<div class="filter-group">
-							<label>出題形式</label>
+							<label>${t('flashcard.learn.questionTypeLabel')}</label>
 							<div class="question-type-buttons">
-								<button class="question-type-btn ${this.learnQuestionType === 'abbr-to-meaning' ? 'active' : ''}" data-type="abbr-to-meaning">略語→意味（基本）</button>
-								<button class="question-type-btn ${this.learnQuestionType === 'meaning-to-abbr' ? 'active' : ''}" data-type="meaning-to-abbr">意味→略語（応用）</button>
-								<button class="question-type-btn ${this.learnQuestionType === 'morse-to-abbr' ? 'active' : ''}" data-type="morse-to-abbr">モールス音→略語（実践）</button>
-								<button class="question-type-btn ${this.learnQuestionType === 'morse-to-meaning' ? 'active' : ''}" data-type="morse-to-meaning">モールス音→意味（実践）</button>
+								<button class="question-type-btn ${this.learnQuestionType === 'abbr-to-meaning' ? 'active' : ''}" data-type="abbr-to-meaning">${t('flashcard.learn.questionTypes.abbrToMeaning')}</button>
+								<button class="question-type-btn ${this.learnQuestionType === 'meaning-to-abbr' ? 'active' : ''}" data-type="meaning-to-abbr">${t('flashcard.learn.questionTypes.meaningToAbbr')}</button>
+								<button class="question-type-btn ${this.learnQuestionType === 'morse-to-abbr' ? 'active' : ''}" data-type="morse-to-abbr">${t('flashcard.learn.questionTypes.morseToAbbr')}</button>
+								<button class="question-type-btn ${this.learnQuestionType === 'morse-to-meaning' ? 'active' : ''}" data-type="morse-to-meaning">${t('flashcard.learn.questionTypes.morseToMeaning')}</button>
 							</div>
 						</div>
 
 						<div class="filter-stats">
-							<span>学習可能: <strong>${cardCount}</strong> 枚</span>
+							<span>${t('flashcard.learn.availableCards')} <strong>${cardCount}</strong> ${t('flashcard.learn.cardsUnit')}</span>
 						</div>
 
 						<div class="action-area">
-							<button class="btn btn-large btn-primary" id="start-learn-btn" ${cardCount === 0 ? 'disabled' : ''}>学習開始</button>
-							<button class="btn btn-large btn-secondary" id="clear-progress-btn">進捗をリセット</button>
+							<button class="btn btn-large btn-primary" id="start-learn-btn" ${cardCount === 0 ? 'disabled' : ''}>${t('flashcard.learn.startButton')}</button>
+							<button class="btn btn-large btn-secondary" id="clear-progress-btn">${t('flashcard.learn.clearProgressButton')}</button>
 						</div>
 					</div>
 
 					<div class="instructions">
-						<h3>使い方</h3>
+						<h3>${t('flashcard.learn.howToUse')}</h3>
 						<ul>
-							<li>フィルターで学習する略語を絞り込みます</li>
-							<li>出題形式を選択します（略語→意味、意味→略語、モールス音からの解読）</li>
-							<li>カードをクリックで裏返し、「わかる」「わからない」で進捗を記録</li>
-							<li>復習モードで「わからない」カードのみを学習できます</li>
-							<li>学習進捗はブラウザに自動保存されます</li>
+							<li>${t('flashcard.learn.instruction1')}</li>
+							<li>${t('flashcard.learn.instruction2')}</li>
+							<li>${t('flashcard.learn.instruction3')}</li>
+							<li>${t('flashcard.learn.instruction4')}</li>
+							<li>${t('flashcard.learn.instruction5')}</li>
 						</ul>
 					</div>
 				</div>
@@ -573,7 +596,7 @@ export class FlashcardView implements View {
 		//! 進捗リセットボタン。
 		const clearProgressBtn = document.getElementById('clear-progress-btn');
 		clearProgressBtn?.addEventListener('click', () => {
-			if (confirm('学習進捗をリセットしますか？')) {
+			if (confirm(t('flashcard.learn.confirmReset'))) {
 				this.clearProgress();
 				this.renderLearnSetup();
 			}
@@ -593,7 +616,7 @@ export class FlashcardView implements View {
 		}
 
 		if (cards.length === 0) {
-			alert('学習可能なカードがありません。');
+			alert(t('flashcard.learn.noCards'));
 			return;
 		}
 
@@ -624,43 +647,43 @@ export class FlashcardView implements View {
 		switch (this.learnQuestionType) {
 			case 'abbr-to-meaning':
 				frontContent = `
-					<div class="card-label">略語</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.abbreviation')}</div>
 					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
 				`;
 				backContent = `
-					<div class="card-label">意味</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.meaning')}</div>
 					<div class="card-content-text">${card.english}</div>
 					<div class="card-content-text">${card.japanese}</div>
 				`;
 				break;
 			case 'meaning-to-abbr':
 				frontContent = `
-					<div class="card-label">意味</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.meaning')}</div>
 					<div class="card-content-text">${card.english}</div>
 					<div class="card-content-text">${card.japanese}</div>
 				`;
 				backContent = `
-					<div class="card-label">略語</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.abbreviation')}</div>
 					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
 				`;
 				break;
 			case 'morse-to-abbr':
 				frontContent = `
-					<div class="card-label">モールス音を聞いて略語を答えてください</div>
-					<button class="play-morse-btn" id="play-morse-btn">🔊 モールス再生</button>
+					<div class="card-label">${t('flashcard.learn.cardLabels.morseToAbbrPrompt')}</div>
+					<button class="play-morse-btn" id="play-morse-btn">${t('flashcard.learn.playMorseButton')}</button>
 				`;
 				backContent = `
-					<div class="card-label">略語</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.abbreviation')}</div>
 					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
 				`;
 				break;
 			case 'morse-to-meaning':
 				frontContent = `
-					<div class="card-label">モールス音を聞いて意味を答えてください</div>
-					<button class="play-morse-btn" id="play-morse-btn">🔊 モールス再生</button>
+					<div class="card-label">${t('flashcard.learn.cardLabels.morseToMeaningPrompt')}</div>
+					<button class="play-morse-btn" id="play-morse-btn">${t('flashcard.learn.playMorseButton')}</button>
 				`;
 				backContent = `
-					<div class="card-label">意味</div>
+					<div class="card-label">${t('flashcard.learn.cardLabels.meaning')}</div>
 					<div class="card-content-abbr">${this.formatAbbreviation(card.abbreviation)}</div>
 					<div class="card-content-text">${card.english}</div>
 					<div class="card-content-text">${card.japanese}</div>
@@ -674,10 +697,10 @@ export class FlashcardView implements View {
 		const judgmentButtons = `
 			<div class="judgment-controls">
 				<button id="mark-unknown-btn" class="judgment-button unknown ${isUnknown ? 'active' : ''}">
-					× わからない
+					${t('flashcard.learn.judgmentButtons.unknown')}
 				</button>
 				<button id="mark-known-btn" class="judgment-button known ${isKnown ? 'active' : ''}">
-					○ わかる
+					${t('flashcard.learn.judgmentButtons.known')}
 				</button>
 			</div>
 		`;
@@ -685,8 +708,8 @@ export class FlashcardView implements View {
 		app.innerHTML = `
 			<div class="container learning-view">
 				<div class="learning-header">
-					<button id="back-to-setup-btn" class="back-btn">← 設定に戻る</button>
-					<div class="progress-indicator">${currentNum} / ${totalNum}</div>
+					<button id="back-to-setup-btn" class="back-btn">${t('flashcard.learn.backToSetup')}</button>
+					<div class="progress-indicator">${currentNum}${t('flashcard.learn.progressIndicator')}${totalNum}</div>
 				</div>
 
 				<div class="card-container">
@@ -697,7 +720,7 @@ export class FlashcardView implements View {
 						<div class="card-back">
 							${backContent}
 							${card.description ? `<div class="card-description">${card.description}</div>` : ''}
-							${card.example ? `<div class="card-example">例: ${card.example}</div>` : ''}
+							${card.example ? `<div class="card-example">${t('flashcard.browse.examplePrefix')}${card.example}</div>` : ''}
 							<div class="card-tags">${card.tags} / ${'★'.repeat(card.frequency)}</div>
 						</div>
 					</div>
@@ -705,7 +728,7 @@ export class FlashcardView implements View {
 
 				<div class="card-controls">
 					<button id="flip-card-btn" class="control-button">
-						${this.isFlipped ? '問題に戻る' : '正解を確認する'} (Space)
+						${this.isFlipped ? t('flashcard.learn.flipToQuestion') : t('flashcard.learn.flipToAnswer')} ${t('flashcard.learn.spaceHint')}
 					</button>
 				</div>
 
@@ -713,10 +736,10 @@ export class FlashcardView implements View {
 
 				<div class="navigation-controls">
 					<button id="prev-card-btn" class="nav-button" ${this.currentLearnIndex === 0 ? 'disabled' : ''}>
-						← 前のカード
+						${t('flashcard.learn.navigation.prev')}
 					</button>
 					<button id="next-card-btn" class="nav-button" ${this.currentLearnIndex >= this.learnCards.length - 1 ? 'disabled' : ''}>
-						次のカード →
+						${t('flashcard.learn.navigation.next')}
 					</button>
 				</div>
 			</div>
@@ -816,7 +839,7 @@ export class FlashcardView implements View {
 			this.renderLearnCard();
 		} else {
 			//! 最後のカードの場合は学習完了。
-			alert('学習完了しました！');
+			alert(t('flashcard.learn.completed'));
 			this.learnCards = [];
 			this.currentLearnIndex = 0;
 			this.isFlipped = false;
@@ -1249,6 +1272,12 @@ export class FlashcardView implements View {
 		document.getElementById('settingsIcon')?.addEventListener('click', () => {
 			this.openSettingsModal();
 		});
+
+		//! 言語切り替え。
+		const languageSwitcherContainer = document.getElementById('languageSwitcherContainer');
+		if (languageSwitcherContainer) {
+			this.languageSwitcher.attachEventListeners(languageSwitcherContainer);
+		}
 
 		//! タブ切り替え。
 		const tabButtons = document.querySelectorAll('.tab-button');

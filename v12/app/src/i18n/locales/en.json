@@ -143,36 +143,145 @@
 	},
 	"flashcard": {
 		"title": "CW Abbreviations & Q Codes",
-		"modes": {
-			"browse": "Browse Mode",
+		"loading": "Loading flashcard data...",
+		"loadError": "Failed to load data.",
+		"error": "Error:",
+		"tabs": {
+			"browse": "Browse",
 			"learn": "Learn Mode",
-			"test": "Test Mode"
+			"exam": "Exam Mode"
 		},
-		"filters": {
-			"all": "All",
-			"common": "Common",
-			"qCode": "Q Codes",
-			"abbreviation": "Abbreviations"
+		"filter": {
+			"title": "Filter Settings",
+			"tagLabel": "Filter by Tag",
+			"frequencyLabel": "Filter by Frequency (1=Low, 5=High)",
+			"searchLabel": "Search (abbreviation, meaning, tags)",
+			"searchPlaceholder": "e.g., QTH, location, Q code",
+			"filteredCount": "Filtered:",
+			"totalCount": "Total:",
+			"items": "items"
 		},
-		"stats": {
-			"total": "Total: {count}",
-			"learned": "Learned: {count}",
-			"remaining": "Remaining: {count}"
+		"browse": {
+			"entriesHeader": "Abbreviations List",
+			"entriesCount": "items",
+			"toggleList": "📋 List View",
+			"toggleCard": "🃏 Card View",
+			"examplePrefix": "e.g., ",
+			"tableHeaders": {
+				"abbreviation": "Abbr.",
+				"english": "English",
+				"japanese": "Japanese",
+				"frequency": "Freq.",
+				"tags": "Tags",
+				"description": "Description",
+				"example": "Example"
+			},
+			"howToUse": "How to Use",
+			"instruction1": "Filter abbreviations by tags, frequency, and search",
+			"instruction2": "Click abbreviation cards to play Morse code",
+			"instruction3": "Switch between card and list view",
+			"instruction4": "Use 'Learn Mode' tab for flashcard learning",
+			"instruction5": "Use 'Exam Mode' tab for comprehension testing",
+			"instruction6": "Click ⚙ icon in top right to adjust volume, frequency, and speed"
 		},
-		"fields": {
-			"abbreviation": "Abbreviation",
-			"english": "English",
-			"japanese": "Japanese",
-			"description": "Description",
-			"example": "Example"
+		"learn": {
+			"setupTitle": "Learning Settings",
+			"modeLabel": "Mode",
+			"reviewMode": "Review Mode (unknown cards only:",
+			"reviewModeCount": "items)",
+			"questionTypeLabel": "Question Type",
+			"questionTypes": {
+				"abbrToMeaning": "Abbr. → Meaning (Basic)",
+				"meaningToAbbr": "Meaning → Abbr. (Applied)",
+				"morseToAbbr": "Morse Sound → Abbr. (Practical)",
+				"morseToMeaning": "Morse Sound → Meaning (Practical)"
+			},
+			"availableCards": "Available:",
+			"cardsUnit": "cards",
+			"startButton": "Start Learning",
+			"clearProgressButton": "Reset Progress",
+			"backToSetup": "← Back to Setup",
+			"progressIndicator": " / ",
+			"cardLabels": {
+				"abbreviation": "Abbreviation",
+				"meaning": "Meaning",
+				"morseToAbbrPrompt": "Listen to Morse sound and answer the abbreviation",
+				"morseToMeaningPrompt": "Listen to Morse sound and answer the meaning"
+			},
+			"playMorseButton": "🔊 Play Morse",
+			"flipToAnswer": "Show Answer",
+			"flipToQuestion": "Back to Question",
+			"spaceHint": "(Space)",
+			"judgmentButtons": {
+				"unknown": "× Don't Know",
+				"known": "○ Know"
+			},
+			"navigation": {
+				"prev": "← Previous Card",
+				"next": "Next Card →"
+			},
+			"confirmReset": "Reset learning progress?",
+			"noCards": "No cards available for learning.",
+			"completed": "Learning completed!",
+			"howToUse": "How to Use",
+			"instruction1": "Filter abbreviations to study using filters",
+			"instruction2": "Select question type (abbr. → meaning, meaning → abbr., Morse sound decoding)",
+			"instruction3": "Click card to flip, mark 'Know' or 'Don't Know' to record progress",
+			"instruction4": "Use review mode to study only 'Don't Know' cards",
+			"instruction5": "Learning progress is automatically saved in browser"
 		},
-		"showAnswer": "Show Answer",
-		"nextCard": "Next",
-		"previousCard": "Previous",
-		"shuffle": "Shuffle",
-		"export": "Export",
-		"markAsLearned": "Mark as Learned",
-		"markAsUnlearned": "Mark as Unlearned"
+		"exam": {
+			"setupTitle": "Question Format",
+			"questionTypeLabel": "Question Format",
+			"questionTypes": {
+				"abbrToMeaning": "Abbr. → Meaning (Basic)",
+				"meaningToAbbr": "Meaning → Abbr. (Applied)",
+				"morseToAbbr": "Morse Sound → Abbr. (Practical)",
+				"morseToMeaning": "Morse Sound → Meaning (Practical)"
+			},
+			"questionCountLabel": "Number of Questions",
+			"questionCounts": {
+				"five": "5 questions",
+				"ten": "10 questions",
+				"twenty": "20 questions",
+				"fifty": "50 questions",
+				"all": "All"
+			},
+			"startButton": "Start Exam",
+			"titleInProgress": "CW Abbreviations & Q Codes - Exam",
+			"interruptButton": "Interrupt",
+			"questionProgress": "Question",
+			"questionTemplates": {
+				"abbrToMeaning": "What does this abbreviation mean?",
+				"meaningToAbbr": "What abbreviation represents this meaning?",
+				"morseToAbbr": "Listen to Morse sound, which abbreviation is it?",
+				"morseToMeaning": "Listen to Morse sound, what does it mean?"
+			},
+			"replayButton": "🔊 Replay",
+			"confirmInterrupt": "Interrupt exam and return to menu?",
+			"noEntries": "No matching entries. Adjust filters.",
+			"invalidCount": "Set question count to 1 or more.",
+			"howToUse": "How to Use",
+			"instruction1": "Filter to narrow exam scope",
+			"instruction2": "Select question format (abbr. → meaning, meaning → abbr., from Morse sound)",
+			"instruction3": "Select number of questions (5 ~ all)",
+			"instruction4": "Choose correct answer from 4 choices",
+			"instruction5": "80% or higher to pass"
+		},
+		"result": {
+			"title": "CW Abbreviations & Q Codes - Result",
+			"passed": "Passed!",
+			"failed": "Failed",
+			"scoreDetail": " / ",
+			"scoreUnit": " correct",
+			"wrongAnswersTitle": "Incorrect Answers (",
+			"wrongAnswersCount": "items)",
+			"yourAnswer": "Your Answer:",
+			"correctAnswer": "Correct Answer:",
+			"perfectScore": "Perfect score!",
+			"retryButton": "Try Again",
+			"backToSetupButton": "Back to Setup"
+		}
 	},
 	"koch": {
 		"title": "Koch Method Training",
