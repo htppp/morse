@@ -62,7 +62,7 @@ export class MenuView implements View {
 			<div class="container">
 				<header class="menu-header">
 					<h1>モールス練習アプリ</h1>
-					<p class="version">v10 - Engine/GUI分離版</p>
+					<p class="version">v11 - タイミング評価版</p>
 				</header>
 
 				<main class="menu-main">
