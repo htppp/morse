@@ -15,6 +15,8 @@ import {
 	type WordTimingData
 } from 'morse-engine';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
+import { t } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 /**
  * 横振り電鍵練習ビュークラス
@@ -37,6 +39,7 @@ export class HorizontalKeyView implements View {
 	// イベントハンドラーの参照を保持
 	private keyPressHandler: ((e: KeyboardEvent) => void) | null = null;
 	private keyReleaseHandler: ((e: KeyboardEvent) => void) | null = null;
+	private languageSwitcher = new LanguageSwitcher();
 
 	constructor() {
 		//! 設定を読み込む。
@@ -122,106 +125,111 @@ export class HorizontalKeyView implements View {
 
 			<div class="container">
 				<header class="header">
-					<button class="back-btn">メニューに戻る</button>
-					<h1>横振り電鍵練習</h1>
+					<div class="header-top">
+						<button class="back-btn">${t('common.backToMenu')}</button>
+						<h1>${t('horizontalKey.title')}</h1>
+						<div id="languageSwitcherContainer">
+							${this.languageSwitcher.render()}
+						</div>
+					</div>
 				</header>
 
 				<div class="paddle-container">
 					<button class="paddle-button dit" id="left-paddle">
-						DIT
-						<span class="paddle-label">(短点)</span>
-						<span class="paddle-key">J キー</span>
+						${t('horizontalKey.dit')}
+						<span class="paddle-label">${t('horizontalKey.ditLabel')}</span>
+						<span class="paddle-key">${t('horizontalKey.jKey')}</span>
 					</button>
 					<button class="paddle-button dah" id="right-paddle">
-						DAH
-						<span class="paddle-label">(長点)</span>
-						<span class="paddle-key">K キー</span>
+						${t('horizontalKey.dah')}
+						<span class="paddle-label">${t('horizontalKey.dahLabel')}</span>
+						<span class="paddle-key">${t('horizontalKey.kKey')}</span>
 					</button>
 				</div>
 
 				<div class="practice-container">
 					<div class="display-area">
 						<div class="display-section">
-							<h3>モールス信号</h3>
-							<div class="display-output morse-buffer" id="morse-buffer">（ここにモールス符号が表示されます）</div>
+							<h3>${t('horizontalKey.morseSignal')}</h3>
+							<div class="display-output morse-buffer" id="morse-buffer">${t('horizontalKey.morseBufferPlaceholder')}</div>
 						</div>
 						<div class="display-section">
-							<h3>デコード結果</h3>
-							<div class="display-output" id="decoded-text">（ここにデコードされた文字が表示されます）</div>
+							<h3>${t('horizontalKey.decodedResult')}</h3>
+							<div class="display-output" id="decoded-text">${t('horizontalKey.decodedTextPlaceholder')}</div>
 						</div>
 					</div>
 
 					<div class="action-area">
-						<button class="btn btn-large btn-danger" id="clear-btn">クリア</button>
+						<button class="btn btn-large btn-danger" id="clear-btn">${t('horizontalKey.clear')}</button>
 					</div>
 
 					<div class="status-area">
 						<div class="status-item">
-							<span class="label">現在の速度</span>
+							<span class="label">${t('horizontalKey.currentSpeed')}</span>
 							<span class="value" id="current-wpm">${this.currentWPM}</span>
 						</div>
 						<div class="status-item">
-							<span class="label">Iambicモード</span>
+							<span class="label">${t('horizontalKey.iambicMode')}</span>
 							<span class="value" id="current-iambic-mode">${this.iambicMode}</span>
 						</div>
 						<div class="status-item">
-							<span class="label">入力文字数</span>
+							<span class="label">${t('horizontalKey.charCount')}</span>
 							<span class="value" id="char-count">0</span>
 						</div>
 					</div>
 
 					<div class="timing-diagram-section">
-						<h3>タイミング図（直前の1文字）</h3>
+						<h3>${t('horizontalKey.timingDiagramTitle')}</h3>
 						<div id="timing-diagram-content" class="timing-diagram-content">
-							（文字が確定すると表示されます）
+							${t('horizontalKey.timingDiagramPlaceholder')}
 						</div>
 					</div>
 
 					<div class="timing-diagram-section timing-evaluation-section">
-						<h3>スペーシング評価</h3>
+						<h3>${t('horizontalKey.spacingEvaluation')}</h3>
 						<div class="timing-stats-grid">
 							<div class="timing-stat-card">
-								<div class="timing-stat-label">平均精度</div>
+								<div class="timing-stat-label">${t('horizontalKey.avgAccuracy')}</div>
 								<div class="timing-stat-value" id="timing-avg-accuracy">--%</div>
 							</div>
 							<div class="timing-stat-card">
-								<div class="timing-stat-label">平均誤差</div>
+								<div class="timing-stat-label">${t('horizontalKey.avgError')}</div>
 								<div class="timing-stat-value" id="timing-avg-error">--ms</div>
 							</div>
 							<div class="timing-stat-card">
-								<div class="timing-stat-label">評価数</div>
+								<div class="timing-stat-label">${t('horizontalKey.evaluationCount')}</div>
 								<div class="timing-stat-value" id="timing-count">0</div>
 							</div>
 						</div>
 						<div class="timing-element-stats">
 							<div class="timing-element-stat">
-								<h4>文字間</h4>
+								<h4>${t('horizontalKey.charSpacing')}</h4>
 								<div class="timing-element-detail">
-									<span>期待値: <span id="timing-char-expected">--ms</span></span>
-									<span>精度: <span id="timing-char-accuracy">--%</span></span>
-									<span>誤差: <span id="timing-char-error">--ms</span></span>
-									<span>回数: <span id="timing-char-count">0</span></span>
+									<span>${t('horizontalKey.expected')} <span id="timing-char-expected">--ms</span></span>
+									<span>${t('horizontalKey.accuracy')} <span id="timing-char-accuracy">--%</span></span>
+									<span>${t('horizontalKey.error')} <span id="timing-char-error">--ms</span></span>
+									<span>${t('horizontalKey.count')} <span id="timing-char-count">0</span></span>
 								</div>
 							</div>
 							<div class="timing-element-stat">
-								<h4>単語間</h4>
+								<h4>${t('horizontalKey.wordSpacing')}</h4>
 								<div class="timing-element-detail">
-									<span>期待値: <span id="timing-word-expected">--ms</span></span>
-									<span>精度: <span id="timing-word-accuracy">--%</span></span>
-									<span>誤差: <span id="timing-word-error">--ms</span></span>
-									<span>回数: <span id="timing-word-count">0</span></span>
+									<span>${t('horizontalKey.expected')} <span id="timing-word-expected">--ms</span></span>
+									<span>${t('horizontalKey.accuracy')} <span id="timing-word-accuracy">--%</span></span>
+									<span>${t('horizontalKey.error')} <span id="timing-word-error">--ms</span></span>
+									<span>${t('horizontalKey.count')} <span id="timing-word-count">0</span></span>
 								</div>
 							</div>
 						</div>
 					</div>
 
 					<div class="instructions">
-						<h3>使い方</h3>
+						<h3>${t('horizontalKey.howToUse')}</h3>
 						<ul>
-							<li>左パドル（J）: 短点（・）/ 右パドル（K）: 長点（ー）</li>
-							<li>両方同時押しで自動交互送信（Iambic）</li>
-							<li>Iambic Bモード: スクイーズ後1要素追加送信</li>
-							<li>画面右上の⚙アイコンから設定（WPM、Iambicモード、パドルレイアウト、音量・周波数）を変更できます</li>
+							<li>${t('horizontalKey.instruction1')}</li>
+							<li>${t('horizontalKey.instruction2')}</li>
+							<li>${t('horizontalKey.instruction3')}</li>
+							<li>${t('horizontalKey.instruction4')}</li>
 						</ul>
 					</div>
 				</div>
@@ -334,6 +342,12 @@ export class HorizontalKeyView implements View {
 			rightPaddle.addEventListener('touchcancel', () => {
 				if (this.rightPressed) this.handleRightPaddleRelease();
 			});
+		}
+
+		//! LanguageSwitcherのイベントリスナーを設定。
+		const languageSwitcherContainer = document.getElementById('languageSwitcherContainer');
+		if (languageSwitcherContainer) {
+			this.languageSwitcher.attachEventListeners(languageSwitcherContainer);
 		}
 	}
 
@@ -454,12 +468,12 @@ export class HorizontalKeyView implements View {
 			const buffer = this.trainer.getBuffer();
 			const sequence = this.trainer.getSequence();
 			const fullDisplay = sequence ? `${buffer} ${sequence}` : buffer;
-			morseBuffer.textContent = fullDisplay || '（ここにモールス符号が表示されます）';
+			morseBuffer.textContent = fullDisplay || t('horizontalKey.morseBufferPlaceholder');
 		}
 
 		if (decodedText) {
 			const text = this.trainer.getDecoded();
-			decodedText.textContent = text || '（ここにデコードされた文字が表示されます）';
+			decodedText.textContent = text || t('horizontalKey.decodedTextPlaceholder');
 		}
 
 		if (charCount) {
