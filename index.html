@@ -79,6 +79,11 @@
 
 		//! 即座にリダイレクト。
 		window.location.href = `./${LATEST_VERSION}/`;
+
+		//! 手動リンクも最新バージョンに更新（リダイレクト失敗時のため）。
+		window.addEventListener('DOMContentLoaded', () => {
+			document.getElementById('manualLink').href = `./${LATEST_VERSION}/`;
+		});
 	</script>
 </head>
 <body>
@@ -92,10 +97,5 @@
 			してください
 		</p>
 	</div>
-
-	<script>
-		//! 手動リンクも最新バージョンに更新。
-		document.getElementById('manualLink').href = `./${LATEST_VERSION}/`;
-	</script>
 </body>
 </html>

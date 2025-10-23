@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build && npm run copy-to-root",
-		"copy-to-root": "cp -r dist/index.html dist/flashcard.tsv dist/assets ../",
+		"copy-to-root": "rm -rf ../assets && cp -r dist/index.html dist/flashcard.tsv dist/assets ../",
 		"preview": "vite preview",
 		"type-check": "tsc --noEmit",
 		"test:e2e": "playwright test",
