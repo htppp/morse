@@ -285,18 +285,59 @@
 	},
 	"koch": {
 		"title": "Koch Method Training",
-		"lesson": "Lesson {number}",
-		"customCharacters": "Custom Character Selection",
-		"speed": "Speed",
-		"wpm": "{value} WPM",
-		"characterSpacing": "Character Spacing",
-		"farnsworth": "Farnsworth {value} WPM",
-		"characters": "Characters",
-		"selectCharacters": "Select Characters",
-		"generateText": "Generate Text",
-		"textLength": "Text Length",
-		"playbackSpeed": "Playback Speed",
-		"practice": "Start Practice"
+		"tabs": {
+			"learning": "Basic Learning",
+			"custom": "Custom Practice"
+		},
+		"learning": {
+			"lessonTitle": "Lesson",
+			"lessonProgress": " / 40",
+			"learnedChars": "Learned Characters:",
+			"startPractice": "Start Practice",
+			"lessonListTitle": "Lesson List",
+			"howToUse": "How to Use",
+			"instruction1": "Click 'Start Practice' to listen to Morse code",
+			"instruction2": "Type the characters you hear",
+			"instruction3": "Achieve 90% or higher accuracy to advance to the next lesson"
+		},
+		"custom": {
+			"title": "Custom Character Practice Mode",
+			"selectPrompt": "Select characters you want to practice (at least 2 characters)",
+			"startPractice": "Start Practice",
+			"howToUse": "How to Use",
+			"instruction1": "Click on characters to select them",
+			"instruction2": "Practice starts when 2 or more characters are selected",
+			"instruction3": "Random practice problems will be generated using only the selected characters"
+		},
+		"practice": {
+			"ready": "Ready - Press the play button",
+			"progress": "Progress:",
+			"inputPlaceholder": "Type what you hear...",
+			"customInputPlaceholder": "Type what you hear...",
+			"showResult": "Show Result",
+			"playButton": "Play",
+			"pauseButton": "Pause",
+			"stopButton": "Stop"
+		},
+		"keyboard": {
+			"header": "Group-Based Keyboard (Only learned characters enabled)",
+			"space": "Space",
+			"backspace": "Delete",
+			"groupLabel": "G"
+		},
+		"result": {
+			"passed": "Passed!",
+			"failed": "Failed",
+			"accuracy": "Accuracy:",
+			"sent": "Sent:",
+			"input": "Input:",
+			"noInput": "(No input)",
+			"nextLesson": "Next Lesson",
+			"retry": "Try Again",
+			"customTitle": "Practice Result",
+			"yourInput": "Your Input:",
+			"back": "Back"
+		}
 	},
 	"listening": {
 		"title": "Morse Code Listening Practice",

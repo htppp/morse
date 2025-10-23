@@ -11,6 +11,8 @@ import {
 	type PracticeSettings
 } from 'morse-engine';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
+import { t } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 type ViewMode = 'learning' | 'custom';
 
@@ -60,6 +62,7 @@ export class KochView implements View {
 	private audio: AudioGenerator;
 	private viewMode: ViewMode = 'learning';
 	private settings: KochSettings = { ...DEFAULT_SETTINGS };
+	private languageSwitcher = new LanguageSwitcher();
 
 	private state: LessonState = {
 		currentLesson: 1,
@@ -248,15 +251,15 @@ export class KochView implements View {
 
 		resultContainer.innerHTML = `
 			<div class="result ${passed ? 'passed' : 'failed'}">
-				<h2>${passed ? '合格！' : '不合格'}</h2>
-				<div class="accuracy">正答率: ${accuracy.toFixed(1)}%</div>
+				<h2>${passed ? t('koch.result.passed') : t('koch.result.failed')}</h2>
+				<div class="accuracy">${t('koch.result.accuracy')} ${accuracy.toFixed(1)}%</div>
 				<div class="comparison">
-					<div>送信: ${this.state.correctAnswer}</div>
-					<div>入力: ${this.state.userInput || '（未入力）'}</div>
+					<div>${t('koch.result.sent')} ${this.state.correctAnswer}</div>
+					<div>${t('koch.result.input')} ${this.state.userInput || t('koch.result.noInput')}</div>
 				</div>
 				<div class="actions">
-					${passed ? `<button class="btn primary" id="nextLessonBtn">次のレッスンへ</button>` : ''}
-					<button class="btn" id="retryBtn">もう一度</button>
+					${passed ? `<button class="btn primary" id="nextLessonBtn">${t('koch.result.nextLesson')}</button>` : ''}
+					<button class="btn" id="retryBtn">${t('koch.result.retry')}</button>
 				</div>
 			</div>
 		`;
@@ -281,7 +284,7 @@ export class KochView implements View {
 
 		if (progressEl && progressBar) {
 			const percent = (this.state.currentGroupIndex / this.state.groups.length) * 100;
-			progressEl.textContent = `進行: ${this.state.currentGroupIndex}/${this.state.groups.length} (${percent.toFixed(0)}%)`;
+			progressEl.textContent = `${t('koch.practice.progress')} ${this.state.currentGroupIndex}/${this.state.groups.length} (${percent.toFixed(0)}%)`;
 			progressBar.style.width = `${percent}%`;
 		}
 
@@ -372,7 +375,7 @@ export class KochView implements View {
 
 		if (progressEl && progressBar) {
 			const percent = (this.customState.customCurrentGroupIndex / this.customState.customGroups.length) * 100;
-			progressEl.textContent = `進行: ${this.customState.customCurrentGroupIndex}/${this.customState.customGroups.length} (${percent.toFixed(0)}%)`;
+			progressEl.textContent = `${t('koch.practice.progress')} ${this.customState.customCurrentGroupIndex}/${this.customState.customGroups.length} (${percent.toFixed(0)}%)`;
 			progressBar.style.width = `${percent}%`;
 		}
 
@@ -409,15 +412,15 @@ export class KochView implements View {
 
 		resultContainer.innerHTML = `
 			<div class="result">
-				<h2>練習結果</h2>
-				<div class="accuracy">正答率: ${accuracy}%</div>
+				<h2>${t('koch.result.customTitle')}</h2>
+				<div class="accuracy">${t('koch.result.accuracy')} ${accuracy}%</div>
 				<div class="comparison">
-					<div>送信: ${correctAnswer}</div>
-					<div>あなたの入力: ${userAnswer}</div>
+					<div>${t('koch.result.sent')} ${correctAnswer}</div>
+					<div>${t('koch.result.yourInput')} ${userAnswer}</div>
 				</div>
 				<div class="actions">
-					<button id="retryCustomBtn" class="btn">もう一度</button>
-					<button id="backToCustomMenuBtn" class="btn primary">戻る</button>
+					<button id="retryCustomBtn" class="btn">${t('koch.result.retry')}</button>
+					<button id="backToCustomMenuBtn" class="btn primary">${t('koch.result.back')}</button>
 				</div>
 			</div>
 		`;
@@ -514,21 +517,24 @@ export class KochView implements View {
 		if (!app) return;
 
 		app.innerHTML = `
-			<div class="settings-icon" id="settingsIcon">
-				<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-					<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-				</svg>
+			<div class="header-top">
+				<div class="settings-icon" id="settingsIcon">
+					<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+						<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+					</svg>
+				</div>
+				<div id="languageSwitcherContainer"></div>
 			</div>
 
 			<div class="container">
 				<header class="header">
-					<button class="back-btn" id="back-btn">メニューに戻る</button>
-					<h1>コッホ法トレーニング</h1>
+					<button class="back-btn" id="back-btn">${t('common.backToMenu')}</button>
+					<h1>${t('koch.title')}</h1>
 				</header>
 
 				<div class="tabs">
-					<button class="tab-button ${this.viewMode === 'learning' ? 'active' : ''}" data-tab="learning">基本学習</button>
-					<button class="tab-button ${this.viewMode === 'custom' ? 'active' : ''}" data-tab="custom">任意文字列練習</button>
+					<button class="tab-button ${this.viewMode === 'learning' ? 'active' : ''}" data-tab="learning">${t('koch.tabs.learning')}</button>
+					<button class="tab-button ${this.viewMode === 'custom' ? 'active' : ''}" data-tab="custom">${t('koch.tabs.custom')}</button>
 				</div>
 
 				${this.renderModeContent()}
@@ -567,25 +573,25 @@ export class KochView implements View {
 		return `
 			<div class="flashcard-container">
 				<div class="lesson-info">
-					<h2>レッスン ${this.state.currentLesson} / 40</h2>
-					<div class="chars">学習文字: ${chars.join('')}</div>
-					<button id="startBtn" class="btn btn-primary">練習開始</button>
+					<h2>${t('koch.learning.lessonTitle')} ${this.state.currentLesson}${t('koch.learning.lessonProgress')}</h2>
+					<div class="chars">${t('koch.learning.learnedChars')} ${chars.join('')}</div>
+					<button id="startBtn" class="btn btn-primary">${t('koch.learning.startPractice')}</button>
 				</div>
 
 				<div id="practiceContainer"></div>
 				<div id="resultContainer"></div>
 
 				<div class="instructions">
-					<h3>使い方</h3>
+					<h3>${t('koch.learning.howToUse')}</h3>
 					<ul>
-						<li>「練習開始」をクリックしてモールス信号を聞く</li>
-						<li>聞こえた文字を入力</li>
-						<li>90%以上の正答率で次のレッスンへ</li>
+						<li>${t('koch.learning.instruction1')}</li>
+						<li>${t('koch.learning.instruction2')}</li>
+						<li>${t('koch.learning.instruction3')}</li>
 					</ul>
 				</div>
 
 				<div class="lesson-list-section">
-					<h3>レッスン一覧</h3>
+					<h3>${t('koch.learning.lessonListTitle')}</h3>
 					<div class="lesson-list">
 						${lessonList}
 					</div>
@@ -606,20 +612,20 @@ export class KochView implements View {
 			return `
 				<div class="flashcard-container">
 					<div class="lesson-info">
-						<h2>任意文字列練習モード</h2>
-						<p>練習したい文字を選択してください（最低2文字）</p>
+						<h2>${t('koch.custom.title')}</h2>
+						<p>${t('koch.custom.selectPrompt')}</p>
 						<div class="char-selection">
 							${charButtons}
 						</div>
-						<button id="startCustomBtn" class="btn btn-primary" ${this.customState.selectedChars.size < 2 ? 'disabled' : ''}>練習開始</button>
+						<button id="startCustomBtn" class="btn btn-primary" ${this.customState.selectedChars.size < 2 ? 'disabled' : ''}>${t('koch.custom.startPractice')}</button>
 					</div>
 
 					<div class="instructions">
-						<h3>使い方</h3>
+						<h3>${t('koch.custom.howToUse')}</h3>
 						<ul>
-							<li>練習したい文字をクリックして選択</li>
-							<li>2文字以上選択すると練習開始可能</li>
-							<li>選択した文字のみでランダムな練習問題が生成されます</li>
+							<li>${t('koch.custom.instruction1')}</li>
+							<li>${t('koch.custom.instruction2')}</li>
+							<li>${t('koch.custom.instruction3')}</li>
 						</ul>
 					</div>
 				</div>
@@ -647,28 +653,28 @@ export class KochView implements View {
 					<div class="progress-bar-container">
 						<div id="progressBar" class="progress-bar" style="width: 0%"></div>
 					</div>
-					<div id="lessonProgress" class="progress-text">準備完了 - 再生ボタンを押してください</div>
+					<div id="lessonProgress" class="progress-text">${t('koch.practice.ready')}</div>
 				</div>
 
 				<div class="playback-controls">
-					<button id="playBtn" class="control-btn" title="再生">
+					<button id="playBtn" class="control-btn" title="${t('koch.practice.playButton')}">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M8 5v14l11-7z"/>
 						</svg>
 					</button>
-					<button id="pauseBtn" class="control-btn" title="一時停止" disabled>
+					<button id="pauseBtn" class="control-btn" title="${t('koch.practice.pauseButton')}" disabled>
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
 						</svg>
 					</button>
-					<button id="stopBtn" class="control-btn" title="停止">
+					<button id="stopBtn" class="control-btn" title="${t('koch.practice.stopButton')}">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<rect x="6" y="6" width="12" height="12"/>
 						</svg>
 					</button>
 				</div>
 
-				<textarea id="userInput" class="input-area" placeholder="聞こえた文字を入力..." ${this.settings.showInput ? '' : 'style="opacity: 0.3; pointer-events: none;"'}></textarea>
+				<textarea id="userInput" class="input-area" placeholder="${t('koch.practice.inputPlaceholder')}" ${this.settings.showInput ? '' : 'style="opacity: 0.3; pointer-events: none;"'}></textarea>
 				${this.renderKeyboard(chars)}
 			</div>
 		`;
@@ -707,21 +713,21 @@ export class KochView implements View {
 					<div class="progress-bar-container">
 						<div id="customProgressBar" class="progress-bar" style="width: 0%"></div>
 					</div>
-					<div id="customProgress" class="progress-text">準備完了 - 再生ボタンを押してください</div>
+					<div id="customProgress" class="progress-text">${t('koch.practice.ready')}</div>
 				</div>
 
 				<div class="playback-controls">
-					<button id="customPlayBtn" class="control-btn" title="再生">
+					<button id="customPlayBtn" class="control-btn" title="${t('koch.practice.playButton')}">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M8 5v14l11-7z"/>
 						</svg>
 					</button>
-					<button id="customPauseBtn" class="control-btn" title="一時停止" disabled>
+					<button id="customPauseBtn" class="control-btn" title="${t('koch.practice.pauseButton')}" disabled>
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
 						</svg>
 					</button>
-					<button id="customStopBtn" class="control-btn" title="停止">
+					<button id="customStopBtn" class="control-btn" title="${t('koch.practice.stopButton')}">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 							<rect x="6" y="6" width="12" height="12"/>
 						</svg>
@@ -729,10 +735,10 @@ export class KochView implements View {
 				</div>
 
 				${this.settings.showInput ? `
-					<textarea id="customInputArea" class="input-area" placeholder="聞こえた文字を入力してください..."></textarea>
+					<textarea id="customInputArea" class="input-area" placeholder="${t('koch.practice.customInputPlaceholder')}"></textarea>
 				` : ''}
 
-				<button id="customEndBtn" class="btn btn-primary">結果を見る</button>
+				<button id="customEndBtn" class="btn btn-primary">${t('koch.practice.showResult')}</button>
 			</div>
 		`;
 
@@ -750,17 +756,17 @@ export class KochView implements View {
 		return `
 			<div class="keyboard">
 				<div class="keyboard-header">
-					<small>グループベースキーボード（学習済み文字のみ有効）</small>
+					<small>${t('koch.keyboard.header')}</small>
 				</div>
 				<div class="keyboard-controls">
-					<button id="spaceBtn" class="key-btn special">スペース</button>
-					<button id="backspaceBtn" class="key-btn special">1字削除</button>
+					<button id="spaceBtn" class="key-btn special">${t('koch.keyboard.space')}</button>
+					<button id="backspaceBtn" class="key-btn special">${t('koch.keyboard.backspace')}</button>
 				</div>
 				<div class="keyboard-groups-wrapper">
 					<div class="keyboard-groups">
 						${groups.map((group, groupIndex) => `
 							<div class="keyboard-group">
-								<div class="group-label">G${groupIndex + 1}</div>
+								<div class="group-label">${t('koch.keyboard.groupLabel')}${groupIndex + 1}</div>
 								<div class="group-keys">
 									${group.map(char => {
 										const isLearned = availableChars.includes(char);
@@ -850,6 +856,12 @@ export class KochView implements View {
 		document.getElementById('settingsIcon')?.addEventListener('click', () => {
 			this.showSettings();
 		});
+
+		//! 言語切り替え。
+		const languageSwitcherContainer = document.getElementById('languageSwitcherContainer');
+		if (languageSwitcherContainer) {
+			this.languageSwitcher.attachEventListeners(languageSwitcherContainer);
+		}
 
 		//! タブボタン。
 		document.querySelectorAll('.tab-button').forEach(btn => {

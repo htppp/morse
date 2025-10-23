@@ -285,18 +285,59 @@
 	},
 	"koch": {
 		"title": "コッホ法トレーニング",
-		"lesson": "レッスン {number}",
-		"customCharacters": "カスタム文字選択",
-		"speed": "速度",
-		"wpm": "{value} WPM",
-		"characterSpacing": "文字間隔",
-		"farnsworth": "Farnsworth {value} WPM",
-		"characters": "文字",
-		"selectCharacters": "文字を選択",
-		"generateText": "テキスト生成",
-		"textLength": "テキスト長",
-		"playbackSpeed": "再生速度",
-		"practice": "練習開始"
+		"tabs": {
+			"learning": "基本学習",
+			"custom": "任意文字列練習"
+		},
+		"learning": {
+			"lessonTitle": "レッスン",
+			"lessonProgress": " / 40",
+			"learnedChars": "学習文字:",
+			"startPractice": "練習開始",
+			"lessonListTitle": "レッスン一覧",
+			"howToUse": "使い方",
+			"instruction1": "「練習開始」をクリックしてモールス信号を聞く",
+			"instruction2": "聞こえた文字を入力",
+			"instruction3": "90%以上の正答率で次のレッスンへ"
+		},
+		"custom": {
+			"title": "任意文字列練習モード",
+			"selectPrompt": "練習したい文字を選択してください（最低2文字）",
+			"startPractice": "練習開始",
+			"howToUse": "使い方",
+			"instruction1": "練習したい文字をクリックして選択",
+			"instruction2": "2文字以上選択すると練習開始可能",
+			"instruction3": "選択した文字のみでランダムな練習問題が生成されます"
+		},
+		"practice": {
+			"ready": "準備完了 - 再生ボタンを押してください",
+			"progress": "進行:",
+			"inputPlaceholder": "聞こえた文字を入力...",
+			"customInputPlaceholder": "聞こえた文字を入力してください...",
+			"showResult": "結果を見る",
+			"playButton": "再生",
+			"pauseButton": "一時停止",
+			"stopButton": "停止"
+		},
+		"keyboard": {
+			"header": "グループベースキーボード（学習済み文字のみ有効）",
+			"space": "スペース",
+			"backspace": "1字削除",
+			"groupLabel": "G"
+		},
+		"result": {
+			"passed": "合格！",
+			"failed": "不合格",
+			"accuracy": "正答率:",
+			"sent": "送信:",
+			"input": "入力:",
+			"noInput": "（未入力）",
+			"nextLesson": "次のレッスンへ",
+			"retry": "もう一度",
+			"customTitle": "練習結果",
+			"yourInput": "あなたの入力:",
+			"back": "戻る"
+		}
 	},
 	"listening": {
 		"title": "モールス信号聞き取り練習",

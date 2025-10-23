@@ -297,18 +297,59 @@ export interface Translations {
 	};
 	koch: {
 		title: string;
-		lesson: string;
-		customCharacters: string;
-		speed: string;
-		wpm: string;
-		characterSpacing: string;
-		farnsworth: string;
-		characters: string;
-		selectCharacters: string;
-		generateText: string;
-		textLength: string;
-		playbackSpeed: string;
-		practice: string;
+		tabs: {
+			learning: string;
+			custom: string;
+		};
+		learning: {
+			lessonTitle: string;
+			lessonProgress: string;
+			learnedChars: string;
+			startPractice: string;
+			lessonListTitle: string;
+			howToUse: string;
+			instruction1: string;
+			instruction2: string;
+			instruction3: string;
+		};
+		custom: {
+			title: string;
+			selectPrompt: string;
+			startPractice: string;
+			howToUse: string;
+			instruction1: string;
+			instruction2: string;
+			instruction3: string;
+		};
+		practice: {
+			ready: string;
+			progress: string;
+			inputPlaceholder: string;
+			customInputPlaceholder: string;
+			showResult: string;
+			playButton: string;
+			pauseButton: string;
+			stopButton: string;
+		};
+		keyboard: {
+			header: string;
+			space: string;
+			backspace: string;
+			groupLabel: string;
+		};
+		result: {
+			passed: string;
+			failed: string;
+			accuracy: string;
+			sent: string;
+			input: string;
+			noInput: string;
+			nextLesson: string;
+			retry: string;
+			customTitle: string;
+			yourInput: string;
+			back: string;
+		};
 	};
 	listening: {
 		title: string;
