@@ -1,0 +1,188 @@
+{
+	"common": {
+		"appName": "Morse Code Training App",
+		"version": "v12 - Multilingual Edition",
+		"backToMenu": "Back to Menu",
+		"settings": "Settings",
+		"start": "Start",
+		"stop": "Stop",
+		"reset": "Reset",
+		"download": "Download",
+		"language": "Language",
+		"close": "Close",
+		"save": "Save",
+		"cancel": "Cancel",
+		"copyright": "© 2025 Morse Code Training App"
+	},
+	"menu": {
+		"title": "Morse Code Training App",
+		"subtitle": "Menu",
+		"items": {
+			"vertical": {
+				"title": "Straight Key Practice",
+				"description": "Practice with vertical key (straight key)"
+			},
+			"horizontal": {
+				"title": "Paddle Practice",
+				"description": "Practice with horizontal key (paddle) - Iambic A/B supported"
+			},
+			"flashcard": {
+				"title": "CW Abbreviations & Q Codes",
+				"description": "Learn abbreviations and Q codes used in CW communication"
+			},
+			"koch": {
+				"title": "Koch Method Training",
+				"description": "Learn by gradually adding characters"
+			},
+			"listening": {
+				"title": "Morse Code Listening Practice",
+				"description": "Practice listening to random QSOs and English text"
+			}
+		}
+	},
+	"verticalKey": {
+		"title": "Straight Key Practice",
+		"instructions": "Practice with spacebar or screen tap",
+		"keyBinding": "Key Binding",
+		"timingEvaluation": "Timing Evaluation",
+		"accuracy": "Accuracy",
+		"averageError": "Average Error",
+		"ditStats": "Dit Statistics",
+		"dahStats": "Dah Statistics",
+		"count": "Count",
+		"avgDuration": "Avg Duration",
+		"avgAccuracy": "Avg Accuracy",
+		"avgError": "Avg Error"
+	},
+	"horizontalKey": {
+		"title": "Paddle Practice",
+		"instructions": "Practice with left and right paddles",
+		"leftPaddle": "Left Paddle (Dit)",
+		"rightPaddle": "Right Paddle (Dah)",
+		"mode": "Mode",
+		"modeA": "Iambic A",
+		"modeB": "Iambic B",
+		"spacingEvaluation": "Spacing Evaluation",
+		"timingDiagram": "Timing Diagram",
+		"debugInfo": "Debug Info",
+		"paddleInput": "Paddle Input",
+		"ditInput": "Dit Input",
+		"dahInput": "Dah Input",
+		"output": "Output",
+		"squeezeZone": "Squeeze Zone",
+		"gapZone": "Gap Zone",
+		"press": "Press",
+		"release": "Release",
+		"squeezeOn": "Squeeze ON",
+		"squeezeOff": "Squeeze OFF",
+		"gapOn": "Gap ON",
+		"gapOff": "Gap OFF"
+	},
+	"flashcard": {
+		"title": "CW Abbreviations & Q Codes",
+		"modes": {
+			"browse": "Browse Mode",
+			"learn": "Learn Mode",
+			"test": "Test Mode"
+		},
+		"filters": {
+			"all": "All",
+			"common": "Common",
+			"qCode": "Q Codes",
+			"abbreviation": "Abbreviations"
+		},
+		"stats": {
+			"total": "Total: {count}",
+			"learned": "Learned: {count}",
+			"remaining": "Remaining: {count}"
+		},
+		"fields": {
+			"abbreviation": "Abbreviation",
+			"english": "English",
+			"japanese": "Japanese",
+			"description": "Description",
+			"example": "Example"
+		},
+		"showAnswer": "Show Answer",
+		"nextCard": "Next",
+		"previousCard": "Previous",
+		"shuffle": "Shuffle",
+		"export": "Export",
+		"markAsLearned": "Mark as Learned",
+		"markAsUnlearned": "Mark as Unlearned"
+	},
+	"koch": {
+		"title": "Koch Method Training",
+		"lesson": "Lesson {number}",
+		"customCharacters": "Custom Character Selection",
+		"speed": "Speed",
+		"wpm": "{value} WPM",
+		"characterSpacing": "Character Spacing",
+		"farnsworth": "Farnsworth {value} WPM",
+		"characters": "Characters",
+		"selectCharacters": "Select Characters",
+		"generateText": "Generate Text",
+		"textLength": "Text Length",
+		"playbackSpeed": "Playback Speed",
+		"practice": "Start Practice"
+	},
+	"listening": {
+		"title": "Morse Code Listening Practice",
+		"types": {
+			"qso": "QSO Practice",
+			"text": "Text Practice",
+			"random": "Random Characters"
+		},
+		"generate": "Generate",
+		"play": "Play",
+		"pause": "Pause",
+		"stop": "Stop",
+		"showText": "Show Text",
+		"hideText": "Hide Text",
+		"downloadAudio": "Download Audio",
+		"qsoType": {
+			"rubberStamp": "Rubber Stamp QSO",
+			"random": "Random QSO"
+		},
+		"textType": {
+			"news": "News",
+			"literature": "Literature",
+			"technical": "Technical"
+		}
+	},
+	"settings": {
+		"title": "Settings",
+		"audio": {
+			"title": "Audio Settings",
+			"frequency": "Frequency",
+			"frequencyValue": "{value} Hz",
+			"volume": "Volume",
+			"volumeValue": "{value}%",
+			"wpm": "Speed (WPM)",
+			"wpmValue": "{value} WPM"
+		},
+		"keybindings": {
+			"title": "Key Bindings",
+			"leftPaddle": "Left Paddle",
+			"rightPaddle": "Right Paddle",
+			"straightKey": "Straight Key",
+			"pressKey": "Press a key"
+		},
+		"display": {
+			"title": "Display Settings",
+			"theme": "Theme",
+			"fontSize": "Font Size",
+			"light": "Light",
+			"dark": "Dark"
+		},
+		"saveSuccess": "Settings saved successfully",
+		"resetToDefault": "Reset to Default"
+	},
+	"errors": {
+		"audioContextFailed": "Failed to initialize audio context",
+		"fileLoadFailed": "Failed to load file",
+		"invalidInput": "Invalid input",
+		"networkError": "Network error occurred",
+		"unknownError": "An unknown error occurred"
+	}
+}
