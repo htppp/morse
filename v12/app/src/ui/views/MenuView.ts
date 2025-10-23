@@ -3,6 +3,8 @@
  */
 
 import type { View } from '../../router';
+import { t } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 /**
  * メニュー項目の定義
@@ -18,38 +20,45 @@ interface MenuItem {
  * メニュービュークラス
  */
 export class MenuView implements View {
-	private menuItems: MenuItem[] = [
-		{
-			id: 'vertical',
-			title: '縦振り電鍵練習',
-			description: '上下に動かす電鍵（ストレートキー）の練習',
-			route: 'vertical'
-		},
-		{
-			id: 'horizontal',
-			title: '横振り電鍵練習',
-			description: '左右に動かす電鍵（パドル）の練習（Iambic A/B対応）',
-			route: 'horizontal'
-		},
-		{
-			id: 'flashcard',
-			title: 'CW略語・Q符号',
-			description: 'CW通信で使用される略語とQ符号を学習',
-			route: 'flashcard'
-		},
-		{
-			id: 'koch',
-			title: 'コッホ法トレーニング',
-			description: '段階的に文字を増やして学習する方式',
-			route: 'koch'
-		},
-		{
-			id: 'listening',
-			title: 'モールス信号聞き取り練習',
-			description: 'ランダムQSOや英文を聞いて練習',
-			route: 'listening'
-		}
-	];
+	private languageSwitcher = new LanguageSwitcher();
+
+	/**
+	 * メニュー項目を取得（多言語対応）
+	 */
+	private getMenuItems(): MenuItem[] {
+		return [
+			{
+				id: 'vertical',
+				title: t('menu.items.vertical.title'),
+				description: t('menu.items.vertical.description'),
+				route: 'vertical'
+			},
+			{
+				id: 'horizontal',
+				title: t('menu.items.horizontal.title'),
+				description: t('menu.items.horizontal.description'),
+				route: 'horizontal'
+			},
+			{
+				id: 'flashcard',
+				title: t('menu.items.flashcard.title'),
+				description: t('menu.items.flashcard.description'),
+				route: 'flashcard'
+			},
+			{
+				id: 'koch',
+				title: t('menu.items.koch.title'),
+				description: t('menu.items.koch.description'),
+				route: 'koch'
+			},
+			{
+				id: 'listening',
+				title: t('menu.items.listening.title'),
+				description: t('menu.items.listening.description'),
+				route: 'listening'
+			}
+		];
+	}
 
 	/**
 	 * ビューをレンダリングする
@@ -58,27 +67,42 @@ export class MenuView implements View {
 		const app = document.getElementById('app');
 		if (!app) return;
 
+		const menuItems = this.getMenuItems();
+
 		app.innerHTML = `
 			<div class="container">
 				<header class="menu-header">
-					<h1>モールス練習アプリ</h1>
-					<p class="version">v11 - タイミング評価版</p>
+					<div class="menu-header-top">
+						<div>
+							<h1>${t('menu.title')}</h1>
+							<p class="version">${t('common.version')}</p>
+						</div>
+						<div id="languageSwitcherContainer">
+							${this.languageSwitcher.render()}
+						</div>
+					</div>
 				</header>
 
 				<main class="menu-main">
 					<div class="menu-grid">
-						${this.menuItems.map(item => this.renderMenuItem(item)).join('')}
+						${menuItems.map(item => this.renderMenuItem(item)).join('')}
 					</div>
 				</main>
 
 				<footer class="menu-footer">
-					<p>&copy; 2025 モールス練習アプリ</p>
+					<p>${t('common.copyright')}</p>
 				</footer>
 			</div>
 		`;
 
 		//! イベントリスナーを設定。
 		this.attachEventListeners();
+
+		//! LanguageSwitcherのイベントリスナーを設定。
+		const languageSwitcherContainer = document.getElementById('languageSwitcherContainer');
+		if (languageSwitcherContainer) {
+			this.languageSwitcher.attachEventListeners(languageSwitcherContainer);
+		}
 	}
 
 	/**

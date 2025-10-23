@@ -3,13 +3,17 @@
  */
 
 import { Router } from './router';
+import { initI18n } from './i18n';
 import './assets/styles.css';
 
 //! アプリケーション起動時の処理。
 function init(): void {
+	//! i18nシステムを初期化。
+	initI18n();
+
 	//! 開発環境でのみログを出力。
 	if (import.meta.env.DEV) {
-		console.log('モールス練習アプリ v10 起動');
+		console.log('モールス練習アプリ v12 起動');
 	}
 
 	//! ルーターを初期化。
