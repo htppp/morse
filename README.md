@@ -147,4 +147,20 @@ npm run build
 
 ## ライセンス
 
-CC0 1.0 Universal (パブリックドメイン)
+このプロジェクトのソースコードは **CC0 1.0 Universal (パブリックドメイン)** として公開されています。
+
+### 使用ライブラリのライセンス
+
+このプロジェクトは以下のオープンソースライブラリを使用しています。各ライブラリのライセンスは、それぞれのライブラリのライセンスに従います。
+
+#### ビルド・開発ツール
+- **TypeScript** (5.3.3) - Apache License 2.0
+- **Vite** (7.1.10) - MIT License
+- **Vitest** (3.2.4) - MIT License
+- **@vitest/coverage-v8** (3.2.4) - MIT License
+- **Playwright** (1.56.1) - Apache License 2.0
+- **Terser** (5.44.0) - BSD 2-Clause License
+- **happy-dom** (20.0.7) - MIT License
+- **@types/node** (20.10.0) - MIT License
+
+各ライブラリの詳細なライセンス情報は、それぞれのプロジェクトページをご確認ください。
