@@ -147,4 +147,4 @@ npm run build
 
 ## ライセンス
 
-MIT
+CC0 1.0 Universal (パブリックドメイン)
