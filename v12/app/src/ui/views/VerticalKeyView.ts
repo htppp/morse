@@ -13,6 +13,8 @@ import {
 	type TimingStatistics
 } from 'morse-engine';
 import { SettingsModal, ALL_SETTING_ITEMS, type SettingValues } from 'morse-engine';
+import { t } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 /**
  * 縦振り電鍵練習ビュークラス
@@ -32,6 +34,7 @@ export class VerticalKeyView implements View {
 	private overallStats: TimingStatistics | null = null;
 	private dotStats: TimingStatistics | null = null;
 	private dashStats: TimingStatistics | null = null;
+	private languageSwitcher = new LanguageSwitcher();
 
 	constructor() {
 		//! 設定を読み込む。
@@ -96,74 +99,79 @@ export class VerticalKeyView implements View {
 
 			<div class="container">
 				<header class="header">
-					<button class="back-btn">メニューに戻る</button>
-					<h1>縦振り電鍵練習</h1>
+					<div class="header-top">
+						<button class="back-btn">${t('common.backToMenu')}</button>
+						<h1>${t('verticalKey.title')}</h1>
+						<div id="languageSwitcherContainer">
+							${this.languageSwitcher.render()}
+						</div>
+					</div>
 				</header>
 
 				<div class="key-button-container">
 					<button class="key-button" id="morse-key">
 						KEY
-						<span class="key-label">(クリック/タップで送信)</span>
+						<span class="key-label">${t('verticalKey.keyLabel')}</span>
 					</button>
 				</div>
 
 				<div class="practice-container">
 					<div class="display-area">
 						<div class="display-section">
-							<h3>モールス信号</h3>
-							<div class="display-output morse-buffer" id="morse-buffer">（ここにモールス符号が表示されます）</div>
+							<h3>${t('verticalKey.morseSignal')}</h3>
+							<div class="display-output morse-buffer" id="morse-buffer">${t('verticalKey.morseBufferPlaceholder')}</div>
 						</div>
 						<div class="display-section">
-							<h3>デコード結果</h3>
-							<div class="display-output" id="decoded-text">（ここにデコードされた文字が表示されます）</div>
+							<h3>${t('verticalKey.decodedResult')}</h3>
+							<div class="display-output" id="decoded-text">${t('verticalKey.decodedTextPlaceholder')}</div>
 						</div>
 					</div>
 
 					<div class="action-area">
-						<button class="btn btn-large btn-danger" id="clear-btn">クリア</button>
+						<button class="btn btn-large btn-danger" id="clear-btn">${t('common.reset')}</button>
 					</div>
 
 					<div class="status-area">
 						<div class="status-item">
-							<span class="label">現在の速度</span>
+							<span class="label">${t('verticalKey.currentSpeed')}</span>
 							<span class="value" id="current-wpm">${this.currentWPM}</span>
 						</div>
 						<div class="status-item" id="key-status">
-							<span class="label">キー状態</span>
-							<span class="value">解放</span>
+							<span class="label">${t('verticalKey.keyState')}</span>
+							<span class="value">${t('verticalKey.released')}</span>
 						</div>
 						<div class="status-item">
-							<span class="label">入力文字数</span>
+							<span class="label">${t('verticalKey.charCount')}</span>
 							<span class="value" id="char-count">0</span>
 						</div>
 					</div>
 
 					<div class="timing-evaluation-area">
-						<h3>タイミング評価</h3>
+						<h3>${t('verticalKey.timingEvaluation')}</h3>
 						<div class="evaluation-panel">
 							<div class="latest-evaluation">
-								<h4>最新の入力</h4>
+								<h4>${t('verticalKey.latestInput')}</h4>
 								<div id="latest-evaluation-content" class="evaluation-content">
-									（入力待ち）
+									${t('verticalKey.waitingForInput')}
 								</div>
 							</div>
 							<div class="statistics-panel">
-								<h4>全体統計</h4>
+								<h4>${t('verticalKey.overallStats')}</h4>
 								<div id="overall-stats-content" class="stats-content">
-									（統計データなし）
+									${t('verticalKey.noStatsData')}
 								</div>
 							</div>
 							<div class="element-stats-panel">
 								<div class="dot-stats">
-									<h4>短点 (・) 統計</h4>
+									<h4>${t('verticalKey.ditStats')}</h4>
 									<div id="dot-stats-content" class="stats-content">
-										（データなし）
+										${t('verticalKey.noData')}
 									</div>
 								</div>
 								<div class="dash-stats">
-									<h4>長点 (ー) 統計</h4>
+									<h4>${t('verticalKey.dahStats')}</h4>
 									<div id="dash-stats-content" class="stats-content">
-										（データなし）
+										${t('verticalKey.noData')}
 									</div>
 								</div>
 							</div>
@@ -171,14 +179,14 @@ export class VerticalKeyView implements View {
 					</div>
 
 					<div class="instructions">
-						<h3>使い方</h3>
+						<h3>${t('verticalKey.howToUse')}</h3>
 						<ul>
-							<li>スペースキーまたは画面のボタンを押している間、モールス信号が送信されます</li>
-							<li>短く押すと「・」(dit)、長く押すと「ー」(dah)になります</li>
-							<li>文字間は自動的に判定されます</li>
-							<li>WPM（Words Per Minute）で速度を調整できます</li>
-							<li>画面右上の⚙アイコンから音量・周波数・速度を調整できます</li>
-							<li>音声が鳴らない場合は、一度ボタンをクリックしてください（ブラウザのオーディオポリシー）</li>
+							<li>${t('verticalKey.instruction1')}</li>
+							<li>${t('verticalKey.instruction2')}</li>
+							<li>${t('verticalKey.instruction3')}</li>
+							<li>${t('verticalKey.instruction4')}</li>
+							<li>${t('verticalKey.instruction5')}</li>
+							<li>${t('verticalKey.instruction6')}</li>
 						</ul>
 					</div>
 				</div>
@@ -280,6 +288,12 @@ export class VerticalKeyView implements View {
 				}
 			});
 		}
+
+		//! LanguageSwitcherのイベントリスナーを設定。
+		const languageSwitcherContainer = document.getElementById('languageSwitcherContainer');
+		if (languageSwitcherContainer) {
+			this.languageSwitcher.attachEventListeners(languageSwitcherContainer);
+		}
 	}
 
 	/**
@@ -334,12 +348,12 @@ export class VerticalKeyView implements View {
 			const buffer = this.trainer.getBuffer();
 			const sequence = this.trainer.getSequence();
 			const fullDisplay = sequence ? `${buffer} ${sequence}` : buffer;
-			morseBuffer.textContent = fullDisplay || '（ここにモールス符号が表示されます）';
+			morseBuffer.textContent = fullDisplay || t('verticalKey.morseBufferPlaceholder');
 		}
 
 		if (decodedText) {
 			const text = this.trainer.getDecoded();
-			decodedText.textContent = text || '（ここにデコードされた文字が表示されます）';
+			decodedText.textContent = text || t('verticalKey.decodedTextPlaceholder');
 		}
 
 		if (charCount) {
@@ -369,7 +383,7 @@ export class VerticalKeyView implements View {
 		const latestContent = document.getElementById('latest-evaluation-content');
 		if (latestContent && this.latestEvaluation) {
 			const eval_ = this.latestEvaluation;
-			const element = eval_.record.element === '.' ? '短点 (・)' : '長点 (ー)';
+			const element = eval_.record.element === '.' ? t('verticalKey.dit') : t('verticalKey.dah');
 			const accuracy = eval_.accuracy.toFixed(1);
 			const accuracyClass = this.getAccuracyClass(eval_.accuracy);
 
@@ -385,16 +399,16 @@ export class VerticalKeyView implements View {
 			//! 誤差の方向（長い/短い）を判定。
 			const diff = actual - expected;
 			const diffClass = diff > 0 ? 'longer' : diff < 0 ? 'shorter' : 'perfect';
-			const diffText = diff > 0 ? `+${diff}ms (長い)` : diff < 0 ? `${diff}ms (短い)` : '完璧';
+			const diffText = diff > 0 ? `+${diff}ms (${t('verticalKey.longer')})` : diff < 0 ? `${diff}ms (${t('verticalKey.shorter')})` : t('verticalKey.perfect');
 
 			latestContent.innerHTML = `
 				<div class="eval-item">
-					<span class="eval-label">要素:</span>
+					<span class="eval-label">${t('verticalKey.element')}</span>
 					<span class="eval-value">${element}</span>
 				</div>
 				<div class="timing-chart">
 					<div class="chart-row">
-						<div class="chart-label">理論値:</div>
+						<div class="chart-label">${t('verticalKey.expected')}</div>
 						<div class="chart-bar-container">
 							<div class="chart-bar expected" style="width: ${expectedPercent}%">
 								<span class="chart-value">${expected}ms</span>
@@ -402,7 +416,7 @@ export class VerticalKeyView implements View {
 						</div>
 					</div>
 					<div class="chart-row">
-						<div class="chart-label">実測値:</div>
+						<div class="chart-label">${t('verticalKey.actual')}</div>
 						<div class="chart-bar-container">
 							<div class="chart-bar actual ${accuracyClass}" style="width: ${actualPercent}%">
 								<span class="chart-value">${actual}ms</span>
@@ -416,11 +430,11 @@ export class VerticalKeyView implements View {
 					</div>
 				</div>
 				<div class="eval-item">
-					<span class="eval-label">精度:</span>
+					<span class="eval-label">${t('verticalKey.accuracy')}</span>
 					<span class="eval-value accuracy-${accuracyClass}">${accuracy}%</span>
 				</div>
 				<div class="eval-item">
-					<span class="eval-label">誤差:</span>
+					<span class="eval-label">${t('verticalKey.error')}</span>
 					<span class="eval-value timing-diff-${diffClass}">${diffText}</span>
 				</div>
 			`;
@@ -434,19 +448,19 @@ export class VerticalKeyView implements View {
 
 			overallContent.innerHTML = `
 				<div class="stat-item">
-					<span class="stat-label">入力数:</span>
-					<span class="stat-value">${stats.count}回</span>
+					<span class="stat-label">${t('verticalKey.inputCount')}</span>
+					<span class="stat-value">${stats.count}${t('verticalKey.times')}</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">平均精度:</span>
+					<span class="stat-label">${t('verticalKey.avgAccuracy')}</span>
 					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">最高精度:</span>
+					<span class="stat-label">${t('verticalKey.maxAccuracy')}</span>
 					<span class="stat-value">${stats.maxAccuracy.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">最低精度:</span>
+					<span class="stat-label">${t('verticalKey.minAccuracy')}</span>
 					<span class="stat-value">${stats.minAccuracy.toFixed(1)}%</span>
 				</div>
 			`;
@@ -460,15 +474,15 @@ export class VerticalKeyView implements View {
 
 			dotContent.innerHTML = `
 				<div class="stat-item">
-					<span class="stat-label">入力数:</span>
-					<span class="stat-value">${stats.count}回</span>
+					<span class="stat-label">${t('verticalKey.inputCount')}</span>
+					<span class="stat-value">${stats.count}${t('verticalKey.times')}</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">平均精度:</span>
+					<span class="stat-label">${t('verticalKey.avgAccuracy')}</span>
 					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">平均誤差:</span>
+					<span class="stat-label">${t('verticalKey.avgError')}</span>
 					<span class="stat-value">${stats.averageAbsoluteError.toFixed(1)}ms</span>
 				</div>
 			`;
@@ -482,15 +496,15 @@ export class VerticalKeyView implements View {
 
 			dashContent.innerHTML = `
 				<div class="stat-item">
-					<span class="stat-label">入力数:</span>
-					<span class="stat-value">${stats.count}回</span>
+					<span class="stat-label">${t('verticalKey.inputCount')}</span>
+					<span class="stat-value">${stats.count}${t('verticalKey.times')}</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">平均精度:</span>
+					<span class="stat-label">${t('verticalKey.avgAccuracy')}</span>
 					<span class="stat-value accuracy-${accuracyClass}">${stats.averageAccuracy.toFixed(1)} ± ${stats.standardDeviation.toFixed(1)}%</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">平均誤差:</span>
+					<span class="stat-label">${t('verticalKey.avgError')}</span>
 					<span class="stat-value">${stats.averageAbsoluteError.toFixed(1)}ms</span>
 				</div>
 			`;
@@ -515,7 +529,7 @@ export class VerticalKeyView implements View {
 		if (keyStatus) {
 			const valueSpan = keyStatus.querySelector('.value');
 			if (valueSpan) {
-				valueSpan.textContent = isPressed ? '押下中' : '解放';
+				valueSpan.textContent = isPressed ? t('verticalKey.pressed') : t('verticalKey.released');
 			}
 			if (isPressed) {
 				keyStatus.classList.add('active');

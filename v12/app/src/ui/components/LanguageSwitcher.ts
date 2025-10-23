@@ -15,7 +15,6 @@ import {
  * 言語切り替えボタンのコンポーネント
  */
 export class LanguageSwitcher {
-	private container: HTMLElement | null = null;
 	private isOpen = false;
 	private boundCloseDropdown: ((e: MouseEvent) => void) | null = null;
 
@@ -58,8 +57,6 @@ export class LanguageSwitcher {
 	 * イベントリスナーを設定
 	 */
 	attachEventListeners(container: HTMLElement): void {
-		this.container = container;
-
 		const button = container.querySelector('#languageSwitcherButton') as HTMLButtonElement;
 		const dropdown = container.querySelector('#languageDropdown') as HTMLElement;
 
@@ -145,7 +142,6 @@ export class LanguageSwitcher {
 			document.removeEventListener('click', this.boundCloseDropdown);
 			this.boundCloseDropdown = null;
 		}
-		this.container = null;
 		this.isOpen = false;
 	}
 }
