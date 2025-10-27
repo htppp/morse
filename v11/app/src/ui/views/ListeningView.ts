@@ -848,7 +848,7 @@ export class ListeningView implements View {
 		const input = this.state.userInput.toUpperCase();
 		const diff = ListeningTrainer.getDifference(correct, input);
 
-		//! 差分情報を基にHTML文字列を生成。
+		//! 差分情報を基にHTML文字列を生成（正解と入力を独立して表示）。
 		let correctHtml = '';
 		let inputHtml = '';
 
@@ -868,13 +868,11 @@ export class ListeningView implements View {
 				//! 削除された文字（正解にあるが入力にない）は正解側に赤色で表示。
 				const char = d.correctChar === ' ' ? '&nbsp;' : d.correctChar;
 				correctHtml += `<span class="diff-error">${char}</span>`;
-				//! 入力側には何も表示しない（位置合わせのため透明な文字を挿入）。
-				inputHtml += `<span class="diff-missing">_</span>`;
+				//! 入力側には何も表示しない（位置合わせを行わない）。
 			} else if (d.type === 'insert') {
 				//! 挿入された文字（入力にあるが正解にない）は入力側に青色で表示。
 				const char = d.inputChar === ' ' ? '&nbsp;' : d.inputChar;
-				//! 正解側には何も表示しない（位置合わせのため透明な文字を挿入）。
-				correctHtml += `<span class="diff-missing">_</span>`;
+				//! 正解側には何も表示しない（位置合わせを行わない）。
 				inputHtml += `<span class="diff-extra">${char}</span>`;
 			}
 		}
