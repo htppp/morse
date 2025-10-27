@@ -3578,6 +3578,28 @@ body {
 	background-color: rgba(255, 235, 59, 0.1);
 }
 
+/* 差分表示用スタイル */
+.diff-error {
+	color: #f44336;
+	font-weight: bold;
+	background-color: #ffebee;
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.diff-extra {
+	color: #2196f3;
+	font-weight: bold;
+	background-color: #e3f2fd;
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.diff-missing {
+	color: transparent;
+	user-select: none;
+}
+
 /* アクティブなボタンスタイル */
 .btn.active {
 	background-color: var(--primary-color);

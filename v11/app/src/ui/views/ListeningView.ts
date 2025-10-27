@@ -843,6 +843,37 @@ export class ListeningView implements View {
 			this.state.userInput
 		);
 
+		//! 差分情報を取得。
+		const correct = correctText.replace(/\s/g, '').toUpperCase();
+		const input = this.state.userInput.replace(/\s/g, '').toUpperCase();
+		const diff = ListeningTrainer.getDifference(correct, input);
+
+		//! 差分情報を基にHTML文字列を生成。
+		let correctHtml = '';
+		let inputHtml = '';
+
+		for (const d of diff) {
+			if (d.type === 'match') {
+				//! 一致する文字は通常表示。
+				correctHtml += d.correctChar;
+				inputHtml += d.inputChar;
+			} else if (d.type === 'replace') {
+				//! 置換された文字は赤色で表示。
+				correctHtml += `<span class="diff-error">${d.correctChar}</span>`;
+				inputHtml += `<span class="diff-error">${d.inputChar}</span>`;
+			} else if (d.type === 'delete') {
+				//! 削除された文字（正解にあるが入力にない）は正解側に赤色で表示。
+				correctHtml += `<span class="diff-error">${d.correctChar}</span>`;
+				//! 入力側には何も表示しない（位置合わせのため透明な文字を挿入）。
+				inputHtml += `<span class="diff-missing">_</span>`;
+			} else if (d.type === 'insert') {
+				//! 挿入された文字（入力にあるが正解にない）は入力側に青色で表示。
+				//! 正解側には何も表示しない（位置合わせのため透明な文字を挿入）。
+				correctHtml += `<span class="diff-missing">_</span>`;
+				inputHtml += `<span class="diff-extra">${d.inputChar}</span>`;
+			}
+		}
+
 		resultArea.innerHTML = `
 			<div class="result-area">
 				<h3>結果</h3>
@@ -850,11 +881,11 @@ export class ListeningView implements View {
 				<div class="comparison">
 					<div class="comparison-row">
 						<strong>正解:</strong>
-						<div class="comparison-text">${correctText}</div>
+						<div class="comparison-text">${correctHtml}</div>
 					</div>
 					<div class="comparison-row">
 						<strong>入力:</strong>
-						<div class="comparison-text">${this.state.userInput || '（未入力）'}</div>
+						<div class="comparison-text">${inputHtml || '（未入力）'}</div>
 					</div>
 				</div>
 			</div>

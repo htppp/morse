@@ -327,6 +327,72 @@ export class ListeningTrainer {
 	}
 
 	/**
+	 * 2つの文字列の差分を計算し、各文字の状態を返す
+	 * @param str1 - 正解の文字列
+	 * @param str2 - ユーザー入力の文字列
+	 * @returns 差分情報の配列
+	 */
+	static getDifference(str1: string, str2: string): Array<{type: 'match' | 'replace' | 'delete' | 'insert', correctChar?: string, inputChar?: string, correctIndex: number, inputIndex: number}> {
+		const len1 = str1.length;
+		const len2 = str2.length;
+
+		//! 動的計画法用の2次元配列を作成。
+		const dp: number[][] = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+
+		//! 初期化。
+		for (let i = 0; i <= len1; i++) {
+			dp[i][0] = i;
+		}
+		for (let j = 0; j <= len2; j++) {
+			dp[0][j] = j;
+		}
+
+		//! 動的計画法で編集距離を計算。
+		for (let i = 1; i <= len1; i++) {
+			for (let j = 1; j <= len2; j++) {
+				if (str1[i - 1] === str2[j - 1]) {
+					dp[i][j] = dp[i - 1][j - 1];
+				} else {
+					dp[i][j] = Math.min(
+						dp[i - 1][j] + 1,     // 削除
+						dp[i][j - 1] + 1,     // 挿入
+						dp[i - 1][j - 1] + 1  // 置換
+					);
+				}
+			}
+		}
+
+		//! バックトラックで差分を取得。
+		const diff: Array<{type: 'match' | 'replace' | 'delete' | 'insert', correctChar?: string, inputChar?: string, correctIndex: number, inputIndex: number}> = [];
+		let i = len1;
+		let j = len2;
+
+		while (i > 0 || j > 0) {
+			if (i > 0 && j > 0 && str1[i - 1] === str2[j - 1]) {
+				//! 一致。
+				diff.unshift({type: 'match', correctChar: str1[i - 1], inputChar: str2[j - 1], correctIndex: i - 1, inputIndex: j - 1});
+				i--;
+				j--;
+			} else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) {
+				//! 置換。
+				diff.unshift({type: 'replace', correctChar: str1[i - 1], inputChar: str2[j - 1], correctIndex: i - 1, inputIndex: j - 1});
+				i--;
+				j--;
+			} else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+				//! 削除（正解にあるが入力にない）。
+				diff.unshift({type: 'delete', correctChar: str1[i - 1], correctIndex: i - 1, inputIndex: j});
+				i--;
+			} else if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) {
+				//! 挿入（入力にあるが正解にない）。
+				diff.unshift({type: 'insert', inputChar: str2[j - 1], correctIndex: i, inputIndex: j - 1});
+				j--;
+			}
+		}
+
+		return diff;
+	}
+
+	/**
 	 * 正答率を計算する
 	 * レーベンシュタイン距離を使用して、挿入・削除・置換を適切に扱う
 	 * @param correctAnswer - 正解の文字列
