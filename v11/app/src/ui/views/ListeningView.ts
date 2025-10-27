@@ -37,6 +37,8 @@ interface State {
 	showResult: boolean;
 	showAnswer: boolean;
 	showDialogFormat: boolean;
+	currentPlayingWordIndex: number;  // 現在再生中の単語のインデックス（-1は再生中でない）
+	currentPlayingSegmentIndex: number;  // 現在再生中のセグメントのインデックス（-1は再生中でない）
 }
 
 /**
@@ -54,7 +56,9 @@ export class ListeningView implements View {
 		userInput: '',
 		showResult: false,
 		showAnswer: false,
-		showDialogFormat: false
+		showDialogFormat: false,
+		currentPlayingWordIndex: -1,
+		currentPlayingSegmentIndex: -1
 	};
 
 	private customTemplates: ListeningTemplate[] = [];
@@ -221,8 +225,14 @@ export class ListeningView implements View {
 		for (let i = 0; i < words.length; i++) {
 			//! 停止フラグをチェック。
 			if (!this.state.isPlaying) {
+				this.state.currentPlayingWordIndex = -1;
+				this.renderAnswer();
 				return;
 			}
+
+			//! 現在再生中の単語インデックスを更新。
+			this.state.currentPlayingWordIndex = i;
+			this.renderAnswer();
 
 			const word = words[i];
 			const morse = MorseCodec.textToMorse(word);
@@ -241,6 +251,10 @@ export class ListeningView implements View {
 				await new Promise(resolve => setTimeout(resolve, 150));
 			}
 		}
+
+		//! 再生完了後、インデックスをリセット。
+		this.state.currentPlayingWordIndex = -1;
+		this.renderAnswer();
 	}
 
 	/**
@@ -262,8 +276,13 @@ export class ListeningView implements View {
 		for (let i = 0; i < template.dialog.length; i++) {
 			//! 停止フラグをチェック。
 			if (!this.state.isPlaying) {
+				this.state.currentPlayingSegmentIndex = -1;
+				this.renderAnswer();
 				return;
 			}
+
+			//! 現在再生中のセグメントインデックスを更新。
+			this.state.currentPlayingSegmentIndex = i;
 
 			const segment = template.dialog[i];
 			//! A側またはB側のAudioGeneratorを選択。
@@ -279,6 +298,10 @@ export class ListeningView implements View {
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 		}
+
+		//! 再生完了後、インデックスをリセット。
+		this.state.currentPlayingSegmentIndex = -1;
+		this.renderAnswer();
 	}
 
 	private pauseMorse(): void {
@@ -292,10 +315,7 @@ export class ListeningView implements View {
 		this.audio.stopPlaying();
 		this.audioB.stopPlaying();
 		this.state.isPlaying = false;
-		this.state.userInput = '';
-		this.state.showResult = false;
-		this.state.showAnswer = false;
-		this.renderPracticeArea();
+		this.updatePlaybackButtons();
 	}
 
 
@@ -319,11 +339,19 @@ export class ListeningView implements View {
 
 	private toggleAnswer(): void {
 		this.state.showAnswer = !this.state.showAnswer;
+		//! 正解表示がONになったら対話形式をOFFにする。
+		if (this.state.showAnswer) {
+			this.state.showDialogFormat = false;
+		}
 		this.renderPracticeArea();
 	}
 
 	private toggleDialogFormat(): void {
 		this.state.showDialogFormat = !this.state.showDialogFormat;
+		//! 対話形式がONになったら通常の正解表示をOFFにする。
+		if (this.state.showDialogFormat) {
+			this.state.showAnswer = false;
+		}
 		this.renderAnswer();
 	}
 
@@ -628,6 +656,9 @@ export class ListeningView implements View {
 		const practiceInputArea = document.getElementById('practiceInputArea');
 		if (!practiceInputArea) return;
 
+		const isQSO = this.state.selectedTemplate?.category === 'qso';
+		const hasDialog = this.state.selectedTemplate?.dialog && this.state.selectedTemplate.dialog.length > 0;
+
 		practiceInputArea.innerHTML = `
 			<div class="input-section">
 				<label for="userInput">聞き取った内容を入力してください:</label>
@@ -636,10 +667,11 @@ export class ListeningView implements View {
 
 			<div class="action-buttons">
 				<button id="checkBtn" class="btn btn-primary">採点</button>
-				<button id="showAnswerBtn" class="btn">${this.state.showAnswer ? '正解を非表示' : '正解を表示'}</button>
+				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">${this.state.showAnswer ? '正解を非表示' : '正解を表示'}</button>
+				${isQSO && hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">${this.state.showDialogFormat ? '通常表示' : '対話形式で表示'}</button>` : ''}
 			</div>
 
-			${this.state.showAnswer ? '<div id="answerArea"></div>' : ''}
+			${(this.state.showAnswer || this.state.showDialogFormat) ? '<div id="answerArea"></div>' : ''}
 			${this.state.showResult ? '<div id="resultArea"></div>' : ''}
 		`;
 
@@ -659,8 +691,13 @@ export class ListeningView implements View {
 			this.toggleAnswer();
 		});
 
+		//! 対話形式表示ボタン。
+		document.getElementById('toggleDialogBtn')?.addEventListener('click', () => {
+			this.toggleDialogFormat();
+		});
+
 		//! 正解と結果を描画。
-		if (this.state.showAnswer) {
+		if (this.state.showAnswer || this.state.showDialogFormat) {
 			this.renderAnswer();
 		}
 		if (this.state.showResult) {
@@ -672,50 +709,60 @@ export class ListeningView implements View {
 		const answerArea = document.getElementById('answerArea');
 		if (!answerArea || !this.state.selectedTemplate) return;
 
-		const isQSO = this.state.selectedTemplate.category === 'qso';
-		const content = this.getTemplateText(this.state.selectedTemplate);
-
-		//! 対話形式ボタン（QSOの場合のみ表示）。
-		const dialogButton = isQSO
-			? `<button id="toggleDialogBtn" class="btn" style="margin-left: 10px;">${this.state.showDialogFormat ? '通常表示' : '対話形式で表示'}</button>`
-			: '';
+		const hasDialog = this.state.selectedTemplate.dialog && this.state.selectedTemplate.dialog.length > 0;
 
 		//! 対話形式表示の生成。
 		let answerContent = '';
-		if (isQSO && this.state.showDialogFormat) {
-			//! BTで区切って話者別に表示。
-			const segments = content.split(/\s+BT\s+/);
+		if (this.state.showDialogFormat && hasDialog) {
+			//! 対話形式で表示（セグメント別に話者を表示）。
 			answerContent = `
 				<table class="dialog-table">
 					<tbody>
-						${segments.map((segment, index) => {
-							const speaker = index % 2 === 0 ? 'A' : 'B';
+						${this.state.selectedTemplate.dialog!.map((segment, segmentIndex) => {
+							//! セグメントのテキストを単語に分割。
+							const words = segment.text.trim().split(/\s+/).filter(w => w.length > 0);
+							//! 現在再生中のセグメントかチェック。
+							const isCurrentSegment = this.state.currentPlayingSegmentIndex === segmentIndex;
+							//! 各単語を強調表示（再生中の場合）。
+							const highlightedText = words.map((word, wordIndex) => {
+								if (isCurrentSegment && this.state.currentPlayingWordIndex === wordIndex) {
+									return `<span class="playing-word">${word}</span>`;
+								}
+								return word;
+							}).join(' ');
+
 							return `
-								<tr>
-									<td class="speaker-cell">${speaker}</td>
-									<td class="content-cell">${segment.trim()}</td>
+								<tr class="${isCurrentSegment ? 'playing-segment' : ''}">
+									<td class="speaker-cell">${segment.side}</td>
+									<td class="content-cell">${highlightedText}</td>
 								</tr>
 							`;
 						}).join('')}
 					</tbody>
 				</table>
 			`;
-		} else {
-			answerContent = `<div class="answer-text">${content}</div>`;
+		} else if (this.state.showAnswer) {
+			//! 通常表示（テキスト全体を表示）。
+			const content = this.getTemplateText(this.state.selectedTemplate);
+			//! テキストを単語に分割。
+			const words = content.trim().split(/\s+/).filter(w => w.length > 0);
+			//! 各単語を強調表示（再生中の場合）。
+			const highlightedText = words.map((word, wordIndex) => {
+				if (this.state.currentPlayingWordIndex === wordIndex && this.state.isPlaying) {
+					return `<span class="playing-word">${word}</span>`;
+				}
+				return word;
+			}).join(' ');
+
+			answerContent = `<div class="answer-text">${highlightedText}</div>`;
 		}
 
 		answerArea.innerHTML = `
 			<div class="answer-area">
-				<h3 style="display: inline-block;">正解</h3>
-				${dialogButton}
+				<h3>正解</h3>
 				${answerContent}
 			</div>
 		`;
-
-		//! 対話形式ボタン。
-		document.getElementById('toggleDialogBtn')?.addEventListener('click', () => {
-			this.toggleDialogFormat();
-		});
 	}
 
 	private renderResult(): void {

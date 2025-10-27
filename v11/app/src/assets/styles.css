@@ -3565,3 +3565,31 @@ body {
 		left: 70px;
 	}
 }
+
+/* 再生中の単語強調表示 */
+.playing-word {
+	background-color: #ffeb3b;
+	font-weight: bold;
+	padding: 2px 4px;
+	border-radius: 3px;
+	animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+	from {
+		background-color: #ffeb3b;
+	}
+	to {
+		background-color: #ffc107;
+	}
+}
+
+.playing-segment {
+	background-color: rgba(255, 235, 59, 0.1);
+}
+
+/* アクティブなボタンスタイル */
+.btn.active {
+	background-color: var(--primary-color);
+	color: white;
+}
