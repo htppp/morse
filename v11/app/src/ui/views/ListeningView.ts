@@ -236,12 +236,14 @@ export class ListeningView implements View {
 
 	private pauseMorse(): void {
 		this.audio.stopPlaying();
+		this.audioB.stopPlaying();
 		this.state.isPlaying = false;
 		this.updatePlaybackButtons();
 	}
 
 	private stopMorse(): void {
 		this.audio.stopPlaying();
+		this.audioB.stopPlaying();
 		this.state.isPlaying = false;
 		this.state.userInput = '';
 		this.state.showResult = false;
@@ -767,6 +769,7 @@ export class ListeningView implements View {
 			this.state.showDialogFormat = false;
 			this.state.userInput = '';
 			this.audio.stopPlaying();
+			this.audioB.stopPlaying();
 			this.render();
 		});
 
@@ -846,5 +849,6 @@ export class ListeningView implements View {
 	destroy(): void {
 		//! AudioGeneratorを停止。
 		this.audio.stopPlaying();
+		this.audioB.stopPlaying();
 	}
 }

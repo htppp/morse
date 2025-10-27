@@ -401,7 +401,7 @@ if(t.dialog&&0!==t.dialog.length)
 //! 各セグメントを交互にA側とB側で再生。
 for(let e=0;e<t.dialog.length;e++){const n=t.dialog[e],s=l.textToMorse(n.text),i="A"===n.side?this.audio:this.audioB;await i.playMorseString(s),
 //! セグメント間に短い間隔を入れる。
-e<t.dialog.length-1&&await new Promise(t=>setTimeout(t,500))}else if(t.content){const e=l.textToMorse(t.content);await this.audio.playMorseString(e)}}pauseMorse(){this.audio.stopPlaying(),this.state.isPlaying=!1,this.updatePlaybackButtons()}stopMorse(){this.audio.stopPlaying(),this.state.isPlaying=!1,this.state.userInput="",this.state.showResult=!1,this.state.showAnswer=!1,this.renderPracticeArea()}updatePlaybackButtons(){const t=document.getElementById("playBtn"),e=document.getElementById("pauseBtn");t&&(t.disabled=this.state.isPlaying),e&&(e.disabled=!this.state.isPlaying)}
+e<t.dialog.length-1&&await new Promise(t=>setTimeout(t,500))}else if(t.content){const e=l.textToMorse(t.content);await this.audio.playMorseString(e)}}pauseMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.updatePlaybackButtons()}stopMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.state.userInput="",this.state.showResult=!1,this.state.showAnswer=!1,this.renderPracticeArea()}updatePlaybackButtons(){const t=document.getElementById("playBtn"),e=document.getElementById("pauseBtn");t&&(t.disabled=this.state.isPlaying),e&&(e.disabled=!this.state.isPlaying)}
 //! ========== 採点と結果表示 ==========
 checkAnswer(){this.state.selectedTemplate&&(this.state.showResult=!0,this.state.showAnswer=!0,this.renderPracticeArea())}toggleAnswer(){this.state.showAnswer=!this.state.showAnswer,this.renderPracticeArea()}toggleDialogFormat(){this.state.showDialogFormat=!this.state.showDialogFormat,this.renderAnswer()}
 //! ========== カスタムテンプレート管理 ==========
@@ -464,7 +464,7 @@ if("qso-random-generate"===e)this.state.selectedTemplate=m.generateRandomQSO(),t
 //! 通常のテンプレート選択。
 const t=[...m.getBuiltinTemplates(),...this.customTemplates].find(t=>t.id===e);t&&(this.state.selectedTemplate=t,this.state.showResult=!1,this.state.showAnswer=!1,this.state.showDialogFormat=!1,this.state.userInput="",this.render(),this.renderPracticeArea())}})}),
 //! 一覧に戻るボタン。
-document.getElementById("backToListBtn")?.addEventListener("click",()=>{this.state.selectedTemplate=null,this.state.showResult=!1,this.state.showAnswer=!1,this.state.showDialogFormat=!1,this.state.userInput="",this.audio.stopPlaying(),this.render()}),
+document.getElementById("backToListBtn")?.addEventListener("click",()=>{this.state.selectedTemplate=null,this.state.showResult=!1,this.state.showAnswer=!1,this.state.showDialogFormat=!1,this.state.userInput="",this.audio.stopPlaying(),this.audioB.stopPlaying(),this.render()}),
 //! ユーザー定義定型文の新規作成ボタン。
 document.getElementById("addCustomBtn")?.addEventListener("click",()=>{this.showCustomTemplateDialog()}),
 //! ユーザー定義定型文の編集ボタン。
@@ -476,7 +476,7 @@ this.state.selectedTemplate&&(document.getElementById("playBtn")?.addEventListen
 //! テキストをモールス符号に変換。
 const t=this.getTemplateText(this.state.selectedTemplate),e=l.textToMorse(t),n=await this.audio.generateWav(e);!function(t,e){const n=URL.createObjectURL(t),s=document.createElement("a");s.href=n,s.download=e,document.body.appendChild(s),s.click(),document.body.removeChild(s),URL.revokeObjectURL(n)}(n,`${function(t){return t.replace(/[^a-zA-Z0-9_-]/g,"_")}(this.state.selectedTemplate.title)}.wav`)}catch(t){alert("WAVファイルの生成に失敗しました。")}}destroy(){
 //! AudioGeneratorを停止。
-this.audio.stopPlaying()}}class I{currentView=null;routes=[];constructor(){
+this.audio.stopPlaying(),this.audioB.stopPlaying()}}class I{currentView=null;routes=[];constructor(){
 //! ルート定義。
 this.routes=[{path:"",view:p},{path:"menu",view:p},{path:"vertical",view:v},{path:"horizontal",view:g},{path:"flashcard",view:y},{path:"koch",view:w},{path:"listening",view:L}]}init(){
 //! ハッシュ変更時のリスナーを登録。
@@ -495,4 +495,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new I).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-CqvIy2oW.js.map
+//# sourceMappingURL=index-CAAUFpQ6.js.map
