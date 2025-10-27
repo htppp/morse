@@ -163,7 +163,7 @@ this.keyPressHandler&&(window.removeEventListener("keydown",this.keyPressHandler
 //! 定期更新を停止。
 null!==this.updateIntervalId&&(clearInterval(this.updateIntervalId),this.updateIntervalId=null),
 //! トレーナーをクリア。
-this.trainer.clear()}}async function b(t){
+this.trainer.clear()}}async function y(t){
 //! TSVファイルを取得。
 const e=await fetch(t);if(!e.ok)throw new Error(`Failed to load flashcard data: ${e.statusText}`);return function(t){
 //! 行に分割。
@@ -173,13 +173,13 @@ return e.slice(1).map((t,e)=>{
 //! タブで分割。
 const n=t.split("\t");
 //! 最低限6列（タグ、頻度、略語、英文、和訳、説明）必要。
-if(n.length<6)return null;return{tags:n[0].trim(),frequency:parseInt(n[1].trim(),10)||1,abbreviation:n[2].trim(),english:n[3].trim(),japanese:n[4].trim(),description:n[5]?.trim(),example:n[6]?.trim()}}).filter(t=>null!==t)}(await e.text())}class y{allEntries=[];filteredEntries=[];currentState="loading";selectedTags=new Set;selectedFrequencies=new Set([5]);searchQuery="";displayMode="card";sortColumn="abbreviation";sortDirection="asc";learnQuestionType="abbr-to-meaning";learnCards=[];currentLearnIndex=0;isFlipped=!1;reviewMode=!1;progress={known:new Set,unknown:new Set};questionType="abbr-to-meaning";questionCount=10;questions=[];currentQuestionIndex=0;results=[];audio;currentlyPlaying=null;constructor(){this.audio=new n({frequency:700,volume:.5,wpm:20}),
+if(n.length<6)return null;return{tags:n[0].trim(),frequency:parseInt(n[1].trim(),10)||1,abbreviation:n[2].trim(),english:n[3].trim(),japanese:n[4].trim(),description:n[5]?.trim(),example:n[6]?.trim()}}).filter(t=>null!==t)}(await e.text())}class b{allEntries=[];filteredEntries=[];currentState="loading";selectedTags=new Set;selectedFrequencies=new Set([5]);searchQuery="";displayMode="card";sortColumn="abbreviation";sortDirection="asc";learnQuestionType="abbr-to-meaning";learnCards=[];currentLearnIndex=0;isFlipped=!1;reviewMode=!1;progress={known:new Set,unknown:new Set};questionType="abbr-to-meaning";questionCount=10;questions=[];currentQuestionIndex=0;results=[];audio;currentlyPlaying=null;constructor(){this.audio=new n({frequency:700,volume:.5,wpm:20}),
 //! ライブラリから状態を読み込む。
 this.progress=d.loadProgress();const t=d.loadFilters();this.selectedTags=t.selectedTags,this.selectedFrequencies=t.selectedFrequencies,this.searchQuery=t.searchQuery;const e=d.loadViewState();this.displayMode=e.displayMode,this.sortColumn=e.sortColumn,this.sortDirection=e.sortDirection,this.learnQuestionType=e.learnQuestionType,this.questionType=e.examQuestionType}saveProgress(){d.saveProgress(this.progress)}clearProgress(){this.progress={known:new Set,unknown:new Set},d.clearProgress()}saveFilters(){d.saveFilters({selectedTags:this.selectedTags,selectedFrequencies:this.selectedFrequencies,searchQuery:this.searchQuery})}async render(){const t=document.getElementById("app");if(t)if("loading"===this.currentState){
 //! ローディング画面を表示。
 t.innerHTML='\n\t\t\t\t<div class="container">\n\t\t\t\t\t<header class="header">\n\t\t\t\t\t\t<h1>CW略語・Q符号学習</h1>\n\t\t\t\t\t\t<button class="back-btn">メニューに戻る</button>\n\t\t\t\t\t</header>\n\t\t\t\t\t<div class="loading-container">\n\t\t\t\t\t\t<p>フラッシュカードデータを読み込み中...</p>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t';const n=document.querySelector(".back-btn");n?.addEventListener("click",()=>{window.location.hash="#menu"});
 //! データをロード。
-try{this.allEntries=await b("/flashcard.tsv"),this.updateFilteredEntries();
+try{this.allEntries=await y("/flashcard.tsv"),this.updateFilteredEntries();
 //! データロード完了後、保存されていたviewModeを復元。
 const t=d.loadViewState();this.currentState=t.viewMode,this.render()}catch(e){t.innerHTML=`\n\t\t\t\t\t<div class="container">\n\t\t\t\t\t\t<header class="header">\n\t\t\t\t\t\t\t<h1>CW略語・Q符号学習</h1>\n\t\t\t\t\t\t\t<button class="back-btn">メニューに戻る</button>\n\t\t\t\t\t\t</header>\n\t\t\t\t\t\t<div class="error-container">\n\t\t\t\t\t\t\t<p>データの読み込みに失敗しました。</p>\n\t\t\t\t\t\t\t<p>エラー: ${e}</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t`}}else"browse"===this.currentState?this.renderBrowseMode():"learn"===this.currentState?this.renderLearnMode():"exam"===this.currentState?this.renderExamMode():"exam-result"===this.currentState&&this.renderExamResultMode()}renderFilterSection(){return`\n\t\t\t<div class="filter-section">\n\t\t\t\t<h3>フィルター設定</h3>\n\n\t\t\t\t<div class="filter-group">\n\t\t\t\t\t<label>タグで絞り込み</label>\n\t\t\t\t\t<div class="tag-filter" id="tag-filter">\n\t\t\t\t\t\t${c.getAllTags(this.allEntries).map(t=>`\n\t\t\t\t\t\t\t<label class="tag-checkbox">\n\t\t\t\t\t\t\t\t<input type="checkbox" value="${t}" ${this.selectedTags.has(t)?"checked":""}>\n\t\t\t\t\t\t\t\t<span>${t}</span>\n\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t`).join("")}\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\n\t\t\t\t<div class="filter-group">\n\t\t\t\t\t<label>使用頻度で絞り込み（1=低頻度、5=高頻度）</label>\n\t\t\t\t\t<div class="frequency-filter" id="frequency-filter">\n\t\t\t\t\t\t${[5,4,3,2,1].map(t=>`\n\t\t\t\t\t\t\t<label class="frequency-checkbox">\n\t\t\t\t\t\t\t\t<input type="checkbox" value="${t}" ${this.selectedFrequencies.has(t)?"checked":""}>\n\t\t\t\t\t\t\t\t<span>★${t}</span>\n\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t`).join("")}\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\n\t\t\t\t<div class="filter-group">\n\t\t\t\t\t<label for="search-input">検索（略語・意味・タグ）</label>\n\t\t\t\t\t<input type="text" id="search-input" class="search-input" placeholder="例: QTH, location, Q符号" value="${this.searchQuery}">\n\t\t\t\t</div>\n\n\t\t\t\t<div class="filter-stats">\n\t\t\t\t\t<span>該当: <strong id="filtered-count">${this.filteredEntries.length}</strong> 件</span>\n\t\t\t\t\t<span>全体: <strong>${this.allEntries.length}</strong> 件</span>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t`}renderBrowseMode(){const t=document.getElementById("app");t&&(t.innerHTML=`\n\t\t\t<div class="settings-icon" id="settingsIcon">\n\t\t\t\t<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\n\t\t\t\t\t<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>\n\t\t\t\t</svg>\n\t\t\t</div>\n\n\t\t\t<div class="container">\n\t\t\t\t<header class="header">\n\t\t\t\t\t<button class="back-btn">メニューに戻る</button>\n\t\t\t\t\t<h1>CW略語・Q符号学習</h1>\n\t\t\t\t</header>\n\n\t\t\t\t<div class="tabs">\n\t\t\t\t\t<button class="tab-button active" data-tab="browse">一覧</button>\n\t\t\t\t\t<button class="tab-button" data-tab="learn">学習モード</button>\n\t\t\t\t\t<button class="tab-button" data-tab="exam">試験モード</button>\n\t\t\t\t</div>\n\n\t\t\t\t<div class="flashcard-container">\n\t\t\t\t\t${this.renderFilterSection()}\n\n\t\t\t\t\t<div class="entries-section" id="entries-section">\n\t\t\t\t\t\t\x3c!-- ここに一覧が表示される --\x3e\n\t\t\t\t\t</div>\n\n\t\t\t\t\t<div class="instructions">\n\t\t\t\t\t\t<h3>使い方</h3>\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li>タグ、使用頻度、検索で略語を絞り込めます</li>\n\t\t\t\t\t\t\t<li>略語カードをクリックするとモールス信号を再生できます</li>\n\t\t\t\t\t\t\t<li>カード表示とリスト表示を切り替えられます</li>\n\t\t\t\t\t\t\t<li>「学習モード」タブでフラッシュカード学習ができます</li>\n\t\t\t\t\t\t\t<li>「試験モード」タブで理解度テストができます</li>\n\t\t\t\t\t\t\t<li>画面右上の⚙アイコンから音量・周波数・速度を調整できます</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t`,this.renderEntries(),this.attachBrowseModeListeners())}renderEntries(){const t=document.getElementById("entries-section");t&&("card"===this.displayMode?this.renderCardView(t):this.renderListView(t))}renderCardView(t){t.innerHTML=`\n\t\t\t<div class="entries-header">\n\t\t\t\t<h3>略語一覧 (${this.filteredEntries.length}件)</h3>\n\t\t\t\t<button id="toggle-display-btn" class="toggle-display-btn">📋 リスト表示</button>\n\t\t\t</div>\n\t\t\t<div class="entries-grid">\n\t\t\t\t${this.filteredEntries.map(t=>`\n\t\t\t\t\t<div class="entry-card ${this.currentlyPlaying===t.abbreviation?"playing":""}" data-abbr="${t.abbreviation}">\n\t\t\t\t\t\t<div class="entry-header">\n\t\t\t\t\t\t\t<div class="entry-abbr">${this.formatAbbreviation(t.abbreviation)}</div>\n\t\t\t\t\t\t\t<div class="entry-frequency" title="使用頻度: ${t.frequency}/5">${"★".repeat(t.frequency)}${"☆".repeat(5-t.frequency)}</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="entry-english">${t.english}</div>\n\t\t\t\t\t\t<div class="entry-japanese">${t.japanese}</div>\n\t\t\t\t\t\t${t.description?`<div class="entry-description">${t.description}</div>`:""}\n\t\t\t\t\t\t${t.example?`<div class="entry-example">例: ${t.example}</div>`:""}\n\t\t\t\t\t\t<div class="entry-tags">${t.tags}</div>\n\t\t\t\t\t</div>\n\t\t\t\t`).join("")}\n\t\t\t</div>\n\t\t`,
 //! カードクリックでモールス再生。
@@ -389,19 +389,32 @@ getTemplates(){if("custom"===this.state.currentCategory){return[{id:"qso-random-
 //! QSOカテゴリーにはランダムQSO生成ボタンを追加。
 if("qso"===this.state.currentCategory){return[{id:"qso-random-generate",category:"qso",title:"ランダムQSO生成",content:""},...t]}return t}}
 //! ========== 再生制御 ==========
-async playMorse(){if(this.state.selectedTemplate&&!this.state.isPlaying){
+async playMorse(){if(this.state.selectedTemplate&&!this.state.isPlaying){this.state.isPlaying=!0,this.updatePlaybackButtons();try{
 //! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
-if(this.state.isPlaying=!0,this.updatePlaybackButtons(),this.state.selectedTemplate.dialog&&this.state.selectedTemplate.dialog.length>0)
+this.state.selectedTemplate.dialog&&this.state.selectedTemplate.dialog.length>0?
 //! 対話形式で再生（A側とB側を交互に再生）。
-await this.playDialogQSO(this.state.selectedTemplate);else if(this.state.selectedTemplate.content){
-//! 通常モードで再生（全体をA側で再生）。
-const t=l.textToMorse(this.state.selectedTemplate.content);await this.audio.playMorseString(t)}this.state.isPlaying=!1,this.updatePlaybackButtons()}}getTemplateText(t){return t.dialog&&t.dialog.length>0?t.dialog.map(t=>t.text).join(" BT "):t.content||""}async playDialogQSO(t){
+await this.playDialogQSO(this.state.selectedTemplate):this.state.selectedTemplate.content&&
+//! 通常モードで再生（単語単位でA側で再生）。
+await this.playTextWordByWord(this.state.selectedTemplate.content,this.audio)}finally{this.state.isPlaying=!1,this.updatePlaybackButtons()}}}getTemplateText(t){return t.dialog&&t.dialog.length>0?t.dialog.map(t=>t.text).join(" BT "):t.content||""}async playTextWordByWord(t,e){
+//! テキストを単語に分割（空白文字で分割）。
+const n=t.trim().split(/\s+/).filter(t=>t.length>0);
+//! 各単語を順番に再生。
+for(let s=0;s<n.length;s++){
+//! 停止フラグをチェック。
+if(!this.state.isPlaying)return;const t=n[s],i=l.textToMorse(t);await e.playMorseString(i),
+//! 単語間に短い間隔を入れる（最後の単語以外）。
+s<n.length-1&&await new Promise(t=>setTimeout(t,100))}}async playDialogQSO(t){
 //! dialogがない場合（テキストカテゴリ）はcontentを再生。
 if(t.dialog&&0!==t.dialog.length)
 //! 各セグメントを交互にA側とB側で再生。
-for(let e=0;e<t.dialog.length;e++){const n=t.dialog[e],s=l.textToMorse(n.text),i="A"===n.side?this.audio:this.audioB;await i.playMorseString(s),
+for(let e=0;e<t.dialog.length;e++){
+//! 停止フラグをチェック。
+if(!this.state.isPlaying)return;const n=t.dialog[e],s="A"===n.side?this.audio:this.audioB;
+//! A側またはB側のAudioGeneratorを選択。
+//! セグメントのテキストを単語単位で再生。
+await this.playTextWordByWord(n.text,s),
 //! セグメント間に短い間隔を入れる。
-e<t.dialog.length-1&&await new Promise(t=>setTimeout(t,500))}else if(t.content){const e=l.textToMorse(t.content);await this.audio.playMorseString(e)}}pauseMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.updatePlaybackButtons()}stopMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.state.userInput="",this.state.showResult=!1,this.state.showAnswer=!1,this.renderPracticeArea()}updatePlaybackButtons(){const t=document.getElementById("playBtn"),e=document.getElementById("pauseBtn");t&&(t.disabled=this.state.isPlaying),e&&(e.disabled=!this.state.isPlaying)}
+e<t.dialog.length-1&&this.state.isPlaying&&await new Promise(t=>setTimeout(t,500))}else t.content&&await this.playTextWordByWord(t.content,this.audio)}pauseMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.updatePlaybackButtons()}stopMorse(){this.audio.stopPlaying(),this.audioB.stopPlaying(),this.state.isPlaying=!1,this.state.userInput="",this.state.showResult=!1,this.state.showAnswer=!1,this.renderPracticeArea()}updatePlaybackButtons(){const t=document.getElementById("playBtn"),e=document.getElementById("pauseBtn");t&&(t.disabled=this.state.isPlaying),e&&(e.disabled=!this.state.isPlaying)}
 //! ========== 採点と結果表示 ==========
 checkAnswer(){this.state.selectedTemplate&&(this.state.showResult=!0,this.state.showAnswer=!0,this.renderPracticeArea())}toggleAnswer(){this.state.showAnswer=!this.state.showAnswer,this.renderPracticeArea()}toggleDialogFormat(){this.state.showDialogFormat=!this.state.showDialogFormat,this.renderAnswer()}
 //! ========== カスタムテンプレート管理 ==========
@@ -478,7 +491,7 @@ const t=this.getTemplateText(this.state.selectedTemplate),e=l.textToMorse(t),n=a
 //! AudioGeneratorを停止。
 this.audio.stopPlaying(),this.audioB.stopPlaying()}}class I{currentView=null;routes=[];constructor(){
 //! ルート定義。
-this.routes=[{path:"",view:p},{path:"menu",view:p},{path:"vertical",view:v},{path:"horizontal",view:g},{path:"flashcard",view:y},{path:"koch",view:w},{path:"listening",view:L}]}init(){
+this.routes=[{path:"",view:p},{path:"menu",view:p},{path:"vertical",view:v},{path:"horizontal",view:g},{path:"flashcard",view:b},{path:"koch",view:w},{path:"listening",view:L}]}init(){
 //! ハッシュ変更時のリスナーを登録。
 window.addEventListener("hashchange",()=>this.handleRoute()),
 //! 初回ルーティング。
@@ -495,4 +508,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new I).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-CAAUFpQ6.js.map
+//# sourceMappingURL=index-v8f4l6zR.js.map

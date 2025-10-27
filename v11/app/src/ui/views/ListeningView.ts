@@ -177,18 +177,19 @@ export class ListeningView implements View {
 		this.state.isPlaying = true;
 		this.updatePlaybackButtons();
 
-		//! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
-		if (this.state.selectedTemplate.dialog && this.state.selectedTemplate.dialog.length > 0) {
-			//! 対話形式で再生（A側とB側を交互に再生）。
-			await this.playDialogQSO(this.state.selectedTemplate);
-		} else if (this.state.selectedTemplate.content) {
-			//! 通常モードで再生（全体をA側で再生）。
-			const morse = MorseCodec.textToMorse(this.state.selectedTemplate.content);
-			await this.audio.playMorseString(morse);
+		try {
+			//! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
+			if (this.state.selectedTemplate.dialog && this.state.selectedTemplate.dialog.length > 0) {
+				//! 対話形式で再生（A側とB側を交互に再生）。
+				await this.playDialogQSO(this.state.selectedTemplate);
+			} else if (this.state.selectedTemplate.content) {
+				//! 通常モードで再生（単語単位でA側で再生）。
+				await this.playTextWordByWord(this.state.selectedTemplate.content, this.audio);
+			}
+		} finally {
+			this.state.isPlaying = false;
+			this.updatePlaybackButtons();
 		}
-
-		this.state.isPlaying = false;
-		this.updatePlaybackButtons();
 	}
 
 	/**
@@ -204,31 +205,64 @@ export class ListeningView implements View {
 	}
 
 	/**
+	 * テキストを単語単位で再生する
+	 * 各単語の再生前に停止フラグをチェックし、停止が要求されていれば中断する
+	 * @param text - 再生するテキスト
+	 * @param generator - 使用するAudioGenerator
+	 */
+	private async playTextWordByWord(text: string, generator: AudioGenerator): Promise<void> {
+		//! テキストを単語に分割（空白文字で分割）。
+		const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+
+		//! 各単語を順番に再生。
+		for (let i = 0; i < words.length; i++) {
+			//! 停止フラグをチェック。
+			if (!this.state.isPlaying) {
+				return;
+			}
+
+			const word = words[i];
+			const morse = MorseCodec.textToMorse(word);
+			await generator.playMorseString(morse);
+
+			//! 単語間に短い間隔を入れる（最後の単語以外）。
+			if (i < words.length - 1) {
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+		}
+	}
+
+	/**
 	 * 対話形式のQSOを再生する
 	 * A側とB側を交互に異なる周波数で再生
+	 * 単語単位で再生し、途中で停止可能
 	 * @param template - 再生するテンプレート
 	 */
 	private async playDialogQSO(template: ListeningTemplate): Promise<void> {
 		//! dialogがない場合（テキストカテゴリ）はcontentを再生。
 		if (!template.dialog || template.dialog.length === 0) {
 			if (template.content) {
-				const morse = MorseCodec.textToMorse(template.content);
-				await this.audio.playMorseString(morse);
+				await this.playTextWordByWord(template.content, this.audio);
 			}
 			return;
 		}
 
 		//! 各セグメントを交互にA側とB側で再生。
 		for (let i = 0; i < template.dialog.length; i++) {
-			const segment = template.dialog[i];
-			const morse = MorseCodec.textToMorse(segment.text);
+			//! 停止フラグをチェック。
+			if (!this.state.isPlaying) {
+				return;
+			}
 
+			const segment = template.dialog[i];
 			//! A側またはB側のAudioGeneratorを選択。
 			const generator = segment.side === 'A' ? this.audio : this.audioB;
-			await generator.playMorseString(morse);
+
+			//! セグメントのテキストを単語単位で再生。
+			await this.playTextWordByWord(segment.text, generator);
 
 			//! セグメント間に短い間隔を入れる。
-			if (i < template.dialog.length - 1) {
+			if (i < template.dialog.length - 1 && this.state.isPlaying) {
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 		}
