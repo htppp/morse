@@ -398,12 +398,15 @@ await this.playDialogQSO(this.state.selectedTemplate):this.state.selectedTemplat
 await this.playTextWordByWord(this.state.selectedTemplate.content,this.audio)}finally{this.state.isPlaying=!1,this.updatePlaybackButtons()}}}getTemplateText(t){return t.dialog&&t.dialog.length>0?t.dialog.map(t=>t.text).join(" BT "):t.content||""}async playTextWordByWord(t,e){
 //! テキストを単語に分割（空白文字で分割）。
 const n=t.trim().split(/\s+/).filter(t=>t.length>0);
+//! どちらのgeneratorか識別。
+this.audio;
 //! 各単語を順番に再生。
 for(let s=0;s<n.length;s++){
 //! 停止フラグをチェック。
-if(!this.state.isPlaying)return;const t=n[s],i=l.textToMorse(t);await e.playMorseString(i),
+if(!this.state.isPlaying)return;const t=n[s],i=l.textToMorse(t);await e.playMorseString(i);
 //! 単語間に短い間隔を入れる（最後の単語以外）。
-s<n.length-1&&await new Promise(t=>setTimeout(t,100))}}async playDialogQSO(t){
+//! この待機時間でgeneratorのisPlayingフラグがfalseに戻る時間を確保する。
+s<n.length-1&&await new Promise(t=>setTimeout(t,150))}}async playDialogQSO(t){
 //! dialogがない場合（テキストカテゴリ）はcontentを再生。
 if(t.dialog&&0!==t.dialog.length)
 //! 各セグメントを交互にA側とB側で再生。
@@ -508,4 +511,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new I).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-v8f4l6zR.js.map
+//# sourceMappingURL=index-Dy6xcYYy.js.map

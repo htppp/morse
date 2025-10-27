@@ -214,6 +214,9 @@ export class ListeningView implements View {
 		//! テキストを単語に分割（空白文字で分割）。
 		const words = text.trim().split(/\s+/).filter(w => w.length > 0);
 
+		//! どちらのgeneratorか識別。
+		const generatorName = generator === this.audio ? 'A' : 'B';
+
 		//! 各単語を順番に再生。
 		for (let i = 0; i < words.length; i++) {
 			//! 停止フラグをチェック。
@@ -223,11 +226,19 @@ export class ListeningView implements View {
 
 			const word = words[i];
 			const morse = MorseCodec.textToMorse(word);
-			await generator.playMorseString(morse);
+
+			console.log(`[DEBUG] Playing word "${word}" with generator ${generatorName}`);
+			const success = await generator.playMorseString(morse);
+
+			//! 再生が拒否された場合（前の再生がまだ終わっていない）、警告を出力。
+			if (!success) {
+				console.warn(`[WARN] Failed to play word "${word}" with generator ${generatorName} (generator busy)`);
+			}
 
 			//! 単語間に短い間隔を入れる（最後の単語以外）。
+			//! この待機時間でgeneratorのisPlayingフラグがfalseに戻る時間を確保する。
 			if (i < words.length - 1) {
-				await new Promise(resolve => setTimeout(resolve, 100));
+				await new Promise(resolve => setTimeout(resolve, 150));
 			}
 		}
 	}
@@ -257,6 +268,8 @@ export class ListeningView implements View {
 			const segment = template.dialog[i];
 			//! A側またはB側のAudioGeneratorを選択。
 			const generator = segment.side === 'A' ? this.audio : this.audioB;
+
+			console.log(`[DEBUG] Segment ${i}: side=${segment.side}, text="${segment.text.substring(0, 50)}..."`);
 
 			//! セグメントのテキストを単語単位で再生。
 			await this.playTextWordByWord(segment.text, generator);
