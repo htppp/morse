@@ -386,7 +386,6 @@ export class ListeningView implements View {
 		if (!this.state.selectedTemplate) return;
 
 		this.state.showResult = true;
-		this.state.showAnswer = true;
 		this.renderPracticeArea();
 	}
 

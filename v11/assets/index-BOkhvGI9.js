@@ -441,7 +441,7 @@ this.state.pausedWordIndex=-1,this.state.pausedSegmentIndex=-1,
 //! 停止時は単語強調表示もクリア。
 this.state.currentPlayingWordIndex=-1,this.state.currentPlayingSegmentIndex=-1,this.updatePlaybackButtons(),this.renderAnswer()}updatePlaybackButtons(){const t=document.getElementById("playBtn"),e=document.getElementById("pauseBtn");t&&(t.disabled=this.state.isPlaying),e&&(e.disabled=!this.state.isPlaying)}
 //! ========== 採点と結果表示 ==========
-checkAnswer(){this.state.selectedTemplate&&(this.state.showResult=!0,this.state.showAnswer=!0,this.renderPracticeArea())}toggleAnswer(){
+checkAnswer(){this.state.selectedTemplate&&(this.state.showResult=!0,this.renderPracticeArea())}toggleAnswer(){
 //! 3つの状態を管理: a=非表示、b=通常表示、c=対話形式表示。
 //! 状態a: showAnswer=false, showDialogFormat=false → 非表示
 //! 状態b: showAnswer=true, showDialogFormat=false → 通常表示
@@ -562,4 +562,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new L).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-DR0CTJV-.js.map
+//# sourceMappingURL=index-BOkhvGI9.js.map
