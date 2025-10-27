@@ -391,32 +391,34 @@ export class ListeningView implements View {
 	}
 
 	private toggleAnswer(): void {
-		//! 3つの状態を管理: 非表示、通常表示、対話形式表示。
-		//! 状態1: showAnswer=false, showDialogFormat=false → 非表示
-		//! 状態2: showAnswer=true, showDialogFormat=false → 通常表示
-		//! 状態3: showAnswer=false, showDialogFormat=true → 対話形式表示
+		//! 3つの状態を管理: a=非表示、b=通常表示、c=対話形式表示。
+		//! 状態a: showAnswer=false, showDialogFormat=false → 非表示
+		//! 状態b: showAnswer=true, showDialogFormat=false → 通常表示
+		//! 状態c: showAnswer=false, showDialogFormat=true → 対話形式表示
+		//! 遷移: a⇔b, b⇔c
 
-		if (this.state.showDialogFormat) {
-			//! 状態3（対話形式表示）→ 状態1（非表示）。
-			this.state.showDialogFormat = false;
+		if (this.state.showAnswer) {
+			//! b → a: 通常表示をOFF。
 			this.state.showAnswer = false;
 		} else {
-			//! 状態1（非表示）⇔ 状態2（通常表示）のトグル。
-			this.state.showAnswer = !this.state.showAnswer;
+			//! a → b または c → b: 通常表示をON、対話形式をOFF。
+			this.state.showAnswer = true;
+			this.state.showDialogFormat = false;
 		}
 		this.renderPracticeArea();
 	}
 
 	private toggleDialogFormat(): void {
-		//! 3つの状態を管理: 非表示、通常表示、対話形式表示。
+		//! 3つの状態を管理: a=非表示、b=通常表示、c=対話形式表示。
+		//! 遷移: a⇔c, b⇔c
 
 		if (this.state.showDialogFormat) {
-			//! 状態3（対話形式表示）→ 状態1（非表示）。
+			//! c → a: 対話形式をOFF。
 			this.state.showDialogFormat = false;
 		} else {
-			//! 状態1または2 → 状態3（対話形式表示）。
-			this.state.showAnswer = false;
+			//! a → c または b → c: 対話形式をON、通常表示をOFF。
 			this.state.showDialogFormat = true;
+			this.state.showAnswer = false;
 		}
 		this.renderPracticeArea();
 	}
@@ -733,8 +735,8 @@ export class ListeningView implements View {
 
 			<div class="action-buttons">
 				<button id="checkBtn" class="btn btn-primary">採点</button>
-				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">${(this.state.showAnswer || this.state.showDialogFormat) ? '正解を非表示' : '正解を表示'}</button>
-				${isQSO && hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">${this.state.showDialogFormat ? '通常表示' : '対話形式で表示'}</button>` : ''}
+				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">通常表示</button>
+				${isQSO && hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">対話形式で表示</button>` : ''}
 			</div>
 
 			${(this.state.showAnswer || this.state.showDialogFormat) ? '<div id="answerArea"></div>' : ''}
