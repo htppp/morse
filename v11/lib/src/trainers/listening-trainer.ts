@@ -402,9 +402,9 @@ export class ListeningTrainer {
 	static calculateAccuracy(correctAnswer: string, userInput: string): number {
 		if (!userInput) return 0;
 
-		//! 空白を除去して大文字化して比較。
-		const correct = correctAnswer.replace(/\s/g, '').toUpperCase();
-		const input = userInput.replace(/\s/g, '').toUpperCase();
+		//! 大文字化して比較（空白も採点対象に含める）。
+		const correct = correctAnswer.toUpperCase();
+		const input = userInput.toUpperCase();
 
 		if (correct.length === 0) return 0;
 

@@ -57,8 +57,8 @@ r.unshift({type:"replace",correctChar:t[a-1],inputChar:e[o-1],correctIndex:a-1,i
 r.unshift({type:"delete",correctChar:t[a-1],correctIndex:a-1,inputIndex:o}),a--):o>0&&i[a][o]===i[a][o-1]+1&&(
 //! 挿入（入力にあるが正解にない）。
 r.unshift({type:"insert",inputChar:e[o-1],correctIndex:a,inputIndex:o-1}),o--);return r}static calculateAccuracy(t,e){if(!e)return 0;
-//! 空白を除去して大文字化して比較。
-const s=t.replace(/\s/g,"").toUpperCase(),n=e.replace(/\s/g,"").toUpperCase();if(0===s.length)return 0;
+//! 大文字化して比較（空白も採点対象に含める）。
+const s=t.toUpperCase(),n=e.toUpperCase();if(0===s.length)return 0;
 //! レーベンシュタイン距離を計算。
 const i=this.levenshteinDistance(s,n),r=Math.max(0,100*(1-i/s.length));
 //! 正答率 = (1 - (編集距離 / 正解の長さ)) * 100
@@ -109,5 +109,5 @@ e.addEventListener("click",t=>{t.target===e&&(this.currentValues={...this.initia
 //! HorizontalKey専用の設定。
 {screens:["horizontal-key"],priority:40,key:"iambicMode",label:"Iambicモード",inputType:"select",options:[{value:"A",label:"Iambic A"},{value:"B",label:"Iambic B"}]},{screens:["horizontal-key"],priority:50,key:"paddleLayout",label:"パドルレイアウト",inputType:"select",options:[{value:"normal",label:"標準（左=dit / 右=dah）"},{value:"reversed",label:"反転（左=dah / 右=dit）"}]},{screens:["horizontal-key"],priority:60,key:"leftKeyCode",label:"左パドルキー",inputType:"keybinding",hint:"クリックしてキーを押す"},{screens:["horizontal-key"],priority:70,key:"rightKeyCode",label:"右パドルキー",inputType:"keybinding",hint:"クリックしてキーを押す"},
 //! VerticalKey専用の設定。
-{screens:["vertical-key"],priority:40,key:"keyCode",label:"キーバインド",inputType:"keybinding",hint:"クリックしてキーを押す"}];export{l as $,O as F,g as G,f as H,R as K,h as M,u as N,c as P,n as U,a as W,M as Y,s as g,o as k,r as w};
-//# sourceMappingURL=morse-engine-B0OXs3Yx.js.map
+{screens:["vertical-key"],priority:40,key:"keyCode",label:"キーバインド",inputType:"keybinding",hint:"クリックしてキーを押す"}];export{l as $,O as F,g as G,f as H,s as I,R as K,h as M,u as N,c as P,n as U,a as W,M as Y,o as k,r as w};
+//# sourceMappingURL=morse-engine-Cu8_ooUX.js.map

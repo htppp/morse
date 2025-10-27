@@ -843,75 +843,39 @@ export class ListeningView implements View {
 			this.state.userInput
 		);
 
-		//! 元のテキスト（空白あり）を大文字化。
-		const correctOriginal = correctText.toUpperCase();
-		const inputOriginal = this.state.userInput.toUpperCase();
-
-		//! 空白を除去したバージョンで差分を計算。
-		const correct = correctText.replace(/\s/g, '').toUpperCase();
-		const input = this.state.userInput.replace(/\s/g, '').toUpperCase();
+		//! 大文字化して差分を計算（空白も採点対象に含める）。
+		const correct = correctText.toUpperCase();
+		const input = this.state.userInput.toUpperCase();
 		const diff = ListeningTrainer.getDifference(correct, input);
 
-		//! 差分情報から各文字の状態を取得するためのマップを作成。
-		const correctCharStatus: Map<number, {type: string, char: string}> = new Map();
-		const inputCharStatus: Map<number, {type: string, char: string}> = new Map();
+		//! 差分情報を基にHTML文字列を生成。
+		let correctHtml = '';
+		let inputHtml = '';
 
 		for (const d of diff) {
 			if (d.type === 'match') {
-				correctCharStatus.set(d.correctIndex, {type: 'match', char: d.correctChar!});
-				inputCharStatus.set(d.inputIndex, {type: 'match', char: d.inputChar!});
-			} else if (d.type === 'replace') {
-				correctCharStatus.set(d.correctIndex, {type: 'error', char: d.correctChar!});
-				inputCharStatus.set(d.inputIndex, {type: 'error', char: d.inputChar!});
-			} else if (d.type === 'delete') {
-				correctCharStatus.set(d.correctIndex, {type: 'error', char: d.correctChar!});
-			} else if (d.type === 'insert') {
-				inputCharStatus.set(d.inputIndex, {type: 'extra', char: d.inputChar!});
-			}
-		}
-
-		//! 元のテキストを走査して、空白を含めてHTML文字列を生成。
-		let correctHtml = '';
-		let correctNonSpaceIndex = 0;
-		for (let i = 0; i < correctOriginal.length; i++) {
-			const char = correctOriginal[i];
-			if (/\s/.test(char)) {
-				//! 空白はそのまま表示。
+				//! 一致する文字（空白含む）は通常表示。
+				const char = d.correctChar === ' ' ? '&nbsp;' : d.correctChar;
 				correctHtml += char;
-			} else {
-				//! 非空白文字は差分情報を参照。
-				const status = correctCharStatus.get(correctNonSpaceIndex);
-				if (status) {
-					if (status.type === 'match') {
-						correctHtml += status.char;
-					} else if (status.type === 'error') {
-						correctHtml += `<span class="diff-error">${status.char}</span>`;
-					}
-				}
-				correctNonSpaceIndex++;
-			}
-		}
-
-		let inputHtml = '';
-		let inputNonSpaceIndex = 0;
-		for (let i = 0; i < inputOriginal.length; i++) {
-			const char = inputOriginal[i];
-			if (/\s/.test(char)) {
-				//! 空白はそのまま表示。
 				inputHtml += char;
-			} else {
-				//! 非空白文字は差分情報を参照。
-				const status = inputCharStatus.get(inputNonSpaceIndex);
-				if (status) {
-					if (status.type === 'match') {
-						inputHtml += status.char;
-					} else if (status.type === 'error') {
-						inputHtml += `<span class="diff-error">${status.char}</span>`;
-					} else if (status.type === 'extra') {
-						inputHtml += `<span class="diff-extra">${status.char}</span>`;
-					}
-				}
-				inputNonSpaceIndex++;
+			} else if (d.type === 'replace') {
+				//! 置換された文字は赤色で表示。
+				const correctChar = d.correctChar === ' ' ? '&nbsp;' : d.correctChar;
+				const inputChar = d.inputChar === ' ' ? '&nbsp;' : d.inputChar;
+				correctHtml += `<span class="diff-error">${correctChar}</span>`;
+				inputHtml += `<span class="diff-error">${inputChar}</span>`;
+			} else if (d.type === 'delete') {
+				//! 削除された文字（正解にあるが入力にない）は正解側に赤色で表示。
+				const char = d.correctChar === ' ' ? '&nbsp;' : d.correctChar;
+				correctHtml += `<span class="diff-error">${char}</span>`;
+				//! 入力側には何も表示しない（位置合わせのため透明な文字を挿入）。
+				inputHtml += `<span class="diff-missing">_</span>`;
+			} else if (d.type === 'insert') {
+				//! 挿入された文字（入力にあるが正解にない）は入力側に青色で表示。
+				const char = d.inputChar === ' ' ? '&nbsp;' : d.inputChar;
+				//! 正解側には何も表示しない（位置合わせのため透明な文字を挿入）。
+				correctHtml += `<span class="diff-missing">_</span>`;
+				inputHtml += `<span class="diff-extra">${char}</span>`;
 			}
 		}
 
