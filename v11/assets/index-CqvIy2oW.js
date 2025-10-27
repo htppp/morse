@@ -391,7 +391,7 @@ if("qso"===this.state.currentCategory){return[{id:"qso-random-generate",category
 //! ========== 再生制御 ==========
 async playMorse(){if(this.state.selectedTemplate&&!this.state.isPlaying){
 //! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
-if(this.state.isPlaying=!0,this.updatePlaybackButtons(),this.state.showDialogFormat&&this.state.selectedTemplate.dialog)
+if(this.state.isPlaying=!0,this.updatePlaybackButtons(),this.state.selectedTemplate.dialog&&this.state.selectedTemplate.dialog.length>0)
 //! 対話形式で再生（A側とB側を交互に再生）。
 await this.playDialogQSO(this.state.selectedTemplate);else if(this.state.selectedTemplate.content){
 //! 通常モードで再生（全体をA側で再生）。
@@ -495,4 +495,4 @@ window.location.hash="#menu"}navigate(t){window.location.hash=`#${t}`}}
 function S(){(new I).init()}
 //! DOMContentLoaded後に初期化。
 "loading"===document.readyState?document.addEventListener("DOMContentLoaded",S):S();
-//# sourceMappingURL=index-8tpYsb9X.js.map
+//# sourceMappingURL=index-CqvIy2oW.js.map

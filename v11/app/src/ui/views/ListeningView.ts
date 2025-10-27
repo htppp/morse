@@ -178,7 +178,7 @@ export class ListeningView implements View {
 		this.updatePlaybackButtons();
 
 		//! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
-		if (this.state.showDialogFormat && this.state.selectedTemplate.dialog) {
+		if (this.state.selectedTemplate.dialog && this.state.selectedTemplate.dialog.length > 0) {
 			//! 対話形式で再生（A側とB側を交互に再生）。
 			await this.playDialogQSO(this.state.selectedTemplate);
 		} else if (this.state.selectedTemplate.content) {
