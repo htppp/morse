@@ -735,7 +735,7 @@ export class ListeningView implements View {
 
 			<div class="action-buttons">
 				<button id="checkBtn" class="btn btn-primary">採点</button>
-				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">通常表示</button>
+				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">テキスト表示</button>
 				${isQSO && hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">対話形式で表示</button>` : ''}
 			</div>
 
