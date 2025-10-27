@@ -723,7 +723,6 @@ export class ListeningView implements View {
 		const practiceInputArea = document.getElementById('practiceInputArea');
 		if (!practiceInputArea) return;
 
-		const isQSO = this.state.selectedTemplate?.category === 'qso';
 		const hasDialog = this.state.selectedTemplate?.dialog && this.state.selectedTemplate.dialog.length > 0;
 
 		practiceInputArea.innerHTML = `
@@ -735,7 +734,7 @@ export class ListeningView implements View {
 			<div class="action-buttons">
 				<button id="checkBtn" class="btn btn-primary">採点</button>
 				<button id="showAnswerBtn" class="btn ${this.state.showAnswer ? 'active' : ''}">テキスト表示</button>
-				${isQSO && hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">対話形式で表示</button>` : ''}
+				${hasDialog ? `<button id="toggleDialogBtn" class="btn ${this.state.showDialogFormat ? 'active' : ''}">対話形式で表示</button>` : ''}
 			</div>
 
 			${(this.state.showAnswer || this.state.showDialogFormat) ? '<div id="answerArea"></div>' : ''}

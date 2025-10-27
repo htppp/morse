@@ -154,6 +154,28 @@ const TEXT100_TEMPLATES: ListeningTemplate[] = [
 		category: 'text100',
 		title: '英文例3: 趣味',
 		content: 'I HAVE MANY HOBBIES. I LIKE READING BOOKS AND LISTENING TO MUSIC. ON WEEKENDS I PLAY TENNIS WITH MY FRIENDS. WE HAVE A LOT OF FUN.'
+	},
+	{
+		id: 'text100-dialog-1',
+		category: 'text100',
+		title: '対話例1: 簡単な挨拶',
+		dialog: [
+			{ side: 'A', text: 'HELLO HOW ARE YOU' },
+			{ side: 'B', text: 'I AM FINE THANK YOU AND YOU' },
+			{ side: 'A', text: 'I AM DOING WELL THANKS' },
+			{ side: 'B', text: 'NICE TO MEET YOU' }
+		]
+	},
+	{
+		id: 'text100-dialog-2',
+		category: 'text100',
+		title: '対話例2: 天気の話',
+		dialog: [
+			{ side: 'A', text: 'NICE WEATHER TODAY' },
+			{ side: 'B', text: 'YES IT IS SUNNY AND WARM' },
+			{ side: 'A', text: 'PERFECT FOR A WALK' },
+			{ side: 'B', text: 'I AGREE LETS GO TO THE PARK' }
+		]
 	}
 ];
 
@@ -170,6 +192,19 @@ const TEXT200_TEMPLATES: ListeningTemplate[] = [
 		category: 'text200',
 		title: '英文例2: 旅行の思い出',
 		content: 'LAST SUMMER I WENT ON A TRIP TO KYOTO. IT WAS MY FIRST TIME VISITING THE ANCIENT CAPITAL OF JAPAN. I VISITED MANY FAMOUS TEMPLES AND SHRINES. THE ARCHITECTURE WAS BEAUTIFUL AND THE GARDENS WERE PEACEFUL. I ALSO ENJOYED TRYING LOCAL FOODS LIKE TOFU AND GREEN TEA. THE PEOPLE WERE VERY FRIENDLY AND HELPFUL. I TOOK MANY PHOTOS TO REMEMBER THIS WONDERFUL EXPERIENCE. I HOPE TO RETURN SOMEDAY.'
+	},
+	{
+		id: 'text200-dialog-1',
+		category: 'text200',
+		title: '対話例1: 無線機器について',
+		dialog: [
+			{ side: 'A', text: 'WHAT KIND OF RIG ARE YOU USING' },
+			{ side: 'B', text: 'I AM USING AN ICOM IC SEVEN THREE HUNDRED' },
+			{ side: 'A', text: 'THAT IS A GREAT RADIO HOW DO YOU LIKE IT' },
+			{ side: 'B', text: 'I LOVE IT THE RECEIVER IS VERY SENSITIVE' },
+			{ side: 'A', text: 'WHAT ANTENNA DO YOU HAVE' },
+			{ side: 'B', text: 'I USE A VERTICAL ANTENNA IN MY BACKYARD' }
+		]
 	}
 ];
 
@@ -186,6 +221,22 @@ const TEXT300_TEMPLATES: ListeningTemplate[] = [
 		category: 'text300',
 		title: '英文例2: 無線交信の楽しみ',
 		content: 'AMATEUR RADIO OFFERS MANY EXCITING OPPORTUNITIES. ONE OF THE GREATEST JOYS IS MAKING CONTACT WITH STATIONS AROUND THE WORLD. YOU CAN TALK TO PEOPLE FROM DIFFERENT COUNTRIES AND CULTURES. EACH CONTACT IS UNIQUE AND SPECIAL. SOME OPERATORS ENJOY CONTESTS WHERE THEY TRY TO MAKE AS MANY CONTACTS AS POSSIBLE. OTHERS PREFER RELAXED CONVERSATIONS ABOUT HOBBIES AND DAILY LIFE. DX CONTACTS WITH DISTANT STATIONS ARE PARTICULARLY THRILLING. THE THRILL OF HEARING A WEAK SIGNAL FROM FAR AWAY IS UNFORGETTABLE. OPERATING PORTABLE FROM MOUNTAINTOPS OR PARKS IS ALSO FUN. YOU CAN COMBINE YOUR LOVE OF RADIO WITH OUTDOOR ACTIVITIES. AMATEUR RADIO IS MORE THAN A HOBBY IT IS A LIFELONG PASSION.'
+	},
+	{
+		id: 'text300-dialog-1',
+		category: 'text300',
+		title: '対話例1: DX交信について',
+		dialog: [
+			{ side: 'A', text: 'HAVE YOU MADE ANY DX CONTACTS RECENTLY' },
+			{ side: 'B', text: 'YES I WORKED A STATION IN NEW ZEALAND LAST WEEK' },
+			{ side: 'A', text: 'THAT IS FANTASTIC WHAT BAND WERE YOU ON' },
+			{ side: 'B', text: 'I WAS ON TWENTY METERS THE CONDITIONS WERE EXCELLENT' },
+			{ side: 'A', text: 'WHAT WAS YOUR SIGNAL REPORT' },
+			{ side: 'B', text: 'I GOT FIVE NINE NINE WHICH WAS SURPRISING' },
+			{ side: 'A', text: 'DO YOU USE A BEAM ANTENNA' },
+			{ side: 'B', text: 'YES I HAVE A THREE ELEMENT YAGI ON A TOWER' },
+			{ side: 'A', text: 'THAT EXPLAINS THE GOOD SIGNAL' }
+		]
 	}
 ];
 
