@@ -349,7 +349,8 @@ export class ListeningTrainer {
 		//! 正解の長さを基準にすることで、正解より長い入力でも適切に採点できる。
 		const accuracy = Math.max(0, (1 - distance / correct.length) * 100);
 
-		return Math.round(accuracy);
+		//! 小数点1桁に丸めて返す。
+		return Math.round(accuracy * 10) / 10;
 	}
 
 	/**

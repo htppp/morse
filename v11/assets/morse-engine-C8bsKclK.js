@@ -48,7 +48,8 @@ const s=t.replace(/\s/g,"").toUpperCase(),i=e.replace(/\s/g,"").toUpperCase();if
 const n=this.levenshteinDistance(s,i),r=Math.max(0,100*(1-n/s.length));
 //! 正答率 = (1 - (編集距離 / 正解の長さ)) * 100
 //! 正解の長さを基準にすることで、正解より長い入力でも適切に採点できる。
-return Math.round(r)}static isPassed(t,e=90){return t>=e}static getTemplateCounts(){return{qso:T.length,text100:S.length,text200:I.length,text300:g.length}}static getTotalTemplateCount(){return T.length+S.length+I.length+g.length}}class R{static shuffleCards(t){const e=[...t];for(let s=e.length-1;s>0;s--){const t=Math.floor(Math.random()*(s+1));[e[s],e[t]]=[e[t],e[s]]}return e}static generateExamQuestions(t,e,s){if(0===t.length)return[];const i=Math.min(s,t.length);return this.shuffleCards(t).slice(0,i).map(s=>this.createQuestion(s,t,e))}static createQuestion(t,e,s){
+//! 小数点1桁に丸めて返す。
+return Math.round(10*r)/10}static isPassed(t,e=90){return t>=e}static getTemplateCounts(){return{qso:T.length,text100:S.length,text200:I.length,text300:g.length}}static getTotalTemplateCount(){return T.length+S.length+I.length+g.length}}class R{static shuffleCards(t){const e=[...t];for(let s=e.length-1;s>0;s--){const t=Math.floor(Math.random()*(s+1));[e[s],e[t]]=[e[t],e[s]]}return e}static generateExamQuestions(t,e,s){if(0===t.length)return[];const i=Math.min(s,t.length);return this.shuffleCards(t).slice(0,i).map(s=>this.createQuestion(s,t,e))}static createQuestion(t,e,s){
 //! 正解以外のエントリーから3つ選ぶ。
 const i=e.filter(e=>e.abbreviation!==t.abbreviation).sort(()=>Math.random()-.5).slice(0,3);let n,r;switch(s){case"abbr-to-meaning":case"morse-to-meaning":n=`${t.english} / ${t.japanese}`,r=[n,...i.map(t=>`${t.english} / ${t.japanese}`)];break;case"meaning-to-abbr":case"morse-to-abbr":n=t.abbreviation,r=[n,...i.map(t=>t.abbreviation)]}
 //! 選択肢をシャッフル。
@@ -94,4 +95,4 @@ e.addEventListener("click",t=>{t.target===e&&(this.currentValues={...this.initia
 {screens:["horizontal-key"],priority:40,key:"iambicMode",label:"Iambicモード",inputType:"select",options:[{value:"A",label:"Iambic A"},{value:"B",label:"Iambic B"}]},{screens:["horizontal-key"],priority:50,key:"paddleLayout",label:"パドルレイアウト",inputType:"select",options:[{value:"normal",label:"標準（左=dit / 右=dah）"},{value:"reversed",label:"反転（左=dah / 右=dit）"}]},{screens:["horizontal-key"],priority:60,key:"leftKeyCode",label:"左パドルキー",inputType:"keybinding",hint:"クリックしてキーを押す"},{screens:["horizontal-key"],priority:70,key:"rightKeyCode",label:"右パドルキー",inputType:"keybinding",hint:"クリックしてキーを押す"},
 //! VerticalKey専用の設定。
 {screens:["vertical-key"],priority:40,key:"keyCode",label:"キーバインド",inputType:"keybinding",hint:"クリックしてキーを押す"}];export{l as $,f as B,O as F,p as G,s as I,R as K,h as M,u as N,c as P,a as W,M as Y,o as k,i as w,r as x};
-//# sourceMappingURL=morse-engine-WP3EKFn8.js.map
+//# sourceMappingURL=morse-engine-C8bsKclK.js.map
