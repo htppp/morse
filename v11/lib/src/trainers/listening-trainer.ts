@@ -160,8 +160,8 @@ const TEXT100_TEMPLATES: ListeningTemplate[] = [
 		category: 'text100',
 		title: '対話例1: 簡単な挨拶',
 		dialog: [
-			{ side: 'A', text: 'HELLO HOW ARE YOU' },
-			{ side: 'B', text: 'I AM FINE THANK YOU AND YOU' },
+			{ side: 'A', text: 'HELLO HOW ARE YOU?' },
+			{ side: 'B', text: 'I AM FINE THANK YOU AND YOU?' },
 			{ side: 'A', text: 'I AM DOING WELL THANKS' },
 			{ side: 'B', text: 'NICE TO MEET YOU' }
 		]
@@ -198,11 +198,11 @@ const TEXT200_TEMPLATES: ListeningTemplate[] = [
 		category: 'text200',
 		title: '対話例1: 無線機器について',
 		dialog: [
-			{ side: 'A', text: 'WHAT KIND OF RIG ARE YOU USING' },
+			{ side: 'A', text: 'WHAT KIND OF RIG ARE YOU USING?' },
 			{ side: 'B', text: 'I AM USING AN ICOM IC SEVEN THREE HUNDRED' },
-			{ side: 'A', text: 'THAT IS A GREAT RADIO HOW DO YOU LIKE IT' },
+			{ side: 'A', text: 'THAT IS A GREAT RADIO HOW DO YOU LIKE IT?' },
 			{ side: 'B', text: 'I LOVE IT THE RECEIVER IS VERY SENSITIVE' },
-			{ side: 'A', text: 'WHAT ANTENNA DO YOU HAVE' },
+			{ side: 'A', text: 'WHAT ANTENNA DO YOU HAVE?' },
 			{ side: 'B', text: 'I USE A VERTICAL ANTENNA IN MY BACKYARD' }
 		]
 	}
@@ -227,13 +227,13 @@ const TEXT300_TEMPLATES: ListeningTemplate[] = [
 		category: 'text300',
 		title: '対話例1: DX交信について',
 		dialog: [
-			{ side: 'A', text: 'HAVE YOU MADE ANY DX CONTACTS RECENTLY' },
+			{ side: 'A', text: 'HAVE YOU MADE ANY DX CONTACTS RECENTLY?' },
 			{ side: 'B', text: 'YES I WORKED A STATION IN NEW ZEALAND LAST WEEK' },
-			{ side: 'A', text: 'THAT IS FANTASTIC WHAT BAND WERE YOU ON' },
+			{ side: 'A', text: 'THAT IS FANTASTIC WHAT BAND WERE YOU ON?' },
 			{ side: 'B', text: 'I WAS ON TWENTY METERS THE CONDITIONS WERE EXCELLENT' },
-			{ side: 'A', text: 'WHAT WAS YOUR SIGNAL REPORT' },
+			{ side: 'A', text: 'WHAT WAS YOUR SIGNAL REPORT?' },
 			{ side: 'B', text: 'I GOT FIVE NINE NINE WHICH WAS SURPRISING' },
-			{ side: 'A', text: 'DO YOU USE A BEAM ANTENNA' },
+			{ side: 'A', text: 'DO YOU USE A BEAM ANTENNA?' },
 			{ side: 'B', text: 'YES I HAVE A THREE ELEMENT YAGI ON A TOWER' },
 			{ side: 'A', text: 'THAT EXPLAINS THE GOOD SIGNAL' }
 		]
