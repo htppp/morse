@@ -3572,16 +3572,6 @@ body {
 	font-weight: bold;
 	padding: 2px 4px;
 	border-radius: 3px;
-	animation: pulse 0.5s ease-in-out infinite alternate;
-}
-
-@keyframes pulse {
-	from {
-		background-color: #ffeb3b;
-	}
-	to {
-		background-color: #ffc107;
-	}
 }
 
 .playing-segment {
