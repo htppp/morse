@@ -33,12 +33,15 @@ interface State {
 	currentCategory: TemplateCategory | 'custom';
 	selectedTemplate: ListeningTemplate | null;
 	isPlaying: boolean;
+	isPaused: boolean;  // 一時停止中かどうか
 	userInput: string;
 	showResult: boolean;
 	showAnswer: boolean;
 	showDialogFormat: boolean;
 	currentPlayingWordIndex: number;  // 現在再生中の単語のインデックス（-1は再生中でない）
 	currentPlayingSegmentIndex: number;  // 現在再生中のセグメントのインデックス（-1は再生中でない）
+	pausedWordIndex: number;  // 一時停止時の単語インデックス（-1は停止状態）
+	pausedSegmentIndex: number;  // 一時停止時のセグメントインデックス（-1は停止状態）
 }
 
 /**
@@ -53,12 +56,15 @@ export class ListeningView implements View {
 		currentCategory: 'qso',
 		selectedTemplate: null,
 		isPlaying: false,
+		isPaused: false,
 		userInput: '',
 		showResult: false,
 		showAnswer: false,
 		showDialogFormat: false,
 		currentPlayingWordIndex: -1,
-		currentPlayingSegmentIndex: -1
+		currentPlayingSegmentIndex: -1,
+		pausedWordIndex: -1,
+		pausedSegmentIndex: -1
 	};
 
 	private customTemplates: ListeningTemplate[] = [];
@@ -179,18 +185,29 @@ export class ListeningView implements View {
 		if (!this.state.selectedTemplate || this.state.isPlaying) return;
 
 		this.state.isPlaying = true;
+		this.state.isPaused = false;
 		this.updatePlaybackButtons();
 
 		try {
 			//! テンプレートに応じて再生（dialogがあればA/B交互、なければcontentを再生）。
 			if (this.state.selectedTemplate.dialog && this.state.selectedTemplate.dialog.length > 0) {
 				//! 対話形式で再生（A側とB側を交互に再生）。
-				await this.playDialogQSO(this.state.selectedTemplate);
+				//! 一時停止位置から再開する場合は、その位置から開始。
+				const startSegmentIndex = this.state.pausedSegmentIndex >= 0 ? this.state.pausedSegmentIndex : 0;
+				const startWordIndex = this.state.pausedWordIndex >= 0 ? this.state.pausedWordIndex : 0;
+				await this.playDialogQSO(this.state.selectedTemplate, startSegmentIndex, startWordIndex);
 			} else if (this.state.selectedTemplate.content) {
 				//! 通常モードで再生（単語単位でA側で再生）。
-				await this.playTextWordByWord(this.state.selectedTemplate.content, this.audio);
+				//! 一時停止位置から再開する場合は、その位置から開始。
+				const startWordIndex = this.state.pausedWordIndex >= 0 ? this.state.pausedWordIndex : 0;
+				await this.playTextWordByWord(this.state.selectedTemplate.content, this.audio, startWordIndex);
 			}
 		} finally {
+			//! 再生完了時は一時停止位置をクリア。
+			if (!this.state.isPaused) {
+				this.state.pausedWordIndex = -1;
+				this.state.pausedSegmentIndex = -1;
+			}
 			this.state.isPlaying = false;
 			this.updatePlaybackButtons();
 		}
@@ -213,20 +230,27 @@ export class ListeningView implements View {
 	 * 各単語の再生前に停止フラグをチェックし、停止が要求されていれば中断する
 	 * @param text - 再生するテキスト
 	 * @param generator - 使用するAudioGenerator
+	 * @param startWordIndex - 開始する単語のインデックス（デフォルト: 0）
 	 */
-	private async playTextWordByWord(text: string, generator: AudioGenerator): Promise<void> {
+	private async playTextWordByWord(text: string, generator: AudioGenerator, startWordIndex: number = 0): Promise<void> {
 		//! テキストを単語に分割（空白文字で分割）。
 		const words = text.trim().split(/\s+/).filter(w => w.length > 0);
 
 		//! どちらのgeneratorか識別。
 		const generatorName = generator === this.audio ? 'A' : 'B';
 
-		//! 各単語を順番に再生。
-		for (let i = 0; i < words.length; i++) {
+		//! 各単語を順番に再生（開始位置から）。
+		for (let i = startWordIndex; i < words.length; i++) {
 			//! 停止フラグをチェック。
 			if (!this.state.isPlaying) {
-				this.state.currentPlayingWordIndex = -1;
-				this.renderAnswer();
+				//! 一時停止の場合は、次の単語のインデックスを保存。
+				if (this.state.isPaused) {
+					this.state.pausedWordIndex = i;
+					//! 一時停止時は現在の単語表示を維持。
+				} else {
+					this.state.currentPlayingWordIndex = -1;
+					this.renderAnswer();
+				}
 				return;
 			}
 
@@ -252,9 +276,11 @@ export class ListeningView implements View {
 			}
 		}
 
-		//! 再生完了後、インデックスをリセット。
-		this.state.currentPlayingWordIndex = -1;
-		this.renderAnswer();
+		//! 再生完了後、インデックスをリセット（一時停止でない場合のみ）。
+		if (!this.state.isPaused) {
+			this.state.currentPlayingWordIndex = -1;
+			this.renderAnswer();
+		}
 	}
 
 	/**
@@ -262,22 +288,30 @@ export class ListeningView implements View {
 	 * A側とB側を交互に異なる周波数で再生
 	 * 単語単位で再生し、途中で停止可能
 	 * @param template - 再生するテンプレート
+	 * @param startSegmentIndex - 開始するセグメントのインデックス（デフォルト: 0）
+	 * @param startWordIndex - 開始する単語のインデックス（デフォルト: 0）
 	 */
-	private async playDialogQSO(template: ListeningTemplate): Promise<void> {
+	private async playDialogQSO(template: ListeningTemplate, startSegmentIndex: number = 0, startWordIndex: number = 0): Promise<void> {
 		//! dialogがない場合（テキストカテゴリ）はcontentを再生。
 		if (!template.dialog || template.dialog.length === 0) {
 			if (template.content) {
-				await this.playTextWordByWord(template.content, this.audio);
+				await this.playTextWordByWord(template.content, this.audio, startWordIndex);
 			}
 			return;
 		}
 
-		//! 各セグメントを交互にA側とB側で再生。
-		for (let i = 0; i < template.dialog.length; i++) {
+		//! 各セグメントを交互にA側とB側で再生（開始位置から）。
+		for (let i = startSegmentIndex; i < template.dialog.length; i++) {
 			//! 停止フラグをチェック。
 			if (!this.state.isPlaying) {
-				this.state.currentPlayingSegmentIndex = -1;
-				this.renderAnswer();
+				//! 一時停止の場合は、セグメントインデックスを保存。
+				if (this.state.isPaused) {
+					this.state.pausedSegmentIndex = i;
+					//! 一時停止時は現在のセグメント表示を維持。
+				} else {
+					this.state.currentPlayingSegmentIndex = -1;
+					this.renderAnswer();
+				}
 				return;
 			}
 
@@ -291,7 +325,14 @@ export class ListeningView implements View {
 			console.log(`[DEBUG] Segment ${i}: side=${segment.side}, text="${segment.text.substring(0, 50)}..."`);
 
 			//! セグメントのテキストを単語単位で再生。
-			await this.playTextWordByWord(segment.text, generator);
+			//! 最初のセグメントの場合は、startWordIndexから開始。
+			const wordStartIndex = (i === startSegmentIndex) ? startWordIndex : 0;
+			await this.playTextWordByWord(segment.text, generator, wordStartIndex);
+
+			//! 一時停止された場合は、ここで終了。
+			if (!this.state.isPlaying) {
+				return;
+			}
 
 			//! セグメント間に短い間隔を入れる。
 			if (i < template.dialog.length - 1 && this.state.isPlaying) {
@@ -299,15 +340,19 @@ export class ListeningView implements View {
 			}
 		}
 
-		//! 再生完了後、インデックスをリセット。
-		this.state.currentPlayingSegmentIndex = -1;
-		this.renderAnswer();
+		//! 再生完了後、インデックスをリセット（一時停止でない場合のみ）。
+		if (!this.state.isPaused) {
+			this.state.currentPlayingSegmentIndex = -1;
+			this.renderAnswer();
+		}
 	}
 
 	private pauseMorse(): void {
 		this.audio.stopPlaying();
 		this.audioB.stopPlaying();
 		this.state.isPlaying = false;
+		this.state.isPaused = true;
+		//! 一時停止時は単語強調表示を維持（currentPlayingWordIndexはそのまま）。
 		this.updatePlaybackButtons();
 	}
 
@@ -315,7 +360,15 @@ export class ListeningView implements View {
 		this.audio.stopPlaying();
 		this.audioB.stopPlaying();
 		this.state.isPlaying = false;
+		this.state.isPaused = false;
+		//! 停止時は一時停止位置をクリア。
+		this.state.pausedWordIndex = -1;
+		this.state.pausedSegmentIndex = -1;
+		//! 停止時は単語強調表示もクリア。
+		this.state.currentPlayingWordIndex = -1;
+		this.state.currentPlayingSegmentIndex = -1;
 		this.updatePlaybackButtons();
+		this.renderAnswer();
 	}
 
 
@@ -835,6 +888,11 @@ export class ListeningView implements View {
 						this.state.showAnswer = false;
 						this.state.showDialogFormat = false;
 						this.state.userInput = '';
+						this.state.isPaused = false;
+						this.state.pausedWordIndex = -1;
+						this.state.pausedSegmentIndex = -1;
+						this.state.currentPlayingWordIndex = -1;
+						this.state.currentPlayingSegmentIndex = -1;
 						this.render();
 						this.renderPracticeArea();
 					} else {
@@ -847,6 +905,11 @@ export class ListeningView implements View {
 							this.state.showAnswer = false;
 							this.state.showDialogFormat = false;
 							this.state.userInput = '';
+							this.state.isPaused = false;
+							this.state.pausedWordIndex = -1;
+							this.state.pausedSegmentIndex = -1;
+							this.state.currentPlayingWordIndex = -1;
+							this.state.currentPlayingSegmentIndex = -1;
 							this.render();
 							this.renderPracticeArea();
 						}
@@ -862,6 +925,11 @@ export class ListeningView implements View {
 			this.state.showAnswer = false;
 			this.state.showDialogFormat = false;
 			this.state.userInput = '';
+			this.state.isPaused = false;
+			this.state.pausedWordIndex = -1;
+			this.state.pausedSegmentIndex = -1;
+			this.state.currentPlayingWordIndex = -1;
+			this.state.currentPlayingSegmentIndex = -1;
 			this.audio.stopPlaying();
 			this.audioB.stopPlaying();
 			this.render();
