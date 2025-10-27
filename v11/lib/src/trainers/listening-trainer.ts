@@ -284,7 +284,51 @@ export class ListeningTrainer {
 	}
 
 	/**
+	 * レーベンシュタイン距離（編集距離）を計算する
+	 * @param str1 - 比較する文字列1
+	 * @param str2 - 比較する文字列2
+	 * @returns 編集距離
+	 */
+	private static levenshteinDistance(str1: string, str2: string): number {
+		const len1 = str1.length;
+		const len2 = str2.length;
+
+		//! 動的計画法用の2次元配列を作成。
+		const dp: number[][] = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+
+		//! 初期化: str1の各文字を削除するコスト。
+		for (let i = 0; i <= len1; i++) {
+			dp[i][0] = i;
+		}
+
+		//! 初期化: str2の各文字を挿入するコスト。
+		for (let j = 0; j <= len2; j++) {
+			dp[0][j] = j;
+		}
+
+		//! 動的計画法で編集距離を計算。
+		for (let i = 1; i <= len1; i++) {
+			for (let j = 1; j <= len2; j++) {
+				if (str1[i - 1] === str2[j - 1]) {
+					//! 文字が一致する場合、コストは増えない。
+					dp[i][j] = dp[i - 1][j - 1];
+				} else {
+					//! 文字が一致しない場合、挿入・削除・置換の最小コストを選択。
+					dp[i][j] = Math.min(
+						dp[i - 1][j] + 1,     // 削除
+						dp[i][j - 1] + 1,     // 挿入
+						dp[i - 1][j - 1] + 1  // 置換
+					);
+				}
+			}
+		}
+
+		return dp[len1][len2];
+	}
+
+	/**
 	 * 正答率を計算する
+	 * レーベンシュタイン距離を使用して、挿入・削除・置換を適切に扱う
 	 * @param correctAnswer - 正解の文字列
 	 * @param userInput - ユーザー入力の文字列
 	 * @returns 正答率（0-100）
@@ -295,18 +339,17 @@ export class ListeningTrainer {
 		//! 空白を除去して大文字化して比較。
 		const correct = correctAnswer.replace(/\s/g, '').toUpperCase();
 		const input = userInput.replace(/\s/g, '').toUpperCase();
-		const maxLen = Math.max(correct.length, input.length);
 
-		if (maxLen === 0) return 0;
+		if (correct.length === 0) return 0;
 
-		let matches = 0;
-		for (let i = 0; i < maxLen; i++) {
-			if (correct[i] === input[i]) {
-				matches++;
-			}
-		}
+		//! レーベンシュタイン距離を計算。
+		const distance = this.levenshteinDistance(correct, input);
 
-		return Math.round((matches / maxLen) * 100);
+		//! 正答率 = (1 - (編集距離 / 正解の長さ)) * 100
+		//! 正解の長さを基準にすることで、正解より長い入力でも適切に採点できる。
+		const accuracy = Math.max(0, (1 - distance / correct.length) * 100);
+
+		return Math.round(accuracy);
 	}
 
 	/**
